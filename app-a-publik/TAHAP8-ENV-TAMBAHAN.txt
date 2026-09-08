@@ -1,0 +1,31 @@
+TAHAP 8 — Tambahan .env.local (App A)
+======================================
+
+File .env.local tidak bisa ditulis otomatis oleh alat remote — jadi tinggal
+SATU langkah manual: salin 1 baris di bawah ini ke akhir file .env.local
+kamu di folder app-a-publik/ (bukan menggantikan isi yang sudah ada, cuma
+menambahkan di baris baru paling bawah).
+
+Nilai ini dibuatkan otomatis (secret acak, dipakai untuk menjaga endpoint
+retensi data supaya tidak bisa dipicu sembarang orang) — tidak perlu daftar
+akun/layanan pihak ketiga apa pun.
+
+------------------------------------------------------------------
+RETENSI_CRON_SECRET=1-G4JPlNfAHCPyAxAYTHL8fQLe6DUSq8FXgv1XTmklk
+------------------------------------------------------------------
+
+Dipakai oleh: app/api/retensi/route.ts — endpoint yang menjalankan retensi
+data otomatis (tutup/hapus tiket lama). Kalau kamu nanti setup cron eksternal
+(mis. cron-job.org atau Vercel Cron) untuk memanggil endpoint ini secara
+berkala, header request-nya harus:
+
+  Authorization: Bearer 1-G4JPlNfAHCPyAxAYTHL8fQLe6DUSq8FXgv1XTmklk
+
+Kalau belum sempat setup cron eksternal, tidak masalah — ada tombol
+"Jalankan Sekarang" di halaman /pengaturan (App B) untuk menjalankannya
+manual kapan saja. Retensi juga default MATI sampai kamu aktifkan sendiri
+dari /pengaturan, jadi tidak akan menghapus apa-apa tanpa sengaja.
+
+Setelah baris di atas ditambahkan ke .env.local, restart `npm run dev` (env
+baru cuma kebaca kalau server di-restart). File ini boleh dihapus setelah
+selesai — bukan bagian dari kode aplikasi, cuma catatan setup sekali ini.

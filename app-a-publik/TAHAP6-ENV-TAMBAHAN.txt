@@ -1,0 +1,20 @@
+TAHAP 6 — Tambahan .env.local (App A)
+======================================
+
+File .env.local tidak bisa ditulis otomatis oleh alat remote — jadi tinggal
+SATU langkah manual: salin 3 baris di bawah ini ke akhir file .env.local
+kamu di folder app-a-publik/ (bukan menggantikan isi yang sudah ada, cuma
+menambahkan di baris baru paling bawah).
+
+Kunci ini sudah dibuatkan otomatis (VAPID keypair untuk Web Push) — tidak
+perlu daftar akun/layanan pihak ketiga apa pun.
+
+------------------------------------------------------------------
+NEXT_PUBLIC_VAPID_PUBLIC_KEY=BFq7SvIj7vqaSFgH4lMebbObOZRi-qLGuLrbSa8oK67wJaMPQ_wB4jfbqSfwvsF9S7VVev_mzGBzLsy2kY6nNmU
+VAPID_PRIVATE_KEY=gJEp2_8LUT1-L6Srx2J5JvaKQEf55b4mjFTAWI41LW8
+VAPID_SUBJECT=mailto:dikyridho05@gmail.com
+------------------------------------------------------------------
+
+Setelah ditambahkan, restart `npm run dev` (env baru cuma kebaca kalau
+server di-restart). File ini boleh dihapus setelah selesai — bukan bagian
+dari kode aplikasi, cuma catatan setup sekali ini.

@@ -1,0 +1,19 @@
+rules_version = '2';
+
+// Ruang Aman BK — Firestore Security Rules
+//
+// Arsitektur: App A & App B TIDAK PERNAH baca/tulis Firestore langsung
+// dari client. Semua operasi lewat Next.js Server Actions yang jalan di
+// server dan pakai Firebase Admin SDK — Admin SDK secara desain BYPASS
+// rules ini sepenuhnya.
+//
+// Maka rules di bawah cukup menutup total akses langsung dari client SDK,
+// sebagai lapisan pertahanan kalau suatu saat ada kode client yang
+// (sengaja/tidak sengaja) mencoba akses Firestore langsung.
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
