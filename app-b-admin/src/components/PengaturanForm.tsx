@@ -22,10 +22,27 @@ export default function PengaturanForm({
     null
   );
 
+  const MAX_LOGO_BYTES = 300 * 1024;
+
   function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
 
+    // Cek ukuran DI SINI juga (bukan cuma di server) — file foto dari HP
+    // gampang beberapa MB, dan request sebesar itu bisa gagal di tengah
+    // jalan sebelum sempat divalidasi server (lihat bug tombol nyangkut di
+    // bawah). Lebih baik langsung kasih tahu & batalkan pemilihan file,
+    // daripada nunggu upload lambat cuma buat gagal di akhir.
+    if (file.size > MAX_LOGO_BYTES) {
+      setMessage({
+        type: "error",
+        text: `Ukuran logo ${(file.size / 1024).toFixed(0)} KB, melebihi batas 300 KB. Pilih file lain atau perkecil dulu.`,
+      });
+      if (fileInputRef.current) fileInputRef.current.value = "";
+      return;
+    }
+
+    setMessage(null);
     const reader = new FileReader();
     reader.onload = () => setPreview(reader.result as string);
     reader.readAsDataURL(file);
@@ -37,17 +54,30 @@ export default function PengaturanForm({
     setMessage(null);
 
     const formData = new FormData(e.currentTarget);
-    const result = await updateSekolahSettingsAction(formData);
-    setSaving(false);
 
-    if (!result.success) {
-      setMessage({ type: "error", text: result.error ?? "Gagal menyimpan." });
-      return;
+    try {
+      const result = await updateSekolahSettingsAction(formData);
+
+      if (!result.success) {
+        setMessage({ type: "error", text: result.error ?? "Gagal menyimpan." });
+        return;
+      }
+
+      setMessage({ type: "success", text: "Pengaturan berhasil disimpan." });
+      if (fileInputRef.current) fileInputRef.current.value = "";
+      router.refresh();
+    } catch {
+      // Sebelumnya: kalau baris di atas gagal (koneksi putus, request
+      // ditolak server karena kebesaran, dll), tombol "Menyimpan..." nyangkut
+      // selamanya karena tidak ada try/catch — setSaving(false) di bawah
+      // tidak pernah kejalan. Ini yang bikin tombolnya "tidak bisa" dipakai.
+      setMessage({
+        type: "error",
+        text: "Gagal menyimpan — coba lagi. Kalau logonya berukuran besar, coba perkecil dulu.",
+      });
+    } finally {
+      setSaving(false);
     }
-
-    setMessage({ type: "success", text: "Pengaturan berhasil disimpan." });
-    if (fileInputRef.current) fileInputRef.current.value = "";
-    router.refresh();
   }
 
   return (
