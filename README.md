@@ -198,7 +198,7 @@ Alur status tiket: `baru` → (Guru BK buka tiket) → `dibaca` → (Guru BK bal
 (Guru BK tandai selesai) → `selesai`.
 
 Sudah dibuatkan juga 1 akun **Guru BK contoh** untuk testing langsung (lewat Firebase Console):
-- Firebase Authentication: `gurubk.test@ruangamanbk.local` / `TestGuruBK2026!`
+- Firebase Authentication: `gurubk.test@ruangamanbk.local` / `(sudah diganti, cek Firebase Console)`
 - Dokumen Firestore `guru/{uid}`: `{ nama: "Guru BK Test", email: "gurubk.test@ruangamanbk.local", aktif: true }`
 
 **Ganti/hapus akun ini nanti** setelah TAHAP 5 (App B) selesai dan kamu bisa kelola akun Guru BK
@@ -245,7 +245,7 @@ deny-all tidak perlu diubah sama sekali. Logo tetap disimpan base64 di dokumen F
 (bukan Firebase Storage), konsisten dengan keputusan di TAHAP 3.
 
 Sudah dibuatkan juga akun **Super Admin** sungguhan untuk kamu pakai (lewat Firebase Console):
-- Firebase Authentication: `dikyridho05@gmail.com` / `j5YZoQWxIpnl71!`
+- Firebase Authentication: `dikyridho05@gmail.com` / `(sudah diganti, cek Firebase Console)`
 - Dokumen Firestore `admins/{uid}`: `{ nama: "Super Admin", email: "dikyridho05@gmail.com", aktif: true }`
 
 **Segera login lalu ganti password ini** (lewat Firebase Console → Authentication → klik akunnya
