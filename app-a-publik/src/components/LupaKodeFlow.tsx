@@ -32,8 +32,11 @@ export default function LupaKodeFlow() {
 
   if (hasil) {
     return (
-      <div className="mx-auto max-w-md px-4 py-8">
-        <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-6 text-center">
+      // min-h-dvh + items-center: sama seperti cabang form di bawah, kartu
+      // hasil ini juga sebelumnya nempel ke atas dengan ruang kosong besar
+      // di bawah pada HP tinggi.
+      <div className="flex min-h-dvh flex-col items-center justify-center px-4 py-8">
+        <div role="status" aria-live="polite" className="w-full max-w-md rounded-2xl border border-emerald-200 bg-emerald-50 p-6 text-center">
           <p className="text-3xl" aria-hidden>
             🔑
           </p>
@@ -67,10 +70,13 @@ export default function LupaKodeFlow() {
   }
 
   return (
-    <div className="mx-auto max-w-md px-4 py-8">
+    // flex + min-h-dvh + justify-center: kartu form ini sebelumnya cuma
+    // mx-auto (center horizontal) tanpa center vertikal, jadi nempel ke
+    // atas dengan sisa ruang kosong besar di bawah pada HP tinggi.
+    <div className="flex min-h-dvh flex-col items-center justify-center px-4 py-8">
       <form
         onSubmit={handleSubmit}
-        className="space-y-4 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm"
+        className="w-full max-w-md space-y-4 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm"
       >
         <div>
           <h1 className="text-xl font-bold text-slate-900">Lupa Kode Konseling</h1>
@@ -81,7 +87,11 @@ export default function LupaKodeFlow() {
         </div>
 
         {error && (
-          <div className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+          <div
+            role="alert"
+            aria-live="assertive"
+            className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700"
+          >
             {error}
           </div>
         )}

@@ -8,7 +8,11 @@ export const EMERGENCY_CONTACTS = [
     nama: "Sejiwa — Layanan Sehat Jiwa",
     deskripsi: "Dukungan psikologis & pencegahan bunuh diri, 24 jam.",
     telepon: "119 ext 8",
-    hrefTelepon: "tel:119",
+    // Sebelumnya cuma "tel:119" — sampai di 119 tapi tidak pernah otomatis
+    // masuk ke ekstensi 8 (Sejiwa), siswa harus tahu sendiri untuk menekan
+    // "8" manual setelah tersambung. Koma di sini artinya jeda lalu kirim
+    // nada DTMF "8" otomatis — didukung luas di dialer Android & iOS.
+    hrefTelepon: "tel:119,8",
   },
   {
     nama: "SAPA 129",

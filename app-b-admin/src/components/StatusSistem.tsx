@@ -35,6 +35,26 @@ export default function StatusSistem({ status }: { status: SistemStatus }) {
         )}
       </div>
 
+      {/* Sebelumnya kegagalan retensi cuma tampil sebagai badge kecil di
+          baris judul (di atas) — bobot visualnya SAMA dengan tiga kotak
+          statistik rutin di bawah, padahal ini satu-satunya info di
+          dashboard yang benar-benar butuh perhatian & tindakan Super Admin.
+          Ditambahkan banner merah menonjol di sini supaya jelas lebih
+          penting daripada kotak-kotak statistik rutin. */}
+      {retensiTerakhir && !retensiTerakhir.sukses && (
+        <div
+          role="alert"
+          aria-live="assertive"
+          className="mb-3 rounded-2xl border-2 border-red-300 bg-red-50 p-4"
+        >
+          <p className="font-bold text-red-800">⚠️ Retensi otomatis terakhir gagal</p>
+          <p className="mt-1 text-sm text-red-700">
+            {retensiTerakhir.pesanError ?? "Tidak ada detail error yang tercatat."} Periksa Audit
+            Log untuk detail lengkap.
+          </p>
+        </div>
+      )}
+
       <div className="grid gap-3 sm:grid-cols-3">
         <div className="rounded-2xl bg-teal-50 p-4">
           <div className="flex items-start justify-between">

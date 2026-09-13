@@ -24,7 +24,7 @@ export default function PasswordField({
           name={name}
           type={visible ? "text" : "password"}
           required
-          minLength={6}
+          minLength={8}
           maxLength={72}
           autoComplete="new-password"
           className="w-full rounded-xl px-3 py-2 text-sm outline-none"

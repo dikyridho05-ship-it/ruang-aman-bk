@@ -12,7 +12,11 @@ export default async function StatistikPage() {
   const data = await getStatistikCurhatan();
 
   return (
-    <main className="mx-auto max-w-3xl">
+    /* max-w-2xl — disamakan dengan halaman App B lainnya (Akun Guru BK,
+       Jadwal Piket, dll). Sebelumnya halaman ini satu-satunya yang pakai
+       max-w-3xl, jadi lebar konten desktop terasa tidak konsisten saat
+       pindah antar halaman. */
+    <main className="mx-auto max-w-2xl">
       <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
         <div>
           <h1 className="text-xl font-bold text-slate-900">Statistik &amp; Laporan</h1>

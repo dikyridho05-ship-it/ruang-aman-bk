@@ -8,6 +8,7 @@ import {
   deleteTemplateAction,
 } from "@/actions/template";
 import type { TemplateBalasan } from "@/types/admin";
+import ConfirmDialog from "@/components/ConfirmDialog";
 
 export default function TemplateBalasanManager({ initial }: { initial: TemplateBalasan[] }) {
   const router = useRouter();
@@ -18,6 +19,10 @@ export default function TemplateBalasanManager({ initial }: { initial: TemplateB
   const [saving, setSaving] = useState(false);
   const [pendingId, setPendingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  // window.confirm() sebelumnya dipanggil langsung di handleDelete — diganti
+  // modal custom (ConfirmDialog) biar konsisten secara visual dengan modal
+  // lain di app. confirmTarget = template yang menunggu konfirmasi hapus.
+  const [confirmTarget, setConfirmTarget] = useState<TemplateBalasan | null>(null);
 
   function startAdd() {
     setEditing(null);
@@ -55,14 +60,15 @@ export default function TemplateBalasanManager({ initial }: { initial: TemplateB
     router.refresh();
   }
 
-  async function handleDelete(t: TemplateBalasan) {
-    const confirmed = window.confirm(`Hapus template "${t.judul}"? Tindakan ini tidak bisa dibatalkan.`);
-    if (!confirmed) return;
+  async function handleConfirmDelete() {
+    if (!confirmTarget) return;
+    const t = confirmTarget;
 
     setPendingId(t.id);
     setError(null);
     const result = await deleteTemplateAction(t.id, t.judul);
     setPendingId(null);
+    setConfirmTarget(null);
 
     if (!result.success) {
       setError(result.error ?? "Gagal menghapus.");
@@ -74,7 +80,11 @@ export default function TemplateBalasanManager({ initial }: { initial: TemplateB
   return (
     <div className="space-y-4">
       {error && (
-        <div className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+        <div
+          role="alert"
+          aria-live="assertive"
+          className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700"
+        >
           {error}
         </div>
       )}
@@ -170,7 +180,7 @@ export default function TemplateBalasanManager({ initial }: { initial: TemplateB
                   </button>
                   <button
                     type="button"
-                    onClick={() => handleDelete(t)}
+                    onClick={() => setConfirmTarget(t)}
                     disabled={pendingId === t.id}
                     className="rounded-lg border border-red-200 px-2.5 py-1.5 text-xs font-medium text-red-600 disabled:opacity-50"
                   >
@@ -182,6 +192,19 @@ export default function TemplateBalasanManager({ initial }: { initial: TemplateB
           ))}
         </ul>
       )}
+
+      <ConfirmDialog
+        open={confirmTarget !== null}
+        title="Hapus template balasan?"
+        description={
+          confirmTarget
+            ? `Hapus template "${confirmTarget.judul}"? Tindakan ini tidak bisa dibatalkan.`
+            : ""
+        }
+        pending={pendingId === confirmTarget?.id}
+        onConfirm={handleConfirmDelete}
+        onCancel={() => setConfirmTarget(null)}
+      />
     </div>
   );
 }

@@ -89,7 +89,11 @@ function SuccessScreen({ kode }: { kode: string }) {
   };
 
   return (
-    <div className="mx-auto max-w-md rounded-2xl border border-emerald-200 bg-emerald-50 p-6 text-center shadow-sm">
+    <div
+      role="status"
+      aria-live="polite"
+      className="mx-auto max-w-md rounded-2xl border border-emerald-200 bg-emerald-50 p-6 text-center shadow-sm"
+    >
       <p className="text-3xl" aria-hidden>
         ✅
       </p>
@@ -194,7 +198,11 @@ function CurhatFormFields({
       </div>
 
       {error && (
-        <div className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+        <div
+          role="alert"
+          aria-live="assertive"
+          className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700"
+        >
           {error}
         </div>
       )}
@@ -273,7 +281,12 @@ function CurhatFormFields({
           rows={6}
           onChange={(e) => setIsiLength(e.target.value.length)}
           placeholder="Ceritakan apa yang terjadi dan apa yang kamu rasakan..."
-          className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-brand-500"
+          // pb ekstra di bawah supaya sudut kanan-bawah textarea (tempat
+          // penghitung karakter berada) punya jarak aman dari tombol
+          // "Butuh Bantuan Segera?" yang fixed di pojok layar — sebelumnya
+          // tombol itu menimpa langsung area ini, ganggu saat menulis
+          // curhat panjang di HP. Lihat juga EmergencyButton.tsx.
+          className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 pb-16 text-sm outline-none focus:ring-2 focus:ring-brand-500 sm:pb-2"
         />
         <p className="mt-1 text-right text-xs text-slate-400">{isiLength}/3000</p>
       </div>

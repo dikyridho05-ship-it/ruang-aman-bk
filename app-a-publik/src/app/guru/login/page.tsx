@@ -57,7 +57,11 @@ export default function GuruLoginPage() {
         </div>
 
         {error && (
-          <div className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+          <div
+            role="alert"
+            aria-live="assertive"
+            className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700"
+          >
             {error}
           </div>
         )}

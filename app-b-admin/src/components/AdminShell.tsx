@@ -36,7 +36,7 @@ export default function AdminShell({
           biar konten paling bawah halaman tidak ketutup. Di sm+ navigasi itu
           disembunyikan lagi jadi padding-nya balik normal. */}
       <div className="min-w-0 flex-1 overflow-x-hidden px-4 py-6 pb-24 sm:px-8 sm:py-8 sm:pb-8">
-        <AdminTopbar nama={admin?.nama ?? "Super Admin"} />
+        <AdminTopbar nama={admin?.nama ?? "Super Admin"} pathname={pathname} />
         {children}
       </div>
     </div>

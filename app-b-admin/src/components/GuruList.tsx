@@ -4,11 +4,17 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { setGuruAktifAction, deleteGuruAction } from "@/actions/guru";
 import type { GuruAccount } from "@/types/admin";
+import ConfirmDialog from "@/components/ConfirmDialog";
 
 export default function GuruList({ guru }: { guru: GuruAccount[] }) {
   const router = useRouter();
   const [pendingUid, setPendingUid] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  // Sebelumnya window.confirm() langsung di sini — diganti dengan modal
+  // custom (ConfirmDialog) di bawah supaya gaya visualnya konsisten
+  // dengan modal lain di app. confirmTarget menyimpan akun yang MENUNGGU
+  // konfirmasi hapus, null berarti dialog tertutup.
+  const [confirmTarget, setConfirmTarget] = useState<GuruAccount | null>(null);
 
   async function handleToggle(g: GuruAccount) {
     setPendingUid(g.uid);
@@ -22,16 +28,15 @@ export default function GuruList({ guru }: { guru: GuruAccount[] }) {
     router.refresh();
   }
 
-  async function handleDelete(g: GuruAccount) {
-    const confirmed = window.confirm(
-      `Hapus akun Guru BK "${g.nama}" (${g.email})? Tindakan ini tidak bisa dibatalkan.`
-    );
-    if (!confirmed) return;
+  async function handleConfirmDelete() {
+    if (!confirmTarget) return;
+    const g = confirmTarget;
 
     setPendingUid(g.uid);
     setError(null);
     const result = await deleteGuruAction(g.uid, g.nama);
     setPendingUid(null);
+    setConfirmTarget(null);
     if (!result.success) {
       setError(result.error ?? "Gagal menghapus akun.");
       return;
@@ -50,7 +55,11 @@ export default function GuruList({ guru }: { guru: GuruAccount[] }) {
   return (
     <div className="space-y-2">
       {error && (
-        <div className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+        <div
+          role="alert"
+          aria-live="assertive"
+          className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700"
+        >
           {error}
         </div>
       )}
@@ -85,7 +94,7 @@ export default function GuruList({ guru }: { guru: GuruAccount[] }) {
                 </button>
                 <button
                   type="button"
-                  onClick={() => handleDelete(g)}
+                  onClick={() => setConfirmTarget(g)}
                   disabled={busy}
                   className="rounded-lg border border-red-200 px-2.5 py-1.5 text-xs font-medium text-red-600 disabled:opacity-50"
                 >
@@ -96,6 +105,19 @@ export default function GuruList({ guru }: { guru: GuruAccount[] }) {
           );
         })}
       </ul>
+
+      <ConfirmDialog
+        open={confirmTarget !== null}
+        title="Hapus akun Guru BK?"
+        description={
+          confirmTarget
+            ? `Hapus akun Guru BK "${confirmTarget.nama}" (${confirmTarget.email})? Tindakan ini tidak bisa dibatalkan.`
+            : ""
+        }
+        pending={pendingUid === confirmTarget?.uid}
+        onConfirm={handleConfirmDelete}
+        onCancel={() => setConfirmTarget(null)}
+      />
     </div>
   );
 }

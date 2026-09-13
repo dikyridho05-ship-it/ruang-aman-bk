@@ -66,6 +66,8 @@ export default function RetensiForm({ initial }: { initial: RetensiSettings }) {
 
       {message && (
         <div
+          role={message.type === "success" ? "status" : "alert"}
+          aria-live={message.type === "success" ? "polite" : "assertive"}
           className={`rounded-xl border p-3 text-sm ${
             message.type === "success"
               ? "border-emerald-200 bg-emerald-50 text-emerald-700"

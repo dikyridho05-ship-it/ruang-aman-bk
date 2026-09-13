@@ -18,7 +18,11 @@ export default async function GuruBkPage() {
       <h1 className="mb-4 text-xl font-bold text-slate-900">Akun Guru BK</h1>
 
       {!result.success && (
-        <div className="mb-4 rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+        <div
+          role="alert"
+          aria-live="assertive"
+          className="mb-4 rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700"
+        >
           {result.error}
         </div>
       )}

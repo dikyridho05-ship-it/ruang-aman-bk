@@ -63,13 +63,20 @@ export default function CekBalasanFlow() {
   }
 
   return (
-    <div className="mx-auto max-w-md space-y-4 px-4 py-8">
-      <TiketTersimpan onPilih={(k) => setKode(k)} />
+    // flex + min-h-dvh + justify-center di sini (bukan cuma mx-auto seperti
+    // sebelumnya) supaya kartu form ini berada di TENGAH layar secara
+    // vertikal juga, tidak nempel ke atas dengan sisa ruang kosong besar di
+    // bawah — terutama kelihatan di HP tinggi. Dibungkus terpisah dari
+    // cabang "verified" full-bleed di atas (yang sengaja TIDAK ikut
+    // di-center, itu memang harus satu layar penuh).
+    <div className="flex min-h-dvh flex-col items-center justify-center px-4 py-8">
+      <div className="w-full max-w-md space-y-4">
+        <TiketTersimpan onPilih={(k) => setKode(k)} />
 
-      <form
-        onSubmit={handleVerify}
-        className="space-y-4 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm"
-      >
+        <form
+          onSubmit={handleVerify}
+          className="space-y-4 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm"
+        >
         <div>
           <h1 className="text-xl font-bold text-slate-900">Cek Balasan</h1>
           <p className="text-sm text-slate-500">
@@ -78,7 +85,11 @@ export default function CekBalasanFlow() {
         </div>
 
         {error && (
-          <div className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+          <div
+            role="alert"
+            aria-live="assertive"
+            className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700"
+          >
             {error}
           </div>
         )}
@@ -119,13 +130,14 @@ export default function CekBalasanFlow() {
           {loading ? "Memeriksa..." : "Buka Percakapan"}
         </button>
 
-        <Link
-          href="/lupa-kode"
-          className="block text-center text-sm font-medium text-brand-700 underline"
-        >
-          Lupa Kode Konseling?
-        </Link>
-      </form>
+          <Link
+            href="/lupa-kode"
+            className="block text-center text-sm font-medium text-brand-700 underline"
+          >
+            Lupa Kode Konseling?
+          </Link>
+        </form>
+      </div>
     </div>
   );
 }

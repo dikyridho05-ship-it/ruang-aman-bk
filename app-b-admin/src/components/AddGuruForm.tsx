@@ -10,6 +10,7 @@ export default function AddGuruForm() {
   const [nama, setNama] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [passwordVisible, setPasswordVisible] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -63,7 +64,11 @@ export default function AddGuruForm() {
       </div>
 
       {error && (
-        <div className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+        <div
+          role="alert"
+          aria-live="assertive"
+          className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700"
+        >
           {error}
         </div>
       )}
@@ -100,17 +105,31 @@ export default function AddGuruForm() {
           <label htmlFor="password" className="block text-xs font-medium text-slate-700">
             Password Awal
           </label>
-          <input
-            id="password"
-            name="password"
-            type="text"
-            required
-            minLength={6}
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            placeholder="min. 6 karakter"
-            className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-admin-500"
-          />
+          {/* Sebelumnya type="text" — password yang baru dibuat Super Admin
+              tampil polos di layar (risiko diintip orang lain saat mengetik).
+              Disamakan dengan PasswordField.tsx di App A: default tersembunyi,
+              ada tombol "Lihat" untuk yang memang perlu memeriksa ketikannya. */}
+          <div className="mt-1 flex items-center rounded-xl border border-slate-300 bg-white pr-2 focus-within:ring-2 focus-within:ring-admin-500">
+            <input
+              id="password"
+              name="password"
+              type={passwordVisible ? "text" : "password"}
+              required
+              minLength={6}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="min. 6 karakter"
+              className="w-full rounded-xl px-3 py-2 text-sm outline-none"
+            />
+            <button
+              type="button"
+              onClick={() => setPasswordVisible((v) => !v)}
+              className="shrink-0 px-2 text-xs font-medium text-admin-700"
+              aria-label={passwordVisible ? "Sembunyikan password" : "Tampilkan password"}
+            >
+              {passwordVisible ? "Sembunyikan" : "Lihat"}
+            </button>
+          </div>
         </div>
       </div>
 

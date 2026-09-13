@@ -148,9 +148,14 @@ export default async function GuruDashboardPage({
                 }`}
               >
                 <div className="min-w-0">
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-start gap-2">
                     <span aria-hidden>{MOOD_EMOJI[t.mood]}</span>
-                    <span className="truncate font-semibold text-slate-900">{t.judul}</span>
+                    {/* line-clamp-2 (bukan truncate 1 baris) — judul asli siswa
+                        biasanya kalimat penuh dan nyaris selalu kepotong di 1
+                        baris di kartu selebar HP, padahal daftar ini alat
+                        triase utama Guru BK untuk menilai mana yang mendesak
+                        tanpa harus buka satu-satu. */}
+                    <span className="line-clamp-2 font-semibold text-slate-900">{t.judul}</span>
                   </div>
                   <p className="mt-1 text-xs text-slate-500">
                     {t.kode} &middot; {KATEGORI_CURHAT_LABEL[t.kategori]} &middot;{" "}

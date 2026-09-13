@@ -2,22 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-
-interface NavItem {
-  href: string;
-  label: string;
-  icon: string;
-}
-
-const NAV_ITEMS: NavItem[] = [
-  { href: "/", label: "Dashboard", icon: "🏠" },
-  { href: "/guru-bk", label: "Akun Guru BK", icon: "👩‍🏫" },
-  { href: "/piket", label: "Jadwal Piket", icon: "🗓️" },
-  { href: "/template-balasan", label: "Template Balasan", icon: "💬" },
-  { href: "/statistik", label: "Statistik", icon: "📊" },
-  { href: "/audit-log", label: "Audit Log", icon: "📜" },
-  { href: "/pengaturan", label: "Pengaturan", icon: "🏫" },
-];
+import { NAV_ITEMS } from "@/lib/nav-items";
 
 /**
  * Navigasi App B (TAHAP 9 — redesain dashboard, diperbaiki TAHAP 11 untuk
@@ -94,7 +79,12 @@ export default function AdminSidebar() {
               >
                 {item.icon}
               </span>
-              <span className="w-full truncate text-center leading-tight">{item.label}</span>
+              {/* shortLabel (bukan label penuh) — di lebar HP, label seperti
+                  "Akun Guru BK" atau "Template Balasan" kepotong ellipsis
+                  di font 9px ini dan jadi tidak terbaca; versi singkat
+                  ("Guru BK", "Balasan") pas tanpa terpotong. Judul lengkap
+                  tetap dipakai di sidebar desktop dan judul halaman topbar. */}
+              <span className="w-full truncate text-center leading-tight">{item.shortLabel}</span>
             </Link>
           );
         })}
