@@ -35,18 +35,29 @@ export default function CekBalasanFlow() {
   }
 
   if (verified) {
+    // Sengaja FULL-BLEED satu layar penuh (h-dvh, TANPA max-width/padding
+    // sisi yang bikin gutter putih di kiri-kanan) — user eksplisit
+    // membandingkan dengan screenshot Telegram asli & menolak versi
+    // "kartu" sebelumnya (ada bingkai + margin di sekeliling). Di layar
+    // lebar (desktop) baru dibatasi lg:max-w-2xl lg:mx-auto biar tidak
+    // absurd melebar, tapi di HP (target utama app ini) benar-benar
+    // tepi-ke-tepi kayak aplikasi chat native. Judul "Balasan Guru BK"
+    // dihilangkan karena sudah terwakili header ChatThread sendiri. `pb-20`
+    // di bawah menyisakan ruang supaya tombol darurat mengambang (fixed,
+    // lihat EmergencyButton) tidak menutupi tombol kirim chat.
     return (
-      <div className="mx-auto max-w-md px-4 py-8">
-        <h1 className="mb-3 text-xl font-bold text-slate-900">Balasan Guru BK</h1>
-        <div className="mb-3">
+      <div className="flex h-dvh flex-col pb-20 lg:mx-auto lg:max-w-2xl">
+        <div className="shrink-0 px-3 pt-3 sm:px-4">
           <SiswaPushSubscribeButton />
         </div>
-        <ChatThread
-          initialMessages={[]}
-          myRole="siswa"
-          onSend={sendSiswaMessageAction}
-          onPoll={getMessagesForSiswaAction}
-        />
+        <div className="mt-2 min-h-0 flex-1">
+          <ChatThread
+            initialMessages={[]}
+            myRole="siswa"
+            onSend={sendSiswaMessageAction}
+            onPoll={getMessagesForSiswaAction}
+          />
+        </div>
       </div>
     );
   }

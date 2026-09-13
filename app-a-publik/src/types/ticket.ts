@@ -119,6 +119,14 @@ export interface CurhatTicket {
 export interface CurhatMessage {
   pengirim: "siswa" | "guru";
   isi: string;
+  /**
+   * TAHAP 11 — data URL base64 ("data:image/jpeg;base64,...") gambar yang
+   * dilampirkan, kalau ada. Disimpan LANGSUNG di dokumen ini (bukan Firebase
+   * Storage) supaya tidak perlu upgrade akun ke plan Blaze — makanya ukuran
+   * dibatasi kecil di sisi client (lihat lib/image/kompres-gambar.ts) &
+   * divalidasi ulang di server (lihat actions/chat.ts).
+   */
+  gambar?: string;
   createdAt: Timestamp;
 }
 
@@ -130,6 +138,7 @@ export interface CurhatMessage {
 export interface SerializedMessage {
   pengirim: "siswa" | "guru";
   isi: string;
+  gambar?: string;
   createdAtMs: number;
 }
 

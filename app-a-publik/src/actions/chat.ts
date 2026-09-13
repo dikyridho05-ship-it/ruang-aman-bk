@@ -17,6 +17,7 @@ function serialize(m: CurhatMessage): SerializedMessage {
   return {
     pengirim: m.pengirim,
     isi: m.isi,
+    ...(m.gambar ? { gambar: m.gambar } : {}),
     createdAtMs: m.createdAt?.toMillis?.() ?? Date.now(),
   };
 }
@@ -31,10 +32,20 @@ async function fetchMessages(kode: string): Promise<SerializedMessage[]> {
   return snap.docs.map((d) => serialize(d.data() as CurhatMessage));
 }
 
-function validatePesan(isi: string): string | null {
+// ~700.000 karakter base64 ≈ 525KB biner — kasih sedikit ruang di bawah
+// target kompresi client (500KB) supaya pembulatan/variasi encoder tidak
+// membuat pesan yang sudah lolos di browser malah ditolak di server.
+const MAX_GAMBAR_BASE64_LENGTH = 700_000;
+const GAMBAR_DATA_URL_PREFIX = /^data:image\/(png|jpe?g|webp);base64,/;
+
+function validatePesan(isi: string, gambar?: string): string | null {
   const trimmed = isi.trim();
-  if (trimmed.length === 0) return "Pesan tidak boleh kosong.";
+  if (trimmed.length === 0 && !gambar) return "Isi pesan atau lampirkan gambar.";
   if (trimmed.length > 2000) return "Pesan maksimal 2000 karakter.";
+  if (gambar) {
+    if (!GAMBAR_DATA_URL_PREFIX.test(gambar)) return "Format gambar tidak didukung.";
+    if (gambar.length > MAX_GAMBAR_BASE64_LENGTH) return "Ukuran gambar terlalu besar.";
+  }
   return null;
 }
 
@@ -49,17 +60,21 @@ export async function getMessagesForSiswaAction(): Promise<MessagesResult> {
   return { success: true, messages: await fetchMessages(kode) };
 }
 
-export async function sendSiswaMessageAction(isi: string): Promise<MutateResult> {
+export async function sendSiswaMessageAction(
+  isi: string,
+  gambar?: string
+): Promise<MutateResult> {
   const kode = await getAuthenticatedSiswaKode();
   if (!kode) return { success: false, error: "Sesi habis, silakan cek balasan ulang." };
 
-  const validationError = validatePesan(isi);
+  const validationError = validatePesan(isi, gambar);
   if (validationError) return { success: false, error: validationError };
 
   const ticketRef = adminDb.collection("curhatan").doc(kode);
   await ticketRef.collection("pesan").add({
     pengirim: "siswa",
     isi: isi.trim(),
+    ...(gambar ? { gambar } : {}),
     createdAt: FieldValue.serverTimestamp(),
   });
   await ticketRef.update({ updatedAt: FieldValue.serverTimestamp() });
@@ -77,17 +92,22 @@ export async function getMessagesForGuruAction(kode: string): Promise<MessagesRe
   return { success: true, messages: await fetchMessages(kode) };
 }
 
-export async function sendGuruReplyAction(kode: string, isi: string): Promise<MutateResult> {
+export async function sendGuruReplyAction(
+  kode: string,
+  isi: string,
+  gambar?: string
+): Promise<MutateResult> {
   const guru = await getAuthenticatedGuru();
   if (!guru) return { success: false, error: "Sesi login habis, silakan login ulang." };
 
-  const validationError = validatePesan(isi);
+  const validationError = validatePesan(isi, gambar);
   if (validationError) return { success: false, error: validationError };
 
   const ticketRef = adminDb.collection("curhatan").doc(kode);
   await ticketRef.collection("pesan").add({
     pengirim: "guru",
     isi: isi.trim(),
+    ...(gambar ? { gambar } : {}),
     createdAt: FieldValue.serverTimestamp(),
   });
   await ticketRef.update({
