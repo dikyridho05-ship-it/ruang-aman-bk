@@ -1,7 +1,10 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { verifyCurhatAccessAction } from "@/actions/cek-balasan";
+import TiketTersimpan from "@/components/TiketTersimpan";
+import { ingatTiket } from "@/lib/ingatan-tiket";
 import { getMessagesForSiswaAction, sendSiswaMessageAction } from "@/actions/chat";
 import ChatThread from "@/components/ChatThread";
 import SiswaPushSubscribeButton from "@/components/SiswaPushSubscribeButton";
@@ -24,6 +27,10 @@ export default function CekBalasanFlow() {
       setError(result.error);
       return;
     }
+
+    // Berhasil masuk = kode ini terbukti milik dia, jadi langsung diingat
+    // browsernya supaya tidak perlu dihafal lagi lain kali.
+    ingatTiket(kode.trim().toUpperCase());
     setVerified(true);
   }
 
@@ -45,7 +52,9 @@ export default function CekBalasanFlow() {
   }
 
   return (
-    <div className="mx-auto max-w-md px-4 py-8">
+    <div className="mx-auto max-w-md space-y-4 px-4 py-8">
+      <TiketTersimpan onPilih={(k) => setKode(k)} />
+
       <form
         onSubmit={handleVerify}
         className="space-y-4 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm"
@@ -72,7 +81,7 @@ export default function CekBalasanFlow() {
             required
             value={kode}
             onChange={(e) => setKode(e.target.value)}
-            placeholder="BK-2026-0187"
+            placeholder="BK-2026-7K3M9Q"
             className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm font-mono outline-none focus:ring-2 focus:ring-brand-500"
           />
         </div>
@@ -98,6 +107,13 @@ export default function CekBalasanFlow() {
         >
           {loading ? "Memeriksa..." : "Buka Percakapan"}
         </button>
+
+        <Link
+          href="/lupa-kode"
+          className="block text-center text-sm font-medium text-brand-700 underline"
+        >
+          Lupa Kode Konseling?
+        </Link>
       </form>
     </div>
   );

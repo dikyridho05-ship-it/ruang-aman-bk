@@ -1,7 +1,8 @@
 "use client";
 
-import { useActionState, useRef, useState } from "react";
+import { useActionState, useEffect, useRef, useState } from "react";
 import { curhatFormAction } from "@/actions/curhat";
+import { ingatTiket, unduhKartuKode } from "@/lib/ingatan-tiket";
 import KategoriPicker from "@/components/KategoriPicker";
 import MoodPicker from "@/components/MoodPicker";
 import PasswordField from "@/components/PasswordField";
@@ -70,6 +71,12 @@ function ConsentGate({ onConfirm }: { onConfirm: () => void }) {
 function SuccessScreen({ kode }: { kode: string }) {
   const [copied, setCopied] = useState(false);
 
+  // Begitu kode terbit, browser siswa langsung mengingatnya. Ini penambal
+  // utama keluhan "kode hilang": siswa tidak perlu melakukan apa pun dulu.
+  useEffect(() => {
+    ingatTiket(kode);
+  }, [kode]);
+
   const handleCopy = async () => {
     try {
       await navigator.clipboard.writeText(kode);
@@ -98,17 +105,31 @@ function SuccessScreen({ kode }: { kode: string }) {
         </p>
       </div>
 
-      <button
-        type="button"
-        onClick={handleCopy}
-        className="mt-3 w-full rounded-xl bg-emerald-600 py-2.5 text-sm font-semibold text-white"
-      >
-        {copied ? "Tersalin ✓" : "Salin Kode"}
-      </button>
+      <div className="mt-3 grid gap-2 sm:grid-cols-2">
+        <button
+          type="button"
+          onClick={handleCopy}
+          className="w-full rounded-xl bg-emerald-600 py-2.5 text-sm font-semibold text-white"
+        >
+          {copied ? "Tersalin ✓" : "Salin Kode"}
+        </button>
+        <button
+          type="button"
+          onClick={() => unduhKartuKode(kode, "Ruang Aman BK")}
+          className="w-full rounded-xl border border-emerald-600 py-2.5 text-sm font-semibold text-emerald-700"
+        >
+          Simpan Gambar
+        </button>
+      </div>
 
-      <p className="mt-4 text-xs text-amber-700">
-        Kode &amp; password ini TIDAK BISA dipulihkan kalau lupa dan tidak
-        dicatat di tempat lain oleh sistem. Simpan sekarang juga.
+      <p className="mt-3 rounded-xl bg-white/70 px-3 py-2 text-xs text-slate-600">
+        Kode ini sudah diingat otomatis di HP ini. Kalau nanti lupa, buka
+        &quot;Cek Balasan&quot; dari HP yang sama — kodenya sudah menunggu di sana.
+      </p>
+
+      <p className="mt-3 text-xs text-amber-700">
+        Passwordmu tidak disimpan di mana pun. Kalau password lupa, percakapan
+        ini tidak bisa dibuka lagi — jadi ingat baik-baik.
       </p>
 
       <a

@@ -30,7 +30,7 @@ export const createCurhatSchema = z.object({
   // bcrypt cuma memproses 72 byte pertama — dibatasi di sini juga biar konsisten.
   password: z
     .string()
-    .min(6, "Password minimal 6 karakter.")
+    .min(8, "Password minimal 8 karakter — jangan pakai tanggal lahir.")
     .max(72, "Password maksimal 72 karakter."),
   siapBertemuGuruBk: z.boolean().optional().default(false),
 });

@@ -677,6 +677,66 @@ Firestore sungguhan (simpan jadwal piket, kelola template, jalankan retensi) tid
 dari sandbox cloud ini (jaringan ke `firestore.googleapis.com` diblokir kebijakan organisasi) —
 coba langsung di komputer kamu.
 
+
+## TAHAP 10 — Perbaikan "Kode Konseling hilang"
+
+Dipicu laporan pengguna sungguhan: seorang siswa kehilangan Kode Konseling dan
+tidak bisa membuka kembali percakapannya. Saat ditelusuri, akar masalahnya
+ternyata bukan cuma soal lupa mencatat.
+
+**Temuan saat menelaah kode lama:**
+
+- Sesi siswa hanya berumur **1 jam**, dan token sesinya disimpan di satu field
+  yang saling menimpa — membuka dari HP lain langsung mematikan sesi
+  sebelumnya. Siswa merasa "kodenya hilang" padahal sebenarnya terlempar keluar
+  berulang kali dan tidak pernah sempat menyimpan kodenya.
+- `verifyCurhatAccessAction` **tidak punya pembatas percobaan sama sekali**.
+- Pesan galat membedakan "Kode tidak ditemukan" dan "Kode atau password salah",
+  yang membocorkan kode mana yang benar-benar berisi curhatan.
+- Kode Konseling **berurutan** (BK-2026-0187), jadi bisa ditebak seluruhnya
+  dari luar.
+
+**Yang diperbaiki:**
+
+```
+lib/session/sesi-util.ts        # BARU: logika murni peta sesi (bisa diuji tanpa Firestore)
+lib/session/siswa-session.ts    # UBAH: sesi 30 hari, multi-perangkat (maks 5),
+                                 # token disimpan sebagai HASH, pesan galat seragam
+lib/ingatan-tiket.ts            # BARU: browser mengingat KODE-nya sendiri (localStorage,
+                                 # tanpa password) + unduh "kartu kode" sebagai gambar
+components/TiketTersimpan.tsx   # BARU: panel "Tiket di perangkat ini" + tombol Lupakan
+components/CekBalasanFlow.tsx   # UBAH: panel tiket tersimpan, kode diingat setelah
+                                 # berhasil masuk, tautan ke Lupa Kode
+components/CurhatFlow.tsx       # UBAH: layar sukses mengingat kode otomatis +
+                                 # tombol "Simpan Gambar"
+actions/lupa-kode.ts            # BARU: pulihkan kode dengan nama samaran + password
+components/LupaKodeFlow.tsx     # BARU: halaman pemulihan
+app/lupa-kode/page.tsx          # BARU
+actions/cek-balasan.ts          # UBAH: pembatas percobaan (5x, jeda 5 menit)
+lib/security/rate-limit.ts      # UBAH: pembatas percobaan umum berbasis cookie
+lib/firestore/kode-konseling.ts # UBAH: kode ACAK (BK-2026-7K3M9Q), tidak lagi berurutan
+lib/validation/curhat.ts        # UBAH: password minimal 8 karakter (dari 6)
+scripts/uji-sesi.ts             # BARU: 15 uji logika sesi
+```
+
+**Kenapa lapisannya banyak?** Karena penyebabnya memang lebih dari satu, dan
+masing-masing menangkap kasus yang berbeda: sesi panjang menghapus sebagian
+besar keluhan tanpa siswa melakukan apa pun; browser yang mengingat kode
+menolong siswa yang memakai HP sama; kartu gambar menolong yang ganti HP;
+halaman Lupa Kode menolong yang benar-benar lupa. Yang tidak bisa ditolong
+hanyalah siswa yang lupa passwordnya juga — dan itu memang konsekuensi jujur
+dari tidak menyimpan identitas siapa pun.
+
+**Yang SENGAJA tidak dipakai:** mengganti kode dengan NISN siswa. NISN tercetak
+di kartu pelajar dan ada di daftar kelas, jadi bukan rahasia — memakainya
+justru mematikan anonimitas sekaligus menurunkan keamanan.
+
+Diverifikasi: `npx tsc --noEmit` bersih, `npm run build` sukses, 15 uji logika
+sesi lulus (`npx tsx scripts/uji-sesi.ts`), dan 13 uji browser untuk alur
+ingatan perangkat & halaman Lupa Kode lulus. Uji terhadap Firestore sungguhan
+tetap harus dijalankan di komputermu sendiri (jaringan sandbox ini diblokir ke
+`firestore.googleapis.com`).
+
 ## Status Tahapan
 
 - [x] **TAHAP 1** — Struktur proyek + `firebaseClient.ts` + `firebaseAdmin.ts` (App A & App B)
@@ -690,6 +750,9 @@ coba langsung di komputer kamu.
       audit log, penugasan tiket)
 - [x] **TAHAP 9** — Kolaborasi Tim BK & Pemantauan Sistem (jadwal piket, template balasan
       cepat, indikator kesehatan sistem, redesain dashboard App B dengan sidebar & kalender)
+- [x] **TAHAP 10** — Perbaikan "Kode Konseling hilang" (sesi 30 hari multi-perangkat,
+      browser mengingat kode, kartu kode, halaman Lupa Kode, pembatas percobaan,
+      kode acak, password minimal 8)
 
 Semua 8 tahap dari roadmap awal (artefak "Peta Jalan Ruang Aman BK") sudah selesai dibangun,
 ditambah TAHAP 9 di luar roadmap awal. Langkah besar berikutnya yang belum diputuskan:
