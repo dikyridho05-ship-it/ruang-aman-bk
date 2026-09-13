@@ -5,6 +5,11 @@
 html,
 body {
   height: 100%;
+  /* Pengaman: halaman tidak pernah bisa scroll horizontal, apa pun
+     penyebabnya (elemen lebar, teks panjang, dll) — konten lebar wajib
+     punya overflow-x sendiri (lihat StatistikView, GuruList), bukan
+     mendorong seluruh body melebar. */
+  overflow-x: hidden;
 }
 
 body {

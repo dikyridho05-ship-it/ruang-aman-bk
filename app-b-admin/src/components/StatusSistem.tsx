@@ -14,11 +14,11 @@ export default function StatusSistem({ status }: { status: SistemStatus }) {
 
   return (
     <section>
-      <div className="mb-3 flex items-center justify-between">
+      <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
         <h2 className="text-lg font-bold text-slate-900">Kesehatan Sistem</h2>
         {retensiTerakhir && (
           <span
-            className={`flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold ${
+            className={`flex shrink-0 items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold ${
               retensiTerakhir.sukses
                 ? "bg-emerald-100 text-emerald-700"
                 : "bg-red-100 text-red-700"

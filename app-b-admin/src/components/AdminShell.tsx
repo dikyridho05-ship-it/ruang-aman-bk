@@ -32,7 +32,10 @@ export default function AdminShell({
   return (
     <div className="flex min-h-screen">
       <AdminSidebar />
-      <div className="min-w-0 flex-1 overflow-x-hidden px-4 py-6 sm:px-8 sm:py-8">
+      {/* pb-24 di HP: kasih ruang buat navigasi bawah (fixed, lihat AdminSidebar)
+          biar konten paling bawah halaman tidak ketutup. Di sm+ navigasi itu
+          disembunyikan lagi jadi padding-nya balik normal. */}
+      <div className="min-w-0 flex-1 overflow-x-hidden px-4 py-6 pb-24 sm:px-8 sm:py-8 sm:pb-8">
         <AdminTopbar nama={admin?.nama ?? "Super Admin"} />
         {children}
       </div>
