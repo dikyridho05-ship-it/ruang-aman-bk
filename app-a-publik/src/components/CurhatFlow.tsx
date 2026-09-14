@@ -150,7 +150,13 @@ export default function CurhatFlow() {
   const [confirmed, setConfirmed] = useState(false);
 
   return (
-    <div className="px-4 py-8">
+    // pb-20 (bukan cuma py-8) supaya elemen paling bawah — tombol "Kirim
+    // Curhatan", atau tombol "Tahan untuk Lanjut" di ConsentGate — selalu
+    // punya jarak aman dari tombol "Butuh Bantuan Segera?" yang fixed di
+    // pojok layar (lihat EmergencyButton.tsx). py-8 saja (32px) masih
+    // ketutupan tombol itu saat halaman di-scroll sampai bawah; pb-20 (80px)
+    // ini pola yang sama dipakai di CekBalasanFlow.tsx.
+    <div className="px-4 pt-8 pb-20">
       {!confirmed ? (
         <ConsentGate onConfirm={() => setConfirmed(true)} />
       ) : (
