@@ -10,7 +10,11 @@ export default async function BerandaPage() {
   const { namaSekolah, logoBase64 } = await getSekolahSettings();
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center px-4 py-12">
+    // pb-20 (bukan py-12 simetris) supaya di HP layar pendek/lama (mis.
+    // 320x568) link "Login Guru BK" di paling bawah tidak ketutupan tombol
+    // "Butuh Bantuan Segera?" yang fixed — pola sama seperti CurhatFlow.tsx,
+    // LupaKodeFlow.tsx & CekBalasanFlow.tsx.
+    <main className="flex min-h-screen flex-col items-center justify-center px-4 pt-12 pb-20">
       <div className="w-full max-w-md text-center">
         {logoBase64 ? (
           <Image
@@ -31,9 +35,10 @@ export default async function BerandaPage() {
         )}
 
         <p className="mt-3 text-sm font-medium text-slate-500">{namaSekolah}</p>
-        <h1 className="mt-1 text-3xl font-bold text-slate-900">Ruang Aman</h1>
+        <h1 className="mt-1 text-3xl font-bold text-slate-900">Ruang Aman BK</h1>
         <p className="mt-3 text-slate-600">
-          Tempat curhat yang aman untuk siswa.
+          Tempat curhat yang aman untuk siswa. Tanpa login, tanpa nama asli —
+          Guru BK di sini siap dengar cerita kamu.
         </p>
 
         <Link
@@ -60,7 +65,7 @@ export default async function BerandaPage() {
           href="/guru/login"
           className="mt-10 inline-block text-xs font-medium text-slate-400 underline hover:text-slate-600"
         >
-          Login Sebagai Guru BK
+          Login Guru BK
         </Link>
       </div>
 

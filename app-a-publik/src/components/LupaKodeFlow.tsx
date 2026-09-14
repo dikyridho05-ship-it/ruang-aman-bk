@@ -34,8 +34,11 @@ export default function LupaKodeFlow() {
     return (
       // min-h-dvh + items-center: sama seperti cabang form di bawah, kartu
       // hasil ini juga sebelumnya nempel ke atas dengan ruang kosong besar
-      // di bawah pada HP tinggi.
-      <div className="flex min-h-dvh flex-col items-center justify-center px-4 py-8">
+      // di bawah pada HP tinggi. pb-20 (bukan py-8 simetris) supaya di HP
+      // layar pendek/lama (mis. 320x568) tombol "Buka Percakapan" tetap ada
+      // jarak dari tombol "Butuh Bantuan Segera?" yang fixed — lihat juga
+      // CurhatFlow.tsx & CekBalasanFlow.tsx untuk pola yang sama.
+      <div className="flex min-h-dvh flex-col items-center justify-center px-4 pt-8 pb-20">
         <div role="status" aria-live="polite" className="w-full max-w-md rounded-2xl border border-emerald-200 bg-emerald-50 p-6 text-center">
           <p className="text-3xl" aria-hidden>
             🔑
@@ -72,8 +75,12 @@ export default function LupaKodeFlow() {
   return (
     // flex + min-h-dvh + justify-center: kartu form ini sebelumnya cuma
     // mx-auto (center horizontal) tanpa center vertikal, jadi nempel ke
-    // atas dengan sisa ruang kosong besar di bawah pada HP tinggi.
-    <div className="flex min-h-dvh flex-col items-center justify-center px-4 py-8">
+    // atas dengan sisa ruang kosong besar di bawah pada HP tinggi. pb-20
+    // (bukan py-8 simetris) supaya waktu pesan error muncul (nambah tinggi
+    // kartu) di HP layar pendek/lama, tombol "Kembali ke Cek Balasan"
+    // tidak ketutupan tombol SOS yang fixed di pojok layar — bug ini
+    // sebelumnya nyata terjadi di 320x568 waktu error tampil.
+    <div className="flex min-h-dvh flex-col items-center justify-center px-4 pt-8 pb-20">
       <form
         onSubmit={handleSubmit}
         className="w-full max-w-md space-y-4 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm"
