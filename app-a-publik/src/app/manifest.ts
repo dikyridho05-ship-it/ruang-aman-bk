@@ -8,8 +8,8 @@ import type { MetadataRoute } from "next";
  */
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "Ruang Aman BK",
-    short_name: "Ruang Aman BK",
+    name: "Ruang Aman",
+    short_name: "Ruang Aman",
     description: "Platform konseling anonim untuk siswa — curhat aman, identitas terlindungi.",
     start_url: "/",
     display: "standalone",

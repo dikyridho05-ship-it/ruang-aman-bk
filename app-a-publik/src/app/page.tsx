@@ -31,7 +31,7 @@ export default async function BerandaPage() {
             berkat kelas di masing-masing <span>. */}
         <h1 className="mt-3 text-3xl font-bold text-slate-900">
           <span className="block text-sm font-medium text-slate-500">{namaSekolah}</span>
-          <span className="mt-1 block">Ruang Aman BK</span>
+          <span className="mt-1 block">Ruang Aman</span>
         </h1>
 
         <p className="mt-3 text-slate-600">

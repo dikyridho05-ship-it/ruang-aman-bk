@@ -381,7 +381,7 @@ export default function ChatThread({
         <div className="min-w-0">
           <p className="truncate text-sm font-semibold text-white">{lawanBicara}</p>
           <p className="truncate text-[11px]" style={{ color: "rgba(234,242,250,0.55)" }}>
-            Ruang Aman BK
+            Ruang Aman
           </p>
         </div>
       </div>

@@ -119,7 +119,7 @@ function SuccessScreen({ kode }: { kode: string }) {
         </button>
         <button
           type="button"
-          onClick={() => unduhKartuKode(kode, "Ruang Aman BK")}
+          onClick={() => unduhKartuKode(kode, "Ruang Aman")}
           className="w-full rounded-xl border border-emerald-600 py-2.5 text-sm font-semibold text-emerald-700"
         >
           Simpan Gambar

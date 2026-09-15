@@ -3,16 +3,16 @@ import "./globals.css";
 import { WARNA_BRAND } from "@/lib/constants/warna";
 
 export const metadata: Metadata = {
-  title: "Ruang Aman BK — Konseling Anonim Siswa",
+  title: "Ruang Aman — Konseling Anonim Siswa",
   description:
     "Platform konseling anonim untuk siswa SMKN 1 Ciruas. Curhat aman, identitas terlindungi.",
-  applicationName: "Ruang Aman BK",
+  applicationName: "Ruang Aman",
   // appleWebApp: pelengkap untuk Safari lama — sumber utama metadata PWA
   // ada di manifest.ts (TAHAP 8).
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "Ruang Aman BK",
+    title: "Ruang Aman",
   },
 };
 
