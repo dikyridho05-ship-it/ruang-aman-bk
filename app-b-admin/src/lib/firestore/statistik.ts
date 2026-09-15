@@ -4,6 +4,7 @@ import {
   KATEGORI_CURHAT,
   KATEGORI_PRIORITAS,
   MOOD_OPTIONS,
+  normalizeKategori,
   type KategoriCurhat,
   type Mood,
   type TicketStatus,
@@ -84,21 +85,26 @@ export async function getStatistikCurhatan(): Promise<StatistikCurhatan> {
 
     for (const doc of snap.docs) {
       const data = doc.data();
-      const kategori = data.kategori as KategoriCurhat | undefined;
+      // Satu tiket bisa membawa sampai 3 kategori, jadi tiap kategori dihitung
+      // satu kali untuk tiket yang sama. Konsekuensinya: jumlah seluruh batang
+      // di grafik "Per Kategori" bisa LEBIH BESAR dari total tiket — itu memang
+      // benar, dan dijelaskan ke pembaca di StatistikView.
+      const kategori = normalizeKategori(data.kategori);
       const mood = data.mood as Mood | undefined;
       const status = data.status as TicketStatus | undefined;
       const createdAt = data.createdAt?.toDate ? (data.createdAt.toDate() as Date) : null;
 
       totalKeseluruhan += 1;
 
-      if (kategori && kategori in perKategori) perKategori[kategori] += 1;
+      for (const k of kategori) perKategori[k] += 1;
       if (mood && mood in perMood) perMood[mood] += 1;
       if (status && status in perStatus) perStatus[status] += 1;
 
+      // Tiket dihitung prioritas kalau SALAH SATU kategorinya berisiko tinggi —
+      // dan tetap dihitung sekali saja walau dua-duanya dipilih.
       if (
-        kategori &&
-        (KATEGORI_PRIORITAS as readonly string[]).includes(kategori) &&
-        status !== "selesai"
+        status !== "selesai" &&
+        kategori.some((k) => (KATEGORI_PRIORITAS as readonly string[]).includes(k))
       ) {
         prioritasAktif += 1;
       }

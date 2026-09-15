@@ -76,6 +76,13 @@ function generatePdfBuffer(namaSekolah: string, data: StatistikCurhatan): Promis
       "Per Kategori",
       KATEGORI_CURHAT.map((k) => [KATEGORI_CURHAT_LABEL[k], data.perKategori[k]])
     );
+    doc
+      .fontSize(9)
+      .fillColor("#666666")
+      .text(
+        "Satu curhatan boleh memilih sampai 3 kategori, jadi jumlah angka di atas bisa melebihi total curhatan."
+      )
+      .fillColor("#000000");
 
     tulisBagian(
       doc,

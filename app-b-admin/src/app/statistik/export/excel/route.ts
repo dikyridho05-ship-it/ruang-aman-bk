@@ -79,12 +79,18 @@ export async function GET() {
   ]);
   ringkasan.getRow(1).font = { bold: true, size: 14 };
 
-  bikinSheetTabel(
+  const sheetKategori = bikinSheetTabel(
     workbook,
     "Per Kategori",
     ["Kategori", "Jumlah"],
     KATEGORI_CURHAT.map((k) => [KATEGORI_CURHAT_LABEL[k], data.perKategori[k]])
   );
+  // Tanpa catatan ini, pembaca laporan wajar mengira angkanya salah hitung
+  // begitu menjumlahkan kolom dan hasilnya melebihi total curhatan.
+  sheetKategori.addRow([]);
+  sheetKategori.addRow([
+    "Catatan: satu curhatan boleh memilih sampai 3 kategori, jadi jumlah angka di kolom ini bisa melebihi total curhatan.",
+  ]).font = { italic: true, size: 9 };
 
   bikinSheetTabel(
     workbook,

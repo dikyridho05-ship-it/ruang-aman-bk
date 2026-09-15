@@ -3,15 +3,15 @@ import type webpush from "web-push";
 import { adminDb } from "@/lib/firebase/admin";
 import { getWebPushClient } from "./webpush-client";
 import {
-  KATEGORI_CURHAT_LABEL,
-  isKategoriPrioritas,
+  adaKategoriPrioritas,
+  labelKategori,
   type KategoriCurhat,
   type PushSubscriptionRecord,
 } from "@/types/ticket";
 
 interface NewTicketInfo {
   kode: string;
-  kategori: KategoriCurhat;
+  kategori: KategoriCurhat[];
   judul: string;
 }
 
@@ -67,10 +67,10 @@ export async function notifyGuruOnNewTicket(ticket: NewTicketInfo): Promise<void
     return;
   }
 
-  const prioritas = isKategoriPrioritas(ticket.kategori);
+  const prioritas = adaKategoriPrioritas(ticket.kategori);
   const payload = JSON.stringify({
     title: prioritas ? "🔴 Curhatan Prioritas Baru" : "Curhatan Baru Masuk",
-    body: `${KATEGORI_CURHAT_LABEL[ticket.kategori]} — ${ticket.judul}`,
+    body: `${labelKategori(ticket.kategori)} — ${ticket.judul}`,
     url: `/guru/${ticket.kode}`,
   });
 

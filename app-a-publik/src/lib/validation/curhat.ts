@@ -1,14 +1,26 @@
 import { z } from "zod";
-import { KATEGORI_CURHAT, MOOD_OPTIONS } from "@/types/ticket";
+import { KATEGORI_CURHAT, MAKS_KATEGORI, MOOD_OPTIONS } from "@/types/ticket";
 
 /**
  * Validasi input form curhat siswa. Dijalankan di SERVER (dalam Server Action),
  * jadi tidak bisa dilewati walau validasi di sisi client (TAHAP 3 nanti) dimatikan.
  */
 export const createCurhatSchema = z.object({
-  kategori: z.enum(KATEGORI_CURHAT, {
-    errorMap: () => ({ message: "Pilih kategori masalah terlebih dahulu." }),
-  }),
+  // Array, bukan satu nilai: siswa boleh memilih sampai MAKS_KATEGORI kategori.
+  // Batas atasnya divalidasi ULANG di sini, bukan hanya di KategoriPicker —
+  // form ini tetap bisa dikirim tanpa JavaScript (dan bisa dipalsukan), jadi
+  // server tidak boleh percaya pada pembatasan di sisi browser.
+  kategori: z
+    .array(
+      z.enum(KATEGORI_CURHAT, {
+        errorMap: () => ({ message: "Ada kategori yang tidak dikenali." }),
+      })
+    )
+    .min(1, "Pilih minimal 1 kategori masalah.")
+    .max(MAKS_KATEGORI, `Pilih maksimal ${MAKS_KATEGORI} kategori masalah.`)
+    // Kategori kembar tidak membuat form gagal — cukup dirapikan, karena bagi
+    // siswa itu bukan kesalahan yang berarti apa pun.
+    .transform((daftar) => Array.from(new Set(daftar))),
   mood: z.enum(MOOD_OPTIONS, {
     errorMap: () => ({ message: "Pilih mood kamu terlebih dahulu." }),
   }),

@@ -29,6 +29,18 @@ export const KATEGORI_CURHAT_LABEL: Record<KategoriCurhat, string> = {
 };
 
 /**
+ * Batas jumlah kategori yang boleh dipilih siswa dalam satu curhatan.
+ *
+ * Kenapa dibatasi, bukan bebas: satu masalah nyata memang sering menyentuh
+ * beberapa hal sekaligus (mis. bullying yang berdampak ke kesehatan mental
+ * dan akademik), tapi kalau siswa boleh mencentang semuanya, kolom kategori
+ * berhenti berguna sebagai alat triase Guru BK dan statistik per kategori
+ * jadi rata tanpa bentuk. Tiga memaksa siswa menimbang mana yang paling
+ * penting, tanpa memaksa memilih satu saja.
+ */
+export const MAKS_KATEGORI = 3;
+
+/**
  * Kategori yang otomatis ditandai prioritas di dashboard Guru BK (TAHAP 6) —
  * disortir ke atas daftar & diberi badge "Perlu Perhatian Segera" selama
  * tiketnya belum berstatus "selesai". Bukan pengganti tombol darurat (itu
@@ -42,6 +54,43 @@ export const KATEGORI_PRIORITAS: readonly KategoriCurhat[] = [
 
 export function isKategoriPrioritas(kategori: KategoriCurhat): boolean {
   return (KATEGORI_PRIORITAS as readonly string[]).includes(kategori);
+}
+
+/** True kalau SALAH SATU kategori yang dipilih siswa termasuk kategori prioritas. */
+export function adaKategoriPrioritas(kategori: readonly KategoriCurhat[]): boolean {
+  return kategori.some(isKategoriPrioritas);
+}
+
+/**
+ * Baca field `kategori` dari dokumen Firestore apa adanya dan kembalikan
+ * selalu dalam bentuk array yang sudah bersih.
+ *
+ * Wajib dipakai di SETIAP tempat yang membaca tiket, karena tiket yang dibuat
+ * sebelum revisi multi-kategori menyimpan `kategori` sebagai STRING tunggal.
+ * Dengan penormalan di sisi baca seperti ini, tiket lama tetap tampil benar
+ * tanpa perlu migrasi massal dokumen Firestore (yang mahal dan berisiko untuk
+ * data yang tidak bisa diambil ulang kalau gagal separuh jalan).
+ */
+export function normalizeKategori(raw: unknown): KategoriCurhat[] {
+  const daftar = Array.isArray(raw) ? raw : raw == null ? [] : [raw];
+  const hasil: KategoriCurhat[] = [];
+
+  for (const item of daftar) {
+    if (typeof item !== "string") continue;
+    if (!(KATEGORI_CURHAT as readonly string[]).includes(item)) continue;
+    const kategori = item as KategoriCurhat;
+    if (hasil.includes(kategori)) continue;
+    hasil.push(kategori);
+    if (hasil.length >= MAKS_KATEGORI) break;
+  }
+
+  return hasil;
+}
+
+/** Gabungan label kategori untuk ditampilkan dalam satu baris ringkas. */
+export function labelKategori(kategori: readonly KategoriCurhat[]): string {
+  if (kategori.length === 0) return "Tanpa kategori";
+  return kategori.map((k) => KATEGORI_CURHAT_LABEL[k]).join(" \u00b7 ");
 }
 
 /** Mood meter — dipilih siswa saat curhat, sebelum menulis isi curhatan. */
@@ -93,7 +142,14 @@ export type TicketStatus = "baru" | "dibaca" | "dibalas" | "selesai";
  */
 export interface CurhatTicket {
   kode: string;
-  kategori: KategoriCurhat;
+  /**
+   * Kategori masalah yang dipilih siswa — 1 sampai MAKS_KATEGORI kategori.
+   *
+   * CATATAN: dokumen tiket yang dibuat sebelum revisi multi-kategori masih
+   * berisi string tunggal di Firestore. Jangan pernah membaca field ini
+   * langsung; lewatkan dulu ke normalizeKategori().
+   */
+  kategori: KategoriCurhat[];
   mood: Mood;
   judul: string;
   namaSamaran: string;

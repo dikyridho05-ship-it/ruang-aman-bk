@@ -14,9 +14,10 @@ import ChatThread from "@/components/ChatThread";
 import MarkSelesaiButton from "@/components/MarkSelesaiButton";
 import PenugasanTiket from "@/components/PenugasanTiket";
 import {
-  KATEGORI_CURHAT_LABEL,
   MOOD_EMOJI,
   MOOD_LABEL,
+  labelKategori,
+  normalizeKategori,
   type CurhatTicket,
 } from "@/types/ticket";
 
@@ -37,6 +38,7 @@ export default async function GuruTicketDetailPage({
   if (!snap.exists) notFound();
 
   const ticket = snap.data() as CurhatTicket;
+  const kategori = normalizeKategori(ticket.kategori);
 
   // Begitu Guru BK membuka tiket yang masih "baru", tandai sudah dibaca.
   if (ticket.status === "baru") {
@@ -95,7 +97,7 @@ export default async function GuruTicketDetailPage({
               <h1 className="truncate text-lg font-bold text-slate-900">{ticket.judul}</h1>
             </div>
             <p className="mt-1 text-xs text-slate-500">
-              {ticket.kode} &middot; {KATEGORI_CURHAT_LABEL[ticket.kategori]} &middot; Mood:{" "}
+              {ticket.kode} &middot; {labelKategori(kategori)} &middot; Mood:{" "}
               {MOOD_LABEL[ticket.mood]} &middot; Nama samaran: {ticket.namaSamaran}
             </p>
             {ticket.siapBertemuGuruBk && (

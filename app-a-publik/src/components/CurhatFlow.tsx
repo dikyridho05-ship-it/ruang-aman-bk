@@ -228,12 +228,10 @@ function CurhatFormFields({
         />
       </div>
 
-      <div>
-        <span className="block text-sm font-medium text-slate-700">Kategori masalah</span>
-        <div className="mt-1">
-          <KategoriPicker />
-        </div>
-      </div>
+      {/* Label "Kategori masalah" + penanda "maks 3" sengaja ikut di dalam
+          KategoriPicker, bukan di sini — penanda itu perlu bereaksi (getar &
+          memerah) terhadap state pilihan yang cuma dipegang komponen itu. */}
+      <KategoriPicker />
 
       <div>
         <span className="block text-sm font-medium text-slate-700">Mood kamu sekarang</span>

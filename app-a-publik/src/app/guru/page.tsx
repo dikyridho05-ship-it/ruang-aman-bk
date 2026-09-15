@@ -6,9 +6,10 @@ import { getPiketHariIni } from "@/lib/firestore/piket";
 import LogoutButton from "@/components/LogoutButton";
 import PushSubscribeButton from "@/components/PushSubscribeButton";
 import {
-  KATEGORI_CURHAT_LABEL,
   MOOD_EMOJI,
-  isKategoriPrioritas,
+  adaKategoriPrioritas,
+  labelKategori,
+  normalizeKategori,
   type CurhatTicket,
   type TicketStatus,
 } from "@/types/ticket";
@@ -59,14 +60,17 @@ export default async function GuruDashboardPage({
 
   let tickets: TicketRow[] = snap.docs.map((d) => {
     const data = d.data() as CurhatTicket;
+    // normalizeKategori, bukan data.kategori langsung — tiket yang dibuat
+    // sebelum revisi multi-kategori menyimpannya sebagai string tunggal.
+    const kategori = normalizeKategori(data.kategori);
     return {
       kode: data.kode,
-      kategori: data.kategori,
+      kategori,
       mood: data.mood,
       judul: data.judul,
       status: data.status,
       createdAtMs: data.createdAt?.toMillis?.() ?? Date.now(),
-      prioritas: isKategoriPrioritas(data.kategori) && data.status !== "selesai",
+      prioritas: adaKategoriPrioritas(kategori) && data.status !== "selesai",
       guruDitugaskan: data.guruDitugaskan ?? null,
     };
   });
@@ -158,7 +162,7 @@ export default async function GuruDashboardPage({
                     <span className="line-clamp-2 font-semibold text-slate-900">{t.judul}</span>
                   </div>
                   <p className="mt-1 text-xs text-slate-500">
-                    {t.kode} &middot; {KATEGORI_CURHAT_LABEL[t.kategori]} &middot;{" "}
+                    {t.kode} &middot; {labelKategori(t.kategori)} &middot;{" "}
                     {new Date(t.createdAtMs).toLocaleDateString("id-ID", {
                       day: "2-digit",
                       month: "short",

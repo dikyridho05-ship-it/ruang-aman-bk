@@ -50,7 +50,9 @@ export async function createCurhatTicket(
   }
 
   const parsed = createCurhatSchema.safeParse({
-    kategori: formData.get("kategori"),
+    // getAll, bukan get — KategoriPicker mengirim satu <input name="kategori">
+    // per kategori yang dipilih siswa (maks 3).
+    kategori: formData.getAll("kategori"),
     mood: formData.get("mood"),
     judul: formData.get("judul"),
     namaSamaran: formData.get("namaSamaran"),

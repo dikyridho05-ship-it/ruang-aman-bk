@@ -134,7 +134,10 @@ export default function StatistikView({ data }: { data: StatistikCurhatan }) {
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
           <h2 className="text-sm font-semibold text-slate-900">Per Kategori</h2>
-          <p className="mt-0.5 text-xs text-slate-400">Tanpa identitas siswa mana pun.</p>
+          <p className="mt-0.5 text-xs text-slate-400">
+            Tanpa identitas siswa mana pun. Satu curhatan boleh memilih sampai 3
+            kategori, jadi jumlah seluruh baris di sini bisa melebihi total curhatan.
+          </p>
           <div className="mt-4 space-y-2.5">
             {KATEGORI_CURHAT.map((k) => (
               <BarRow

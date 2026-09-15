@@ -32,6 +32,33 @@ export const KATEGORI_CURHAT_LABEL: Record<KategoriCurhat, string> = {
 /** Sama seperti KATEGORI_PRIORITAS di App A (TAHAP 6) — dipakai untuk kartu "Prioritas aktif". */
 export const KATEGORI_PRIORITAS: readonly KategoriCurhat[] = ["kekerasan", "kesehatan_mental"];
 
+/** Sama seperti MAKS_KATEGORI di App A — satu curhatan boleh punya sampai 3 kategori. */
+export const MAKS_KATEGORI = 3;
+
+/**
+ * Salinan normalizeKategori() dari App A (types/ticket.ts) — lihat catatan di
+ * atas soal kenapa daftar ini diduplikasi, bukan diimpor.
+ *
+ * Tiket yang dibuat sebelum revisi multi-kategori menyimpan `kategori` sebagai
+ * string tunggal di Firestore, jadi statistik WAJIB membacanya lewat sini
+ * supaya angka tiket lama tidak hilang dari grafik.
+ */
+export function normalizeKategori(raw: unknown): KategoriCurhat[] {
+  const daftar = Array.isArray(raw) ? raw : raw == null ? [] : [raw];
+  const hasil: KategoriCurhat[] = [];
+
+  for (const item of daftar) {
+    if (typeof item !== "string") continue;
+    if (!(KATEGORI_CURHAT as readonly string[]).includes(item)) continue;
+    const kategori = item as KategoriCurhat;
+    if (hasil.includes(kategori)) continue;
+    hasil.push(kategori);
+    if (hasil.length >= MAKS_KATEGORI) break;
+  }
+
+  return hasil;
+}
+
 export const MOOD_OPTIONS = ["senang", "sedih", "cemas", "marah", "bingung", "lelah"] as const;
 
 export type Mood = (typeof MOOD_OPTIONS)[number];

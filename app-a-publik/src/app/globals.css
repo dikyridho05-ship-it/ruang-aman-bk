@@ -10,3 +10,12 @@ body {
 body {
   @apply bg-slate-50 text-slate-900 antialiased;
 }
+
+/* Sebagian siswa menyetel perangkatnya untuk mengurangi animasi (mis. karena
+   gerakan membuat pusing). Untuk mereka penanda "maks 3" cukup berubah merah
+   tanpa bergetar — pesannya tetap sampai, tanpa gerakan. */
+@media (prefers-reduced-motion: reduce) {
+  .animate-getar {
+    animation: none;
+  }
+}

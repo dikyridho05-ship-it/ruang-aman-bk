@@ -18,6 +18,19 @@ const config: Config = {
           700: "#0369a1",
         },
       },
+      keyframes: {
+        // Getaran pendek untuk penanda "maks 3" saat siswa menekan kategori
+        // berlebih. Amplitudonya kecil (3px) & sekali jalan — tujuannya
+        // memberi tahu "tidak bisa", bukan menarik perhatian terus-menerus.
+        getar: {
+          "0%, 100%": { transform: "translateX(0)" },
+          "15%, 45%, 75%": { transform: "translateX(-3px)" },
+          "30%, 60%, 90%": { transform: "translateX(3px)" },
+        },
+      },
+      animation: {
+        getar: "getar 0.45s ease-in-out",
+      },
     },
   },
   plugins: [],

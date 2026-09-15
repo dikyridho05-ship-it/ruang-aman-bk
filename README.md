@@ -737,6 +737,52 @@ ingatan perangkat & halaman Lupa Kode lulus. Uji terhadap Firestore sungguhan
 tetap harus dijalankan di komputermu sendiri (jaringan sandbox ini diblokir ke
 `firestore.googleapis.com`).
 
+## Revisi — Kategori masalah boleh lebih dari satu (maks 3)
+
+Sebelumnya siswa hanya bisa memilih SATU kategori masalah. Dalam praktiknya satu
+masalah sering menyentuh beberapa hal sekaligus (bullying yang berujung ke
+kesehatan mental dan nilai akademik), dan memaksa memilih satu membuat Guru BK
+kehilangan konteks. Sekarang boleh memilih **1–3 kategori**.
+
+**Di form curhat (App A):** label berubah jadi `Kategori masalah` + penanda
+`maks 3`. Kategori yang belum dipilih meredup begitu kuota penuh; kalau siswa
+tetap menekannya, penanda `maks 3` **bergetar sebentar dan berubah merah**,
+disertai kalimat "Sudah 3 kategori. Lepas salah satu dulu kalau mau ganti."
+Peringatannya padam sendiri setelah ~1,6 detik atau begitu siswa melepas salah
+satu pilihan. Untuk perangkat yang disetel "kurangi animasi", penanda hanya
+berubah merah tanpa bergetar (lihat `@media (prefers-reduced-motion)` di
+`src/app/globals.css`).
+
+**Batas 3 divalidasi dua kali.** Di browser (KategoriPicker) supaya siswa dapat
+respons langsung, DAN di server lewat zod (`src/lib/validation/curhat.ts`)
+supaya form yang dikirim tanpa JavaScript — atau dipalsukan — tetap ditolak.
+
+**Tiket lama tidak perlu dimigrasi.** Dokumen `curhatan` yang dibuat sebelum
+revisi ini menyimpan `kategori` sebagai string tunggal. Semua pembacaan sekarang
+lewat `normalizeKategori()` (`src/types/ticket.ts`, disalin juga ke
+`app-b-admin/src/types/statistik.ts`) yang menerima string maupun array dan
+selalu mengembalikan array bersih — jadi tiket lama tetap tampil benar tanpa
+menyentuh data yang sudah ada di Firestore.
+
+**Efek ke prioritas & statistik.** Tiket dihitung prioritas kalau *salah satu*
+kategorinya berisiko tinggi (kekerasan / kesehatan mental), dan tetap dihitung
+sekali saja. Di grafik "Per Kategori" tiap kategori dihitung satu kali per tiket,
+jadi **jumlah seluruh baris bisa melebihi total curhatan** — ini benar, dan
+dijelaskan langsung di halaman statistik serta di export Excel & PDF supaya
+pembaca laporan tidak mengira angkanya salah hitung.
+
+Berkas yang berubah — App A: `src/types/ticket.ts`, `src/lib/validation/curhat.ts`,
+`src/actions/curhat.ts`, `src/components/KategoriPicker.tsx`,
+`src/components/CurhatFlow.tsx`, `src/lib/push/send-push.ts`,
+`src/app/guru/page.tsx`, `src/app/guru/[kode]/page.tsx`, `tailwind.config.ts`,
+`src/app/globals.css`. App B: `src/types/statistik.ts`,
+`src/lib/firestore/statistik.ts`, `src/components/StatistikView.tsx`,
+`src/app/statistik/export/excel/route.ts`, `src/app/statistik/export/pdf/route.ts`.
+
+Diverifikasi: `npx tsc --noEmit` + `next build` bersih untuk App A & App B, plus
+uji browser (Playwright) untuk alur pilih 3 → tekan ke-4 → getar/merah → tukar
+pilihan → peringatan padam.
+
 ## Status Tahapan
 
 - [x] **TAHAP 1** — Struktur proyek + `firebaseClient.ts` + `firebaseAdmin.ts` (App A & App B)
