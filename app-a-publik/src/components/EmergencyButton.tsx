@@ -12,15 +12,20 @@ export default function EmergencyButton() {
 
   return (
     <>
+      {/* Sengaja cuma lingkaran ikon (bukan pill lebar dengan teks) di kondisi
+          diam — versi lengkap "Butuh Bantuan Segera?" + daftar kontak darurat
+          baru muncul di modal saat tombol ini diklik, supaya tombolnya tidak
+          menutupi konten di belakangnya terus-menerus. */}
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="fixed bottom-4 right-4 z-40 flex items-center gap-2 rounded-full
-          bg-red-600 px-4 py-3 text-sm font-semibold text-white shadow-lg
+        aria-label="Butuh Bantuan Segera?"
+        title="Butuh Bantuan Segera?"
+        className="fixed bottom-4 right-4 z-40 flex h-14 w-14 items-center justify-center
+          rounded-full bg-red-600 text-2xl text-white shadow-lg
           hover:bg-red-700 active:scale-95 transition"
       >
         <span aria-hidden>🆘</span>
-        Butuh Bantuan Segera?
       </button>
 
       {open && (
