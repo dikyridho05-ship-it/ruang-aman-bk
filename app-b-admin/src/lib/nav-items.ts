@@ -17,6 +17,7 @@ export interface NavItem {
 export const NAV_ITEMS: NavItem[] = [
   { href: "/", label: "Dashboard", shortLabel: "Dashboard", icon: "🏠" },
   { href: "/guru-bk", label: "Akun Guru BK", shortLabel: "Guru BK", icon: "👩‍🏫" },
+  { href: "/curhatan", label: "Curhatan", shortLabel: "Curhatan", icon: "🗂️" },
   { href: "/piket", label: "Jadwal Piket", shortLabel: "Piket", icon: "🗓️" },
   { href: "/template-balasan", label: "Template Balasan", shortLabel: "Balasan", icon: "💬" },
   { href: "/statistik", label: "Statistik", shortLabel: "Statistik", icon: "📊" },
