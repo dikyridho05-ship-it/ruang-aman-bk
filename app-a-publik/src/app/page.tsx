@@ -1,20 +1,62 @@
 import Image from "next/image";
 import Link from "next/link";
-import { getSekolahSettings } from "@/lib/firestore/settings";
+import { getSekolahSettings, getLatarBeranda } from "@/lib/firestore/settings";
 import EmergencyButton from "@/components/EmergencyButton";
 
-// Selalu ambil data terbaru dari Firestore — nama/logo bisa diubah App B kapan saja.
+// Selalu ambil data terbaru dari Firestore — nama/logo/foto latar bisa diubah
+// App B kapan saja.
 export const dynamic = "force-dynamic";
 
+/**
+ * Seberapa samar foto gedung sekolah tampil di belakang Beranda. 25% dipilih
+ * supaya foto masih jelas terbaca sebagai gedung sekolah, tapi kontras teks
+ * di atasnya (slate-900 di atas slate-50) tetap jauh di atas ambang WCAG AA —
+ * halaman ini pintu masuk siswa yang mungkin sedang tidak tenang, jadi
+ * keterbacaan menang atas hiasan. Angka ini dicerminkan di pratinjau
+ * app-b-admin/src/components/LatarBerandaForm.tsx.
+ */
+const OPASITAS_LATAR = 0.25;
+
 export default async function BerandaPage() {
-  const { namaSekolah, logoBase64 } = await getSekolahSettings();
+  const [{ namaSekolah, logoBase64 }, { fotoBase64 }] = await Promise.all([
+    getSekolahSettings(),
+    getLatarBeranda(),
+  ]);
 
   return (
     // pb-20 (bukan py-12 simetris) supaya di HP layar pendek/lama (mis.
     // 320x568) link "Login Guru BK" di paling bawah tidak ketutupan tombol
     // "Butuh Bantuan Segera?" yang fixed — pola sama seperti CurhatFlow.tsx,
     // LupaKodeFlow.tsx & CekBalasanFlow.tsx.
-    <main className="flex min-h-screen flex-col items-center justify-center px-4 pt-12 pb-20">
+    <main className="relative flex min-h-screen flex-col items-center justify-center px-4 pt-12 pb-20">
+      {/* Lapisan foto latar. `fixed` (bukan absolute) supaya di HP layar pendek
+          fotonya tetap memenuhi layar tanpa ikut melar saat halaman di-scroll,
+          dan aria-hidden + pointer-events-none supaya benar-benar dekorasi:
+          tidak dibacakan pembaca layar, tidak pernah menghalangi tombol.
+          next/image dilewati di sini karena sumbernya data URL base64 dari
+          Firestore — tidak ada yang bisa dioptimasi, malah menambah lapisan. */}
+      {fotoBase64 && (
+        <div className="pointer-events-none fixed inset-0 -z-10 flex items-center" aria-hidden>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          {/* Di HP: h-auto + object-contain, jadi kotak <img> mengikuti tinggi
+              asli fotonya dan tampil sebagai pita samar di tengah layar (lihat
+              `items-center` di pembungkusnya). Kalau dipaksa object-cover di
+              layar HP yang tinggi memanjang, foto gedung yang mendatar (±16:9)
+              ikut diperbesar ~2,5x dan yang tersisa cuma potongan tengah huruf
+              papan nama — gedungnya sendiri tidak kelihatan.
+              Kotak <img> yang pas dengan fotonya ini juga syarat agar gradasi
+              .latar-beranda-foto di globals.css benar-benar melembutkan tepi
+              FOTO, bukan tepi layar. Mulai layar sedang rasionya sudah mirip,
+              jadi object-cover yang paling rapi. */}
+          <img
+            src={fotoBase64}
+            alt=""
+            className="latar-beranda-foto h-auto max-h-full w-full object-contain sm:h-full sm:object-cover"
+            style={{ opacity: OPASITAS_LATAR }}
+          />
+        </div>
+      )}
+
       <div className="w-full max-w-md text-center">
         {logoBase64 ? (
           <Image

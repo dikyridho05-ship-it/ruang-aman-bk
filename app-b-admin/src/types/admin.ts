@@ -127,3 +127,19 @@ export interface SistemStatus {
   totalTiket: number;
   totalAuditLog: number;
 }
+
+/**
+ * Batas panjang string data URL foto latar Beranda (`settings/latar-beranda`).
+ *
+ * Dokumen Firestore dibatasi 1 MiB; 700.000 karakter base64 ≈ 512 KB biner,
+ * menyisakan ruang aman untuk field lain. Angkanya sengaja lebih longgar dari
+ * target kompresi di browser (~400 KB biner) supaya foto yang sedikit di atas
+ * target tidak ditolak mentah-mentah.
+ */
+export const MAKS_PANJANG_DATA_URL_LATAR = 700_000;
+
+/** Isi dokumen `settings/latar-beranda` — foto latar halaman Beranda App A. */
+export interface LatarBerandaSettings {
+  /** Data URL base64, atau null kalau Beranda dibiarkan polos. */
+  fotoBase64: string | null;
+}

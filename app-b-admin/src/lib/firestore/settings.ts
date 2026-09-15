@@ -1,6 +1,11 @@
 import "server-only";
 import { adminDb } from "@/lib/firebase/admin";
-import { DEFAULT_RETENSI, type RetensiSettings, type SekolahSettings } from "@/types/admin";
+import {
+  DEFAULT_RETENSI,
+  type LatarBerandaSettings,
+  type RetensiSettings,
+  type SekolahSettings,
+} from "@/types/admin";
 
 const DEFAULT_SETTINGS: SekolahSettings = {
   namaSekolah: "Sekolah Kita",
@@ -47,5 +52,21 @@ export async function getSekolahSettings(): Promise<SekolahSettings> {
   } catch (err) {
     console.error("[getSekolahSettings] gagal baca settings, pakai fallback:", err);
     return DEFAULT_SETTINGS;
+  }
+}
+
+/**
+ * Baca foto latar Beranda dari dokumennya sendiri (`settings/latar-beranda`).
+ * Dipisah dari getSekolahSettings() supaya halaman yang cuma butuh nama/logo
+ * tidak ikut menarik ratusan KB foto — lihat catatan di actions/latar-beranda.ts.
+ */
+export async function getLatarBeranda(): Promise<LatarBerandaSettings> {
+  try {
+    const snap = await adminDb.collection("settings").doc("latar-beranda").get();
+    const foto = snap.data()?.fotoBase64;
+    return { fotoBase64: typeof foto === "string" && foto.length > 0 ? foto : null };
+  } catch (err) {
+    console.error("[getLatarBeranda] gagal baca foto latar, pakai kosong:", err);
+    return { fotoBase64: null };
   }
 }

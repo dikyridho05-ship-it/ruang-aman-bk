@@ -74,3 +74,28 @@ export async function getSekolahSettings(): Promise<SekolahSettings> {
     return DEFAULT_SETTINGS;
   }
 }
+
+/** Isi dokumen `settings/latar-beranda` — foto latar halaman Beranda, diatur lewat App B. */
+export interface LatarBerandaSettings {
+  /** Data URL base64, atau null kalau Beranda dibiarkan polos. */
+  fotoBase64: string | null;
+}
+
+/**
+ * Baca foto latar Beranda. Sengaja dokumen terpisah dari `settings/sekolah`:
+ * fotonya berukuran ratusan KB, sementara nama & logo sekolah dibaca di banyak
+ * tempat yang tidak membutuhkan foto itu sama sekali.
+ *
+ * Kegagalan baca tidak boleh merusak Beranda — kembalikan null, halaman tetap
+ * tampil seperti sebelum ada fitur ini.
+ */
+export async function getLatarBeranda(): Promise<LatarBerandaSettings> {
+  try {
+    const snap = await adminDb.collection("settings").doc("latar-beranda").get();
+    const foto = snap.data()?.fotoBase64;
+    return { fotoBase64: typeof foto === "string" && foto.length > 0 ? foto : null };
+  } catch (err) {
+    console.error("[getLatarBeranda] gagal baca foto latar, pakai kosong:", err);
+    return { fotoBase64: null };
+  }
+}

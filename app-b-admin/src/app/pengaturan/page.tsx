@@ -1,7 +1,8 @@
 import { redirect } from "next/navigation";
 import { getAuthenticatedAdmin } from "@/lib/session/admin-session";
-import { getSekolahSettings } from "@/lib/firestore/settings";
+import { getSekolahSettings, getLatarBeranda } from "@/lib/firestore/settings";
 import PengaturanForm from "@/components/PengaturanForm";
+import LatarBerandaForm from "@/components/LatarBerandaForm";
 import RetensiForm from "@/components/RetensiForm";
 
 export const dynamic = "force-dynamic";
@@ -10,7 +11,7 @@ export default async function PengaturanPage() {
   const admin = await getAuthenticatedAdmin();
   if (!admin) redirect("/login");
 
-  const settings = await getSekolahSettings();
+  const [settings, latar] = await Promise.all([getSekolahSettings(), getLatarBeranda()]);
 
   return (
     <main className="mx-auto max-w-2xl">
@@ -20,6 +21,10 @@ export default async function PengaturanPage() {
         initialNamaSekolah={settings.namaSekolah}
         initialLogoBase64={settings.logoBase64}
       />
+
+      <div className="mt-6">
+        <LatarBerandaForm initialFotoBase64={latar.fotoBase64} />
+      </div>
 
       <div className="mt-6">
         <RetensiForm initial={settings.retensi} />

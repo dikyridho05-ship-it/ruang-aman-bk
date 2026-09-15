@@ -783,6 +783,59 @@ Diverifikasi: `npx tsc --noEmit` + `next build` bersih untuk App A & App B, plus
 uji browser (Playwright) untuk alur pilih 3 → tekan ke-4 → getar/merah → tukar
 pilihan → peringatan padam.
 
+## Foto latar Beranda (bisa diganti dari App B)
+
+Beranda App A bisa menampilkan foto gedung sekolah samar di belakang isinya,
+dengan **opasitas 25%**. Fotonya bukan berkas di dalam kode: Super Admin
+mengunggahnya sendiri lewat **App B → Pengaturan → Foto Latar Beranda**, sama
+seperti logo sekolah — jadi sekolah lain yang memakai aplikasi ini tinggal
+unggah fotonya masing-masing tanpa mengubah kode atau deploy ulang.
+
+**Di mana disimpan.** Dokumen Firestore tersendiri, `settings/latar-beranda`,
+field `fotoBase64` (data URL). Sengaja TIDAK digabung ke `settings/sekolah`:
+dokumen Firestore dibatasi 1 MiB, dan `settings/sekolah` sudah menampung logo
+serta dibaca di banyak tempat (Beranda, Pengaturan, retensi) yang tidak
+membutuhkan foto — kalau digabung, setiap pembacaan nama sekolah ikut menyeret
+ratusan KB yang tidak dipakai. Tetap base64 di Firestore, bukan Firebase
+Storage, dengan alasan yang sama seperti logo & gambar chat: supaya proyek ini
+tidak perlu upgrade ke plan Blaze.
+
+**Ukuran dijaga di dua sisi.** Di browser App B foto diperkecil ke maksimal
+1600px dan dikompres ulang jadi JPEG sampai ±400 KB
+(`app-b-admin/src/lib/image/kompres-foto.ts`, pola sama dengan kompresi gambar
+chat di App A) — jadi foto 4 MB dari HP boleh langsung dipilih. Di server,
+Server Action menolak apa pun yang bukan data URL gambar atau melebihi
+`MAKS_PANJANG_DATA_URL_LATAR` (700.000 karakter ≈ 512 KB biner). Menggambar
+ulang lewat `<canvas>` juga otomatis membuang metadata EXIF, termasuk koordinat
+GPS kalau fotonya diambil dari HP.
+
+**Kenapa 25%, dan kenapa tampilannya beda di HP.** Angka opasitasnya ada di
+satu tempat, `OPASITAS_LATAR` di `app-a-publik/src/app/page.tsx`, dan
+dicerminkan di pratinjau form App B — pratinjaunya sengaja meniru tampilan asli
+(foto 25% + teks contoh) supaya Super Admin bisa menilai keterbacaan SEBELUM
+menyimpan. Di layar lebar foto dipasang `object-cover` memenuhi layar. Di HP
+justru `object-contain`: foto gedung sekolah hampir selalu mendatar (±16:9),
+sementara layar HP tinggi memanjang — dengan `object-cover`, foto ikut
+diperbesar ~2,5x dan yang tersisa cuma potongan tengah huruf papan nama.
+Sebagai pita di tengah layar, gedungnya tetap dikenali; tepi atas-bawahnya
+dilembutkan dengan gradasi `.latar-beranda-foto` di `globals.css` supaya tidak
+terlihat seperti kotak yang ditempel.
+
+Lapisan fotonya `aria-hidden` + `pointer-events-none`: murni dekorasi, tidak
+dibacakan pembaca layar dan tidak pernah menghalangi tombol. Kalau pembacaan
+Firestore gagal atau fotonya belum pernah diunggah, Beranda tampil polos
+seperti sebelum ada fitur ini.
+
+Berkas yang berubah — App A: `src/app/page.tsx`,
+`src/lib/firestore/settings.ts`, `src/app/globals.css`. App B (baru):
+`src/actions/latar-beranda.ts`, `src/components/LatarBerandaForm.tsx`,
+`src/lib/image/kompres-foto.ts`; (diubah) `src/types/admin.ts`,
+`src/lib/firestore/settings.ts`, `src/app/pengaturan/page.tsx`.
+
+Diverifikasi: `npx tsc --noEmit` + `next build` bersih untuk App A & App B, dan
+tampilan Beranda dicek lewat screenshot Playwright di dua ukuran layar (HP
+390px & laptop 1280px) memakai foto sungguhan.
+
 ## Status Tahapan
 
 - [x] **TAHAP 1** — Struktur proyek + `firebaseClient.ts` + `firebaseAdmin.ts` (App A & App B)

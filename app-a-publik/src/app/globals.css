@@ -19,3 +19,15 @@ body {
     animation: none;
   }
 }
+
+/* Di layar HP, foto latar Beranda tampil dengan object-contain — artinya ada
+   tepi atas & bawah yang terpotong lurus dan terlihat seperti kotak yang
+   ditempel di tengah halaman. Gradasi tipis ini melembutkan kedua tepi itu
+   supaya fotonya menyatu dengan halaman. Di layar lebar fotonya sudah
+   memenuhi layar (object-cover), jadi tidak ada tepi yang perlu dilembutkan. */
+@media (max-width: 639px) {
+  .latar-beranda-foto {
+    -webkit-mask-image: linear-gradient(to bottom, transparent, #000 14%, #000 86%, transparent);
+    mask-image: linear-gradient(to bottom, transparent, #000 14%, #000 86%, transparent);
+  }
+}
