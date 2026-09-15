@@ -1,21 +1,12 @@
 import Image from "next/image";
 import Link from "next/link";
 import { getSekolahSettings, getLatarBeranda } from "@/lib/firestore/settings";
+import { OPASITAS_LATAR_BERANDA } from "@/lib/constants/latar-beranda";
 import EmergencyButton from "@/components/EmergencyButton";
 
 // Selalu ambil data terbaru dari Firestore — nama/logo/foto latar bisa diubah
 // App B kapan saja.
 export const dynamic = "force-dynamic";
-
-/**
- * Seberapa samar foto gedung sekolah tampil di belakang Beranda. 25% dipilih
- * supaya foto masih jelas terbaca sebagai gedung sekolah, tapi kontras teks
- * di atasnya (slate-900 di atas slate-50) tetap jauh di atas ambang WCAG AA —
- * halaman ini pintu masuk siswa yang mungkin sedang tidak tenang, jadi
- * keterbacaan menang atas hiasan. Angka ini dicerminkan di pratinjau
- * app-b-admin/src/components/LatarBerandaForm.tsx.
- */
-const OPASITAS_LATAR = 0.25;
 
 export default async function BerandaPage() {
   const [{ namaSekolah, logoBase64 }, { fotoBase64 }] = await Promise.all([
@@ -29,55 +20,20 @@ export default async function BerandaPage() {
     // "Butuh Bantuan Segera?" yang fixed — pola sama seperti CurhatFlow.tsx,
     // LupaKodeFlow.tsx & CekBalasanFlow.tsx.
     <main className="relative flex min-h-screen flex-col items-center justify-center px-4 pt-12 pb-20">
-      {/* Lapisan foto latar. `fixed` (bukan absolute) supaya di HP layar pendek
-          fotonya tetap memenuhi layar tanpa ikut melar saat halaman di-scroll,
-          dan aria-hidden + pointer-events-none supaya benar-benar dekorasi:
-          tidak dibacakan pembaca layar, tidak pernah menghalangi tombol.
-          next/image dilewati di sini karena sumbernya data URL base64 dari
-          Firestore — tidak ada yang bisa dioptimasi, malah menambah lapisan. */}
-      {fotoBase64 && (
-        <div className="pointer-events-none fixed inset-0 -z-10 flex items-center" aria-hidden>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          {/* Di HP: h-auto + object-contain, jadi kotak <img> mengikuti tinggi
-              asli fotonya dan tampil sebagai pita samar di tengah layar (lihat
-              `items-center` di pembungkusnya). Kalau dipaksa object-cover di
-              layar HP yang tinggi memanjang, foto gedung yang mendatar (±16:9)
-              ikut diperbesar ~2,5x dan yang tersisa cuma potongan tengah huruf
-              papan nama — gedungnya sendiri tidak kelihatan.
-              Kotak <img> yang pas dengan fotonya ini juga syarat agar gradasi
-              .latar-beranda-foto di globals.css benar-benar melembutkan tepi
-              FOTO, bukan tepi layar. Mulai layar sedang rasionya sudah mirip,
-              jadi object-cover yang paling rapi. */}
-          <img
-            src={fotoBase64}
-            alt=""
-            className="latar-beranda-foto h-auto max-h-full w-full object-contain sm:h-full sm:object-cover"
-            style={{ opacity: OPASITAS_LATAR }}
-          />
-        </div>
-      )}
+      <LatarFoto fotoBase64={fotoBase64} />
 
       <div className="w-full max-w-md text-center">
-        {logoBase64 ? (
-          <Image
-            src={logoBase64}
-            alt={`Logo ${namaSekolah}`}
-            width={80}
-            height={80}
-            unoptimized
-            className="mx-auto rounded-full object-contain"
-          />
-        ) : (
-          <div
-            className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-brand-100 text-3xl"
-            aria-hidden
-          >
-            🏫
-          </div>
-        )}
+        <Logo logoBase64={logoBase64} namaSekolah={namaSekolah} />
 
-        <p className="mt-3 text-sm font-medium text-slate-500">{namaSekolah}</p>
-        <h1 className="mt-1 text-3xl font-bold text-slate-900">Ruang Aman BK</h1>
+        {/* Nama sekolah ikut di dalam <h1> (bukan <p> terpisah sebelum judul)
+            supaya pembaca layar tidak membaca teks lepas tanpa konteks
+            heading sebelum judul utama. Tampilannya tetap seperti sebelumnya
+            berkat kelas di masing-masing <span>. */}
+        <h1 className="mt-3 text-3xl font-bold text-slate-900">
+          <span className="block text-sm font-medium text-slate-500">{namaSekolah}</span>
+          <span className="mt-1 block">Ruang Aman BK</span>
+        </h1>
+
         <p className="mt-3 text-slate-600">
           Tempat curhat yang aman untuk siswa. Tanpa login, tanpa nama asli —
           Guru BK di sini siap dengar cerita kamu.
@@ -113,5 +69,72 @@ export default async function BerandaPage() {
 
       <EmergencyButton />
     </main>
+  );
+}
+
+/**
+ * Lapisan foto latar sebagai pita samar di belakang konten.
+ *
+ * `fixed` (bukan absolute) supaya di HP layar pendek fotonya tetap memenuhi
+ * layar tanpa ikut melar saat halaman di-scroll. `pointer-events-none` +
+ * `aria-hidden` supaya benar-benar dekorasi: tidak dibacakan pembaca layar,
+ * tidak pernah menghalangi tombol. next/image dilewati di sini karena
+ * sumbernya data URL base64 dari Firestore — tidak ada yang bisa
+ * dioptimasi, malah menambah lapisan.
+ *
+ * Di HP: h-auto + object-contain, jadi kotak <img> mengikuti tinggi asli
+ * fotonya dan tampil sebagai pita samar di tengah layar (lihat
+ * `items-center` di pembungkusnya). Kalau dipaksa object-cover di layar HP
+ * yang tinggi memanjang, foto gedung yang mendatar (±16:9) ikut diperbesar
+ * ~2,5x dan yang tersisa cuma potongan tengah huruf papan nama — gedungnya
+ * sendiri tidak kelihatan. Kotak <img> yang pas dengan fotonya ini juga
+ * syarat agar gradasi .latar-beranda-foto di globals.css benar-benar
+ * melembutkan tepi FOTO, bukan tepi layar. Mulai layar sedang rasionya
+ * sudah mirip, jadi object-cover yang paling rapi.
+ */
+function LatarFoto({ fotoBase64 }: { fotoBase64: string | null }) {
+  if (!fotoBase64) return null;
+
+  return (
+    <div className="pointer-events-none fixed inset-0 -z-10 flex items-center" aria-hidden>
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src={fotoBase64}
+        alt=""
+        className="latar-beranda-foto h-auto max-h-full w-full object-contain sm:h-full sm:object-cover"
+        style={{ opacity: OPASITAS_LATAR_BERANDA }}
+      />
+    </div>
+  );
+}
+
+/** Logo sekolah, dengan fallback emoji kalau admin belum mengunggah logo. */
+function Logo({
+  logoBase64,
+  namaSekolah,
+}: {
+  logoBase64: string | null;
+  namaSekolah: string;
+}) {
+  if (!logoBase64) {
+    return (
+      <div
+        className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-brand-100 text-3xl"
+        aria-hidden
+      >
+        🏫
+      </div>
+    );
+  }
+
+  return (
+    <Image
+      src={logoBase64}
+      alt={`Logo ${namaSekolah}`}
+      width={80}
+      height={80}
+      unoptimized
+      className="mx-auto rounded-full object-contain"
+    />
   );
 }

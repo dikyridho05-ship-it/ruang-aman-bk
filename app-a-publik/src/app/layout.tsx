@@ -1,13 +1,14 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
+import { WARNA_BRAND } from "@/lib/constants/warna";
 
 export const metadata: Metadata = {
   title: "Ruang Aman BK — Konseling Anonim Siswa",
   description:
     "Platform konseling anonim untuk siswa SMKN 1 Ciruas. Curhat aman, identitas terlindungi.",
   applicationName: "Ruang Aman BK",
-  // Bukan "webAppCapable" iOS-only lagi di sini — manifest.ts (TAHAP 8) yang
-  // jadi sumber utama metadata PWA, ini cuma pelengkap untuk Safari lama.
+  // appleWebApp: pelengkap untuk Safari lama — sumber utama metadata PWA
+  // ada di manifest.ts (TAHAP 8).
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
@@ -16,7 +17,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#0284c7",
+  themeColor: WARNA_BRAND[600],
   width: "device-width",
   initialScale: 1,
 };

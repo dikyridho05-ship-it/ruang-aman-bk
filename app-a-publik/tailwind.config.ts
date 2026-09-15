@@ -1,4 +1,5 @@
 import type { Config } from "tailwindcss";
+import { WARNA_BRAND } from "./src/lib/constants/warna";
 
 const config: Config = {
   content: [
@@ -10,13 +11,7 @@ const config: Config = {
       colors: {
         // Palet netral & menenangkan — cocok untuk konteks konseling.
         // Sesuaikan nanti dengan warna identitas sekolah (TAHAP 3/5).
-        brand: {
-          50: "#f0f9ff",
-          100: "#e0f2fe",
-          500: "#0ea5e9",
-          600: "#0284c7",
-          700: "#0369a1",
-        },
+        brand: WARNA_BRAND,
       },
       keyframes: {
         // Getaran pendek untuk penanda "maks 3" saat siswa menekan kategori

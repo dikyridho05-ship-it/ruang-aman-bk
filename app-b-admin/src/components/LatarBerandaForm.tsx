@@ -4,9 +4,7 @@ import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { simpanLatarBerandaAction, hapusLatarBerandaAction } from "@/actions/latar-beranda";
 import { kompresFotoLatarKeDataUrl } from "@/lib/image/kompres-foto";
-
-/** Harus sama dengan OPASITAS_LATAR di app-a-publik/src/app/page.tsx. */
-const OPASITAS_PRATINJAU = 0.25;
+import { OPASITAS_LATAR_BERANDA } from "@/lib/constants/latar-beranda";
 
 interface Props {
   initialFotoBase64: string | null;
@@ -124,7 +122,7 @@ export default function LatarBerandaForm({ initialFotoBase64 }: Props) {
               alt=""
               aria-hidden
               className="absolute inset-0 h-full w-full object-cover"
-              style={{ opacity: OPASITAS_PRATINJAU }}
+              style={{ opacity: OPASITAS_LATAR_BERANDA }}
             />
             <div className="relative flex h-full flex-col items-center justify-center text-center">
               <p className="text-xs font-medium text-slate-500">Nama Sekolah</p>
