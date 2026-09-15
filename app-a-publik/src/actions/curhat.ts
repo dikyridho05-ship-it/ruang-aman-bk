@@ -6,6 +6,7 @@ import { generateKodeKonseling } from "@/lib/firestore/kode-konseling";
 import { hashPassword } from "@/lib/crypto/password";
 import { createCurhatSchema } from "@/lib/validation/curhat";
 import { isCurhatRateLimited, markCurhatSubmitted } from "@/lib/security/rate-limit";
+import { verifyTurnstileToken } from "@/lib/security/turnstile";
 import { notifyGuruOnNewTicket } from "@/lib/push/send-push";
 
 export interface CreateCurhatResult {
@@ -46,6 +47,20 @@ export async function createCurhatTicket(
     return {
       success: false,
       error: "Kamu baru saja mengirim curhatan. Tunggu sebentar sebelum kirim lagi.",
+    };
+  }
+
+  // Verifikasi Cloudflare Turnstile ULANG di server — token dari widget di
+  // ConsentGate (lihat CurhatFlow.tsx) tidak pernah dipercaya begitu saja,
+  // karena form ini tetap bisa dikirim langsung tanpa lewat UI (mis. lewat
+  // curl) kalau tidak dicek ulang di sini.
+  const turnstileOk = await verifyTurnstileToken(
+    formData.get("turnstileToken") as string | null
+  );
+  if (!turnstileOk) {
+    return {
+      success: false,
+      error: "Verifikasi gagal atau kedaluwarsa. Muat ulang halaman dan coba lagi.",
     };
   }
 

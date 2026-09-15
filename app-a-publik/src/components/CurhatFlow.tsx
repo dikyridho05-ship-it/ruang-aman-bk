@@ -1,36 +1,21 @@
 "use client";
 
-import { useActionState, useEffect, useRef, useState } from "react";
+import { useActionState, useEffect, useState } from "react";
 import { curhatFormAction } from "@/actions/curhat";
 import { ingatTiket, unduhKartuKode } from "@/lib/ingatan-tiket";
 import KategoriPicker from "@/components/KategoriPicker";
 import MoodPicker from "@/components/MoodPicker";
 import PasswordField from "@/components/PasswordField";
-
-const HOLD_DURATION_MS = 2000;
+import TurnstileWidget from "@/components/TurnstileWidget";
 
 /**
- * Halaman persetujuan sebelum siswa boleh curhat — harus TAHAN tombol 2 detik
- * (bukan cuma sekali klik) supaya benar-benar sadar & sengaja, bukan kepencet
- * tidak sengaja. Pola ini yang sebelumnya sudah dipakai di prototipe HTML.
+ * Halaman persetujuan sebelum siswa boleh curhat — sebelumnya siswa cukup
+ * TAHAN tombol 2 detik. Sekarang konfirmasinya lewat widget CAPTCHA
+ * Cloudflare Turnstile: begitu siswa menyelesaikan verifikasi (biasanya cukup
+ * centang), token dari Cloudflare diteruskan ke onConfirm dan diverifikasi
+ * ULANG di server (lihat actions/curhat.ts) sebelum curhatan disimpan.
  */
-function ConsentGate({ onConfirm }: { onConfirm: () => void }) {
-  const [holding, setHolding] = useState(false);
-  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  const startHold = () => {
-    setHolding(true);
-    timeoutRef.current = setTimeout(onConfirm, HOLD_DURATION_MS);
-  };
-
-  const cancelHold = () => {
-    setHolding(false);
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
-      timeoutRef.current = null;
-    }
-  };
-
+function ConsentGate({ onConfirm }: { onConfirm: (turnstileToken: string) => void }) {
   return (
     <div className="mx-auto max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
       <h1 className="text-xl font-bold text-slate-900">Sebelum mulai curhat</h1>
@@ -45,25 +30,12 @@ function ConsentGate({ onConfirm }: { onConfirm: () => void }) {
       </ul>
 
       <p className="mt-4 text-xs text-slate-500">
-        Tekan &amp; tahan tombol di bawah selama 2 detik untuk melanjutkan.
+        Selesaikan verifikasi di bawah ini untuk melanjutkan.
       </p>
 
-      <button
-        type="button"
-        onPointerDown={startHold}
-        onPointerUp={cancelHold}
-        onPointerLeave={cancelHold}
-        className="relative mt-2 w-full overflow-hidden rounded-xl bg-brand-600 py-3 font-semibold text-white select-none"
-      >
-        <span
-          className="absolute inset-y-0 left-0 bg-brand-800/50"
-          style={{
-            width: holding ? "100%" : "0%",
-            transition: holding ? `width ${HOLD_DURATION_MS}ms linear` : "width 150ms ease-out",
-          }}
-        />
-        <span className="relative">Tahan untuk Lanjut</span>
-      </button>
+      <div className="mt-2">
+        <TurnstileWidget onVerify={onConfirm} />
+      </div>
     </div>
   );
 }
@@ -147,20 +119,20 @@ function SuccessScreen({ kode }: { kode: string }) {
 }
 
 export default function CurhatFlow() {
-  const [confirmed, setConfirmed] = useState(false);
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
 
   return (
     // pb-20 (bukan cuma py-8) supaya elemen paling bawah — tombol "Kirim
-    // Curhatan", atau tombol "Tahan untuk Lanjut" di ConsentGate — selalu
-    // punya jarak aman dari tombol "Butuh Bantuan Segera?" yang fixed di
-    // pojok layar (lihat EmergencyButton.tsx). py-8 saja (32px) masih
-    // ketutupan tombol itu saat halaman di-scroll sampai bawah; pb-20 (80px)
-    // ini pola yang sama dipakai di CekBalasanFlow.tsx.
+    // Curhatan", atau widget verifikasi di ConsentGate — selalu punya jarak
+    // aman dari tombol "Butuh Bantuan Segera?" yang fixed di pojok layar
+    // (lihat EmergencyButton.tsx). py-8 saja (32px) masih ketutupan tombol
+    // itu saat halaman di-scroll sampai bawah; pb-20 (80px) ini pola yang
+    // sama dipakai di CekBalasanFlow.tsx.
     <div className="px-4 pt-8 pb-20">
-      {!confirmed ? (
-        <ConsentGate onConfirm={() => setConfirmed(true)} />
+      {!turnstileToken ? (
+        <ConsentGate onConfirm={setTurnstileToken} />
       ) : (
-        <CurhatFormOrSuccess />
+        <CurhatFormOrSuccess turnstileToken={turnstileToken} />
       )}
     </div>
   );
@@ -171,7 +143,7 @@ export default function CurhatFlow() {
  * setelah consent — dan supaya SuccessScreen bisa dibaca dari state action
  * yang sama tanpa bikin state terpisah yang gampang tidak sinkron.
  */
-function CurhatFormOrSuccess() {
+function CurhatFormOrSuccess({ turnstileToken }: { turnstileToken: string }) {
   const [state, formAction, isPending] = useActionState(curhatFormAction, null);
 
   if (state?.success && state.kode) {
@@ -180,6 +152,7 @@ function CurhatFormOrSuccess() {
 
   return (
     <form action={formAction} className="mx-auto max-w-md space-y-5">
+      <input type="hidden" name="turnstileToken" value={turnstileToken} />
       <CurhatFormFields error={state?.error} isPending={isPending} />
     </form>
   );

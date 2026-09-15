@@ -55,6 +55,15 @@ sengaja dua aplikasi independen.
    - `FIREBASE_ADMIN_PRIVATE_KEY` — tempel PERSIS termasuk `\n` literal dan
      tanda kutip dua di awal/akhir, sama seperti di `.env.local`. Jangan
      ubah jadi baris baru sungguhan.
+   - `NEXT_PUBLIC_TURNSTILE_SITE_KEY` dan `TURNSTILE_SECRET_KEY` — **WAJIB
+     diganti** dengan kunci ASLI dari [dashboard Cloudflare
+     Turnstile](https://dash.cloudflare.com/?to=/:account/turnstile), bukan
+     kunci tes bawaan `.env.local`. Kunci tes selalu meloloskan siapa pun
+     (termasuk bot) — cocok untuk lokal, tapi kalau kepakai di produksi
+     verifikasi anti-bot di halaman "Sebelum mulai curhat" jadi tidak
+     berguna sama sekali. Saat membuat widget Turnstile di Cloudflare,
+     daftarkan domain Vercel App A (mis. `ruang-aman-bk-app-a.vercel.app`)
+     sebagai domain yang diizinkan.
 5. Deploy. Dapat URL seperti `ruang-aman-bk-app-a.vercel.app`.
 
 ### Project 2 — App B (Super Admin)
