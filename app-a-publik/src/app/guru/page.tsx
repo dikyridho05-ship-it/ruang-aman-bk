@@ -5,6 +5,7 @@ import { adminDb } from "@/lib/firebase/admin";
 import { getPiketHariIni } from "@/lib/firestore/piket";
 import LogoutButton from "@/components/LogoutButton";
 import PushSubscribeButton from "@/components/PushSubscribeButton";
+import { TicketListClient, type TicketRow } from "@/components/TicketListClient";
 import {
   MOOD_EMOJI,
   adaKategoriPrioritas,
@@ -15,31 +16,6 @@ import {
 } from "@/types/ticket";
 
 export const dynamic = "force-dynamic";
-
-const STATUS_BADGE: Record<TicketStatus, string> = {
-  baru: "bg-amber-100 text-amber-700",
-  dibaca: "bg-slate-100 text-slate-700",
-  dibalas: "bg-blue-100 text-blue-700",
-  selesai: "bg-emerald-100 text-emerald-700",
-};
-
-const STATUS_LABEL: Record<TicketStatus, string> = {
-  baru: "Baru",
-  dibaca: "Dibaca",
-  dibalas: "Dibalas",
-  selesai: "Selesai",
-};
-
-interface TicketRow {
-  kode: string;
-  kategori: CurhatTicket["kategori"];
-  mood: CurhatTicket["mood"];
-  judul: string;
-  status: TicketStatus;
-  createdAtMs: number;
-  prioritas: boolean;
-  guruDitugaskan: { uid: string; nama: string } | null;
-}
 
 export default async function GuruDashboardPage({
   searchParams,
@@ -60,8 +36,6 @@ export default async function GuruDashboardPage({
 
   let tickets: TicketRow[] = snap.docs.map((d) => {
     const data = d.data() as CurhatTicket;
-    // normalizeKategori, bukan data.kategori langsung — tiket yang dibuat
-    // sebelum revisi multi-kategori menyimpannya sebagai string tunggal.
     const kategori = normalizeKategori(data.kategori);
     return {
       kode: data.kode,
@@ -79,8 +53,7 @@ export default async function GuruDashboardPage({
     tickets = tickets.filter((t) => t.guruDitugaskan?.uid === guru.uid);
   }
 
-  // Tiket prioritas (kategori berisiko tinggi, belum selesai) naik ke atas —
-  // di dalam masing-masing kelompok tetap terurut dari yang paling baru.
+  // Tiket prioritas (kategori berisiko tinggi, belum selesai) naik ke atas
   tickets.sort((a, b) => {
     if (a.prioritas !== b.prioritas) return a.prioritas ? -1 : 1;
     return b.createdAtMs - a.createdAtMs;
@@ -137,57 +110,11 @@ export default async function GuruDashboardPage({
         </p>
       )}
 
-      {tickets.length === 0 ? (
-        <p className="rounded-xl border border-slate-200 bg-white p-6 text-center text-sm text-slate-500">
-          {hanyaTugasSaya ? "Belum ada tiket yang ditugaskan ke kamu." : "Belum ada curhatan masuk."}
-        </p>
-      ) : (
-        <ul className="space-y-2">
-          {tickets.map((t) => (
-            <li key={t.kode}>
-              <Link
-                href={`/guru/${t.kode}`}
-                className={`flex items-center justify-between gap-3 rounded-xl border bg-white p-4 shadow-sm hover:border-brand-300 ${
-                  t.prioritas ? "border-red-300 ring-1 ring-red-100" : "border-slate-200"
-                }`}
-              >
-                <div className="min-w-0">
-                  <div className="flex items-start gap-2">
-                    <span aria-hidden>{MOOD_EMOJI[t.mood]}</span>
-                    {/* line-clamp-2 (bukan truncate 1 baris) — judul asli siswa
-                        biasanya kalimat penuh dan nyaris selalu kepotong di 1
-                        baris di kartu selebar HP, padahal daftar ini alat
-                        triase utama Guru BK untuk menilai mana yang mendesak
-                        tanpa harus buka satu-satu. */}
-                    <span className="line-clamp-2 font-semibold text-slate-900">{t.judul}</span>
-                  </div>
-                  <p className="mt-1 text-xs text-slate-500">
-                    {t.kode} &middot; {labelKategori(t.kategori)} &middot;{" "}
-                    {new Date(t.createdAtMs).toLocaleDateString("id-ID", {
-                      day: "2-digit",
-                      month: "short",
-                      year: "numeric",
-                    })}
-                  </p>
-                  {t.prioritas && (
-                    <p className="mt-1 text-xs font-semibold text-red-600">
-                      🔴 Perlu Perhatian Segera
-                    </p>
-                  )}
-                  <p className="mt-1 text-xs text-slate-400">
-                    {t.guruDitugaskan ? `→ ${t.guruDitugaskan.nama}` : "Belum ditugaskan"}
-                  </p>
-                </div>
-                <span
-                  className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-semibold ${STATUS_BADGE[t.status]}`}
-                >
-                  {STATUS_LABEL[t.status]}
-                </span>
-              </Link>
-            </li>
-          ))}
-        </ul>
-      )}
+      <TicketListClient 
+        initialTickets={tickets} 
+        guruUid={guru.uid} 
+        hanyaTugasSaya={hanyaTugasSaya} 
+      />
     </main>
   );
 }

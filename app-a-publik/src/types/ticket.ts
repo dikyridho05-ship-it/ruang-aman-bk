@@ -164,8 +164,10 @@ export interface CurhatTicket {
   siswaPushSubscriptions?: PushSubscriptionRecord[];
   /** TAHAP 8 — Guru BK yang menangani tiket ini, kalau sudah ditugaskan. */
   guruDitugaskan?: GuruTugas | null;
-  /** TAHAP 8 — true kalau status "selesai" di sini didapat dari retensi otomatis, bukan Guru BK. */
+  /** true kalau status "selesai" di sini didapat dari retensi otomatis, bukan Guru BK. */
   ditutupOtomatis?: boolean;
+  /** Timestamp epoch ms saat siswa terakhir kali membuka/membaca ruang chat. */
+  dibacaSiswaAtMs?: number | null;
 }
 
 /**
