@@ -7,6 +7,7 @@ import KategoriPicker from "@/components/KategoriPicker";
 import MoodPicker from "@/components/MoodPicker";
 import PasswordField from "@/components/PasswordField";
 import TurnstileWidget from "@/components/TurnstileWidget";
+import JamLayananBadge from "@/components/JamLayananBadge";
 
 /**
  * Halaman persetujuan sebelum siswa boleh curhat — sebelumnya siswa cukup
@@ -18,22 +19,24 @@ import TurnstileWidget from "@/components/TurnstileWidget";
 function ConsentGate({ onConfirm }: { onConfirm: (turnstileToken: string) => void }) {
   return (
     <div className="mx-auto max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-      <h1 className="text-xl font-bold text-slate-900">Sebelum mulai curhat</h1>
-      <ul className="mt-3 space-y-2 text-sm text-slate-600">
-        <li>✓ Kamu TIDAK perlu login dan TIDAK perlu pakai nama asli.</li>
-        <li>✓ Kami tidak merekam alamat IP atau perangkat kamu.</li>
-        <li>✓ Guru BK yang membaca curhatanmu tidak tahu identitas aslimu.</li>
-        <li>✓ Simpan baik-baik Kode Konseling & password yang nanti muncul — itu
-          satu-satunya cara membuka kembali percakapan ini.</li>
-        <li>⚠ Kalau situasinya darurat, pakai tombol &quot;Butuh Bantuan Segera&quot;
-          di pojok layar, jangan tunggu balasan di sini.</li>
+      <h1 className="text-lg font-bold text-slate-900">Sebelum mulai curhat</h1>
+
+      <ul className="mt-4 space-y-3 text-sm text-slate-600">
+        <li className="flex items-start gap-2.5">
+          <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-slate-400" />
+          <span><strong>Anonim:</strong> Tidak perlu login atau nama asli. Identitasmu tidak direkam.</span>
+        </li>
+        <li className="flex items-start gap-2.5">
+          <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-slate-400" />
+          <span><strong>Kode &amp; Password:</strong> Simpan kode yang muncul setelah kirim untuk cek balasan Guru BK.</span>
+        </li>
+        <li className="flex items-start gap-2.5">
+          <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-red-500" />
+          <span><strong>Situasi darurat:</strong> Gunakan tombol bantuan di pojok layar jika butuh pertolongan segera.</span>
+        </li>
       </ul>
 
-      <p className="mt-4 text-xs text-slate-500">
-        Selesaikan verifikasi di bawah ini untuk melanjutkan.
-      </p>
-
-      <div className="mt-2">
+      <div className="mt-6">
         <TurnstileWidget onVerify={onConfirm} />
       </div>
     </div>
@@ -175,6 +178,8 @@ function CurhatFormFields({
           Tulis sejujur-jujurnya. Tidak ada jawaban yang salah.
         </p>
       </div>
+
+      <JamLayananBadge />
 
       {error && (
         <div

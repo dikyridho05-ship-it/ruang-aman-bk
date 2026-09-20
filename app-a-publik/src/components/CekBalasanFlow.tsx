@@ -130,12 +130,30 @@ export default function CekBalasanFlow() {
           {loading ? "Memeriksa..." : "Buka Percakapan"}
         </button>
 
-          <Link
-            href="/lupa-kode"
-            className="block text-center text-sm font-medium text-brand-700 underline"
-          >
-            Lupa Kode Konseling?
-          </Link>
+          <div className="flex items-center justify-center gap-3 text-sm font-medium text-brand-700">
+            <Link
+              href="/lupa-kode"
+              className="hover:underline"
+            >
+              Lupa Kode Konseling?
+            </Link>
+            <span className="text-slate-300" aria-hidden>&middot;</span>
+            <Link
+              href={kode.trim() ? `/lupa-password?kode=${encodeURIComponent(kode.trim().toUpperCase())}` : "/lupa-password"}
+              className="hover:underline"
+            >
+              Lupa Password?
+            </Link>
+          </div>
+
+          <div className="pt-2 text-center">
+            <Link
+              href="/"
+              className="inline-flex items-center gap-1.5 text-xs font-medium text-slate-500 hover:text-brand-700"
+            >
+              ← Kembali ke Halaman Utama
+            </Link>
+          </div>
         </form>
       </div>
     </div>

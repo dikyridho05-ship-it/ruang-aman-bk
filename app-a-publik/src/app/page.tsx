@@ -34,9 +34,8 @@ export default async function BerandaPage() {
           <span className="mt-1 block">Ruang Aman</span>
         </h1>
 
-        <p className="mt-3 text-slate-600">
-          Tempat curhat yang aman untuk siswa. Tanpa login, tanpa nama asli —
-          Guru BK di sini siap dengar cerita kamu.
+        <p className="mt-2 text-sm text-slate-500">
+          Curhat aman &amp; rahasia bersama Guru BK.
         </p>
 
         <Link
@@ -53,15 +52,9 @@ export default async function BerandaPage() {
           Cek Balasan
         </Link>
 
-        <div className="mt-8 grid grid-cols-1 gap-2 text-left text-sm text-slate-500 sm:grid-cols-3 sm:text-center">
-          <div className="rounded-xl bg-slate-100 p-3">🔒 Identitas kamu tetap rahasia</div>
-          <div className="rounded-xl bg-slate-100 p-3">🚫 Tidak ada rekam IP/perangkat</div>
-          <div className="rounded-xl bg-slate-100 p-3">💬 Guru BK membalas lewat kode kamu</div>
-        </div>
-
         <Link
           href="/guru/login"
-          className="mt-10 inline-block text-xs font-medium text-slate-400 underline hover:text-slate-600"
+          className="mt-8 inline-block text-xs font-medium text-slate-400 underline hover:text-slate-600"
         >
           Login Guru BK
         </Link>

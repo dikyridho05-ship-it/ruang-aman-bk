@@ -1,7 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { WARNA_BRAND } from "@/lib/constants/warna";
-
 export const metadata: Metadata = {
   title: "Ruang Aman — Konseling Anonim Siswa",
   description:
@@ -27,7 +26,9 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="id">
-      <body>{children}</body>
+      <body className="flex flex-col min-h-screen">
+        {children}
+      </body>
     </html>
   );
 }
