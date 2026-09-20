@@ -139,14 +139,30 @@ export default function LupaKodeFlow() {
         </button>
 
         <p className="text-xs text-slate-500">
-          Kalau passwordnya juga lupa, percakapan lama memang tidak bisa dibuka lagi — itu
-          konsekuensi dari tidak menyimpan identitasmu sama sekali. Kamu bisa mulai curhat baru,
-          dan sebut saja nama samaran lamamu supaya Guru BK bisa menyambungkan ceritanya.
+          Kalau kamu tahu Kode Konselingmu tapi lupa passwordnya, kamu bisa buat password baru lewat halaman{" "}
+          <Link href="/lupa-password" className="font-medium text-brand-700 underline">
+            Lupa Password
+          </Link>
+          .
         </p>
 
-        <Link href="/cek-balasan" className="block text-center text-sm text-brand-700 underline">
-          Kembali ke Cek Balasan
-        </Link>
+        <div className="flex flex-col items-center gap-2 pt-1 text-sm font-medium text-brand-700">
+          <div className="flex items-center justify-center gap-3">
+            <Link href="/cek-balasan" className="hover:underline">
+              Kembali ke Cek Balasan
+            </Link>
+            <span className="text-slate-300" aria-hidden>&middot;</span>
+            <Link href="/lupa-password" className="hover:underline">
+              Lupa Password?
+            </Link>
+          </div>
+          <Link
+            href="/"
+            className="inline-flex items-center gap-1.5 text-xs font-medium text-slate-500 hover:text-brand-700"
+          >
+            ← Kembali ke Halaman Utama
+          </Link>
+        </div>
       </form>
     </div>
   );
