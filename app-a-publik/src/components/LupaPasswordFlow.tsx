@@ -2,12 +2,12 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { useSearchParams, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { resetPasswordSiswaAction } from "@/actions/lupa-password";
 import { ingatTiket } from "@/lib/ingatan-tiket";
+import { ambilKodeHandoff } from "@/lib/handoff-kode";
 
 export default function LupaPasswordFlow() {
-  const searchParams = useSearchParams();
   const router = useRouter();
 
   const [kode, setKode] = useState("");
@@ -21,11 +21,11 @@ export default function LupaPasswordFlow() {
   const [suksesKode, setSuksesKode] = useState<string | null>(null);
 
   useEffect(() => {
-    const kodeParam = searchParams.get("kode");
-    if (kodeParam) {
-      setKode(kodeParam.trim().toUpperCase());
+    const kodeHandoff = ambilKodeHandoff();
+    if (kodeHandoff) {
+      setKode(kodeHandoff.trim().toUpperCase());
     }
-  }, [searchParams]);
+  }, []);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -154,6 +154,7 @@ export default function LupaPasswordFlow() {
               required
               minLength={8}
               maxLength={72}
+              autoComplete="new-password"
               value={passwordBaru}
               onChange={(e) => setPasswordBaru(e.target.value)}
               placeholder="Minimal 8 karakter"
@@ -162,6 +163,8 @@ export default function LupaPasswordFlow() {
             <button
               type="button"
               onClick={() => setLihatPassword((v) => !v)}
+              aria-pressed={lihatPassword}
+              aria-label={lihatPassword ? "Sembunyikan password" : "Lihat password"}
               className="absolute right-3 text-xs font-medium text-slate-500 hover:text-brand-700"
             >
               {lihatPassword ? "Tutup" : "Lihat"}
@@ -179,6 +182,7 @@ export default function LupaPasswordFlow() {
             required
             minLength={8}
             maxLength={72}
+            autoComplete="new-password"
             value={konfirmasiPassword}
             onChange={(e) => setKonfirmasiPassword(e.target.value)}
             placeholder="Ketik ulang password baru"

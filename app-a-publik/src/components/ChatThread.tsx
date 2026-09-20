@@ -274,15 +274,32 @@ export default function ChatThread({
     let active = true;
 
     async function poll() {
+      // Lewati saat tab disembunyikan (pindah tab/aplikasi lain) — polling
+      // sebelumnya jalan terus tiap 4 detik walau tab tidak terlihat sama
+      // sekali, tiap kali mengunduh ULANG seluruh percakapan (termasuk
+      // gambar base64, bisa ratusan KB per pesan). Untuk percakapan dengan
+      // beberapa foto ini berarti puluhan MB kuota per menit yang terbuang
+      // percuma di tab yang tidak sedang dilihat.
+      if (document.hidden) return;
       const result = await onPoll();
       if (active && result.success) setMessages(result.messages);
     }
 
     poll(); // ambil data terbaru segera, tidak nunggu interval pertama
     const interval = setInterval(poll, POLL_INTERVAL_MS);
+
+    // Begitu tab terlihat lagi, langsung ambil data terbaru — supaya
+    // pesan yang masuk selagi tab tersembunyi tidak menunggu sampai
+    // interval berikutnya.
+    function handleVisibility() {
+      if (!document.hidden) poll();
+    }
+    document.addEventListener("visibilitychange", handleVisibility);
+
     return () => {
       active = false;
       clearInterval(interval);
+      document.removeEventListener("visibilitychange", handleVisibility);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

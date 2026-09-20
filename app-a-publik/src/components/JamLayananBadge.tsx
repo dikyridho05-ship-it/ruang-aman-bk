@@ -24,10 +24,17 @@ function cekJamLayananAktif(): { aktif: boolean; keterangan: string } {
     };
   }
 
+  // "Besok" cuma benar kalau besok juga hari kerja. Jumat setelah jam
+  // layanan (atau Sabtu) berarti hari kerja berikutnya adalah Senin, bukan
+  // "besok" — sebelumnya badge ini selalu bilang "besok pagi" untuk hari
+  // Senin-Jumat di luar jam, jadi Jumat sore pun ikut salah bilang "besok".
+  const akanDibacaSenin = hari === 5 || hari === 6;
   const teksLuar =
-    hari === 0 || hari === 6
+    hari === 0
       ? "Hari ini libur sekolah. Curhatanmu tetap tersimpan aman dan akan dibaca Guru BK hari Senin pagi."
-      : "Saat ini di luar jam sekolah. Curhatanmu tetap tersimpan aman dan akan dibaca Guru BK besok pagi.";
+      : akanDibacaSenin
+        ? "Saat ini di luar jam sekolah. Curhatanmu tetap tersimpan aman dan akan dibaca Guru BK hari Senin pagi."
+        : "Saat ini di luar jam sekolah. Curhatanmu tetap tersimpan aman dan akan dibaca Guru BK besok pagi.";
 
   return {
     aktif: false,
@@ -35,14 +42,31 @@ function cekJamLayananAktif(): { aktif: boolean; keterangan: string } {
   };
 }
 
+// Refresh berkala supaya badge tidak "membeku" di status saat komponen
+// pertama dimount — siswa yang membiarkan tab curhat terbuka melewati jam
+// tutup (15.30) sebelumnya tetap melihat "Layanan Aktif" sampai reload manual.
+const REFRESH_MS = 60_000;
+
 export default function JamLayananBadge({ compact = false }: { compact?: boolean }) {
   const [status, setStatus] = useState<{ aktif: boolean; keterangan: string } | null>(null);
 
   useEffect(() => {
     setStatus(cekJamLayananAktif());
+    const interval = setInterval(() => setStatus(cekJamLayananAktif()), REFRESH_MS);
+    return () => clearInterval(interval);
   }, []);
 
-  if (!status) return null;
+  // Placeholder dengan tinggi yang sama (bukan `return null`) di render
+  // pertama sebelum useEffect jalan — supaya elemen di bawahnya tidak
+  // meloncat begitu badge asli muncul sesaat kemudian.
+  if (!status) {
+    return (
+      <div
+        aria-hidden
+        className={compact ? "h-[26px]" : "h-[70px] rounded-2xl border border-transparent"}
+      />
+    );
+  }
 
   if (compact) {
     return (

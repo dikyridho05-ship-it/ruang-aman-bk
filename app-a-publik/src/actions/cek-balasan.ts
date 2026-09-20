@@ -2,9 +2,9 @@
 
 import { verifyAndCreateSiswaSession } from "@/lib/session/siswa-session";
 import {
-  catatPercobaanGagal,
-  periksaBatasPercobaan,
-  resetPercobaan,
+  catatPercobaanGagalTarget,
+  periksaBatasPercobaanTarget,
+  resetPercobaanTarget,
 } from "@/lib/security/rate-limit";
 
 const NAMA_BATAS = "cek_balasan";
@@ -19,9 +19,12 @@ export async function verifyCurhatAccessAction(
     return { success: false, error: "Kode dan password wajib diisi." };
   }
 
-  // Sebelum ini, halaman cek balasan tidak punya pembatas percobaan sama
-  // sekali: siapa pun bisa mencoba password berulang-ulang tanpa hambatan.
-  const batas = await periksaBatasPercobaan(NAMA_BATAS, MAKS_PERCOBAAN, JEDA_DETIK);
+  const target = kode.trim().toUpperCase();
+
+  // Dikunci ke Kode Konseling yang diserang, bukan ke cookie klien — skrip
+  // yang tidak menyimpan cookie (curl) tidak bisa lagi mulai hitungan dari
+  // nol dengan menghapusnya.
+  const batas = await periksaBatasPercobaanTarget(NAMA_BATAS, target, MAKS_PERCOBAAN, JEDA_DETIK);
   if (batas.diblokir) {
     const menit = Math.ceil(batas.sisaDetik / 60);
     return {
@@ -33,10 +36,10 @@ export async function verifyCurhatAccessAction(
   const hasil = await verifyAndCreateSiswaSession(kode, password);
 
   if (!hasil.success) {
-    await catatPercobaanGagal(NAMA_BATAS, MAKS_PERCOBAAN, JEDA_DETIK);
+    await catatPercobaanGagalTarget(NAMA_BATAS, target, MAKS_PERCOBAAN, JEDA_DETIK);
     return hasil;
   }
 
-  await resetPercobaan(NAMA_BATAS);
+  await resetPercobaanTarget(NAMA_BATAS, target);
   return hasil;
 }

@@ -38,79 +38,111 @@ interface TicketListClientProps {
   initialTickets: TicketRow[];
   guruUid: string;
   hanyaTugasSaya: boolean;
+  /** createdAtMs tiket TERLAMA di halaman mentah (sebelum filter) pertama —
+   * null kalau tidak ada tiket sama sekali. */
+  initialCursorMs: number | null;
+  /** true kalau halaman mentah pertama penuh (masih mungkin ada lagi). */
+  initialHasMore: boolean;
 }
+
+// Batas iterasi auto-lanjut saat filter "Tugas Saya" aktif — lihat komentar
+// di handleLoadMore. Mencegah satu klik memicu request beruntun tanpa henti
+// kalau guru itu kebetulan tidak ditugaskan ke banyak tiket sama sekali.
+const MAKS_AUTO_LANJUT = 6;
 
 export function TicketListClient({
   initialTickets,
   guruUid,
   hanyaTugasSaya,
+  initialCursorMs,
+  initialHasMore,
 }: TicketListClientProps) {
   const [tickets, setTickets] = useState<TicketRow[]>(initialTickets);
   const [loading, setLoading] = useState(false);
-  const [hasMore, setHasMore] = useState(initialTickets.length >= 50);
   const [error, setError] = useState<string | null>(null);
+
+  // Kursor & hasMore SENGAJA dilacak dari halaman MENTAH (sebelum filter
+  // "Tugas Saya"), bukan dari `tickets` yang sudah tersaring untuk
+  // ditampilkan. Sebelumnya kursor diambil dari tiket TERLIHAT — begitu satu
+  // halaman mentah habis tersaring (0 tiket ditugaskan ke guru ini), kursor
+  // itu tidak pernah maju lagi dan tombol "Muat lebih banyak" mengambil 50
+  // baris mentah yang SAMA berulang-ulang. `hasMore` yang dihitung dari
+  // daftar tersaring juga salah: guru dengan tugas < 50 tiket bisa jadi
+  // tidak pernah melihat tombolnya sama sekali walau tiket mentahnya masih
+  // banyak.
+  const [cursorMs, setCursorMs] = useState<number | null>(initialCursorMs);
+  const [hasMore, setHasMore] = useState(initialHasMore);
 
   // Sinkronkan ulang jika initialTickets berubah (misalnya navigasi filter).
   useEffect(() => {
     setTickets(initialTickets);
-    setHasMore(initialTickets.length >= 50);
+    setCursorMs(initialCursorMs);
+    setHasMore(initialHasMore);
     setError(null);
-  }, [initialTickets]);
+  }, [initialTickets, initialCursorMs, initialHasMore]);
 
   const handleLoadMore = useCallback(async () => {
-    if (tickets.length === 0) return;
+    if (cursorMs === null) return;
     setLoading(true);
     setError(null);
 
-    // Cari tiket paling lama sebagai kursor pagination.
-    const lastTicket = tickets.reduce((prev, current) =>
-      prev.createdAtMs < current.createdAtMs ? prev : current,
-    );
+    let cursor = cursorMs;
+    let lebihBanyak = hasMore;
+    let tambahan: TicketRow[] = [];
 
     try {
-      const res = await fetch(
-        `/api/guru/tickets?lastCreatedAt=${lastTicket.createdAtMs}`,
-      );
+      // Kalau filter "Tugas Saya" aktif, satu halaman mentah bisa saja 0
+      // tiketnya ditugaskan ke guru ini — jadi lanjut ambil halaman mentah
+      // berikutnya secara otomatis (dibatasi MAKS_AUTO_LANJUT) sampai
+      // dapat setidaknya satu tiket baru untuk ditampilkan atau datanya
+      // benar-benar habis, supaya guru tidak perlu klik berkali-kali untuk
+      // hasil yang jarang.
+      for (let i = 0; i < MAKS_AUTO_LANJUT && lebihBanyak && tambahan.length === 0; i++) {
+        const res = await fetch(`/api/guru/tickets?lastCreatedAt=${cursor}`);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
-      if (!res.ok) {
-        throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        const halamanMentah: TicketRow[] = data.tickets || [];
+
+        lebihBanyak = halamanMentah.length >= 50;
+        cursor =
+          halamanMentah.length > 0
+            ? halamanMentah[halamanMentah.length - 1].createdAtMs
+            : cursor;
+
+        tambahan = hanyaTugasSaya
+          ? halamanMentah.filter((t) => t.guruDitugaskan?.uid === guruUid)
+          : halamanMentah;
+
+        if (halamanMentah.length === 0) break;
       }
 
-      const data = await res.json();
-      let newTickets: TicketRow[] = data.tickets || [];
+      setCursorMs(cursor);
+      setHasMore(lebihBanyak);
 
-      if (newTickets.length < 50) {
-        setHasMore(false);
-      }
+      if (tambahan.length > 0) {
+        setTickets((prev) => {
+          const combined = [...prev, ...tambahan];
+          // Urutkan ulang: prioritas di atas, lalu terbaru di atas.
+          combined.sort((a, b) => {
+            if (a.prioritas !== b.prioritas) return a.prioritas ? -1 : 1;
+            return b.createdAtMs - a.createdAtMs;
+          });
 
-      // Terapkan filter "Tugas Saya" di sisi klien jika aktif.
-      if (hanyaTugasSaya) {
-        newTickets = newTickets.filter(
-          (t) => t.guruDitugaskan?.uid === guruUid,
-        );
-      }
-
-      setTickets((prev) => {
-        const combined = [...prev, ...newTickets];
-        // Urutkan ulang: prioritas di atas, lalu terbaru di atas.
-        combined.sort((a, b) => {
-          if (a.prioritas !== b.prioritas) return a.prioritas ? -1 : 1;
-          return b.createdAtMs - a.createdAtMs;
+          // Hapus duplikat berdasarkan kode tiket.
+          const unique = Array.from(
+            new Map(combined.map((item) => [item.kode, item])).values(),
+          );
+          return unique;
         });
-
-        // Hapus duplikat berdasarkan kode tiket.
-        const unique = Array.from(
-          new Map(combined.map((item) => [item.kode, item])).values(),
-        );
-        return unique;
-      });
+      }
     } catch (err) {
       console.error("Gagal memuat tiket:", err);
       setError("Gagal memuat tiket tambahan. Silakan coba lagi.");
     } finally {
       setLoading(false);
     }
-  }, [tickets, hanyaTugasSaya, guruUid]);
+  }, [cursorMs, hasMore, hanyaTugasSaya, guruUid]);
 
   if (tickets.length === 0) {
     return (

@@ -1,8 +1,21 @@
 import "server-only";
+import { timingSafeEqual } from "crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { adminDb } from "@/lib/firebase/admin";
 import { getSekolahSettings } from "@/lib/firestore/settings";
 import { jalankanRetensi } from "@/lib/retensi/jalankan";
+
+/** Bandingkan dua string tanpa membocorkan lewat waktu eksekusi di mana
+ * perbedaannya terjadi (mis. serangan timing untuk menebak token rahasia
+ * karakter demi karakter). `!==` biasa berhenti di ketidakcocokan pertama —
+ * lebih cepat untuk yang lebih tidak cocok, celah yang tereksploitasi lewat
+ * jaringan meski sempit. */
+function bandingkanAman(a: string, b: string): boolean {
+  const bufA = Buffer.from(a);
+  const bufB = Buffer.from(b);
+  if (bufA.length !== bufB.length) return false;
+  return timingSafeEqual(bufA, bufB);
+}
 
 /**
  * Endpoint untuk dipicu penjadwal EKSTERNAL (Vercel Cron, cron-job.org, atau
@@ -30,7 +43,7 @@ export async function POST(request: NextRequest) {
   }
 
   const auth = request.headers.get("authorization");
-  if (auth !== `Bearer ${secret}`) {
+  if (!auth || !bandingkanAman(auth, `Bearer ${secret}`)) {
     return NextResponse.json({ error: "Tidak diizinkan." }, { status: 401 });
   }
 

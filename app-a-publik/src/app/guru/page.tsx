@@ -34,7 +34,7 @@ export default async function GuruDashboardPage({
     getPiketHariIni(),
   ]);
 
-  let tickets: TicketRow[] = snap.docs.map((d) => {
+  const rawTickets: TicketRow[] = snap.docs.map((d) => {
     const data = d.data() as CurhatTicket;
     const kategori = normalizeKategori(data.kategori);
     return {
@@ -49,9 +49,17 @@ export default async function GuruDashboardPage({
     };
   });
 
-  if (hanyaTugasSaya) {
-    tickets = tickets.filter((t) => t.guruDitugaskan?.uid === guru.uid);
-  }
+  // Kursor "Muat lebih banyak" HARUS mengikuti halaman MENTAH (sebelum
+  // filter "Tugas Saya"), bukan daftar yang sudah tersaring — lihat
+  // TicketListClient untuk alasannya. Dua nilai ini dihitung dari
+  // rawTickets sebelum difilter, supaya klien tetap tahu persis dari mana
+  // harus lanjut walau tampilan yang dikirim ke situ sudah tersaring.
+  const cursorAwalMs = rawTickets.length > 0 ? rawTickets[rawTickets.length - 1].createdAtMs : null;
+  const hasMoreAwal = rawTickets.length >= 50;
+
+  const tickets: TicketRow[] = hanyaTugasSaya
+    ? rawTickets.filter((t) => t.guruDitugaskan?.uid === guru.uid)
+    : rawTickets;
 
   // Tiket prioritas (kategori berisiko tinggi, belum selesai) naik ke atas
   tickets.sort((a, b) => {
@@ -110,10 +118,12 @@ export default async function GuruDashboardPage({
         </p>
       )}
 
-      <TicketListClient 
-        initialTickets={tickets} 
-        guruUid={guru.uid} 
-        hanyaTugasSaya={hanyaTugasSaya} 
+      <TicketListClient
+        initialTickets={tickets}
+        guruUid={guru.uid}
+        hanyaTugasSaya={hanyaTugasSaya}
+        initialCursorMs={cursorAwalMs}
+        initialHasMore={hasMoreAwal}
       />
     </main>
   );

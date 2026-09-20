@@ -2,15 +2,29 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { verifyCurhatAccessAction } from "@/actions/cek-balasan";
 import TiketTersimpan from "@/components/TiketTersimpan";
 import { ingatTiket } from "@/lib/ingatan-tiket";
+import { simpanKodeHandoff } from "@/lib/handoff-kode";
 import { getMessagesForSiswaAction, sendSiswaMessageAction } from "@/actions/chat";
 import ChatThread from "@/components/ChatThread";
 import SiswaPushSubscribeButton from "@/components/SiswaPushSubscribeButton";
+import type { SerializedMessage } from "@/types/ticket";
 
-export default function CekBalasanFlow() {
-  const [verified, setVerified] = useState(false);
+interface CekBalasanFlowProps {
+  /** Sesi siswa sudah dicek di server (lihat app/cek-balasan/page.tsx) — kalau
+   * true, langsung tampilkan percakapan tanpa form login. */
+  initialVerified?: boolean;
+  initialMessages?: SerializedMessage[];
+}
+
+export default function CekBalasanFlow({
+  initialVerified = false,
+  initialMessages = [],
+}: CekBalasanFlowProps) {
+  const router = useRouter();
+  const [verified, setVerified] = useState(initialVerified);
   const [kode, setKode] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -52,7 +66,7 @@ export default function CekBalasanFlow() {
         </div>
         <div className="mt-2 min-h-0 flex-1">
           <ChatThread
-            initialMessages={[]}
+            initialMessages={initialMessages}
             myRole="siswa"
             onSend={sendSiswaMessageAction}
             onPoll={getMessagesForSiswaAction}
@@ -138,12 +152,16 @@ export default function CekBalasanFlow() {
               Lupa Kode Konseling?
             </Link>
             <span className="text-slate-300" aria-hidden>&middot;</span>
-            <Link
-              href={kode.trim() ? `/lupa-password?kode=${encodeURIComponent(kode.trim().toUpperCase())}` : "/lupa-password"}
+            <button
+              type="button"
+              onClick={() => {
+                if (kode.trim()) simpanKodeHandoff(kode.trim().toUpperCase());
+                router.push("/lupa-password");
+              }}
               className="hover:underline"
             >
               Lupa Password?
-            </Link>
+            </button>
           </div>
 
           <div className="pt-2 text-center">

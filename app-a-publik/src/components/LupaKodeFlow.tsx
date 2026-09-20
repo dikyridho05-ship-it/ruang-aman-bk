@@ -9,7 +9,7 @@ export default function LupaKodeFlow() {
   const [namaSamaran, setNamaSamaran] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
-  const [hasil, setHasil] = useState<string[] | null>(null);
+  const [hasil, setHasil] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
@@ -26,7 +26,7 @@ export default function LupaKodeFlow() {
     }
 
     // Sekalian diingat browser ini supaya tidak hilang lagi.
-    res.kode.forEach((k) => ingatTiket(k));
+    ingatTiket(res.kode);
     setHasil(res.kode);
   }
 
@@ -43,23 +43,14 @@ export default function LupaKodeFlow() {
           <p className="text-3xl" aria-hidden>
             🔑
           </p>
-          <h1 className="mt-2 text-xl font-bold text-slate-900">
-            {hasil.length > 1 ? "Kode Konseling kamu ketemu" : "Kode Konseling kamu ketemu"}
-          </h1>
+          <h1 className="mt-2 text-xl font-bold text-slate-900">Kode Konseling kamu ketemu</h1>
           <p className="mt-1 text-sm text-slate-600">
             Sudah diingat otomatis di HP ini, jadi tidak perlu hafal lagi.
           </p>
 
-          <ul className="mt-4 space-y-2">
-            {hasil.map((k) => (
-              <li
-                key={k}
-                className="rounded-xl border-2 border-dashed border-emerald-400 bg-white py-3 font-mono text-xl font-bold tracking-wider text-emerald-700"
-              >
-                {k}
-              </li>
-            ))}
-          </ul>
+          <p className="mt-4 rounded-xl border-2 border-dashed border-emerald-400 bg-white py-3 font-mono text-xl font-bold tracking-wider text-emerald-700">
+            {hasil}
+          </p>
 
           <Link
             href="/cek-balasan"

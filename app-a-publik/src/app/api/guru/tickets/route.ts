@@ -4,6 +4,7 @@ import { NextResponse } from 'next/server';
 import { adminDb } from '@/lib/firebase/admin';
 import { getAuthenticatedGuru } from '@/lib/session/guru-session';
 import { Timestamp } from 'firebase-admin/firestore';
+import { adaKategoriPrioritas, normalizeKategori } from '@/types/ticket';
 
 export async function GET(request: Request) {
   // ─── Autentikasi: hanya guru yang sudah login yang boleh akses ───
@@ -34,15 +35,24 @@ export async function GET(request: Request) {
   const snap = await query.get();
   const tickets = snap.docs.map((doc) => {
     const data = doc.data();
+    // `kategori` DIWAJIBKAN lewat normalizeKategori() (lihat types/ticket.ts)
+    // — tiket lama sebelum revisi multi-kategori masih menyimpannya sebagai
+    // string tunggal, dan `prioritas` sama sekali TIDAK DISIMPAN di
+    // Firestore (dihitung, bukan field). Sebelumnya endpoint ini membaca
+    // keduanya mentah-mentah: tiket lama bisa membuat UI guru crash
+    // (labelKategori memanggil .map() pada string), dan setiap tiket di
+    // luar 50 pertama selalu tampil non-prioritas — termasuk kategori
+    // kekerasan/kesehatan mental, persis yang mestinya ditandai segera.
+    const kategori = normalizeKategori(data.kategori);
     return {
       id: doc.id,
       kode: data.kode,
-      kategori: data.kategori,
+      kategori,
       mood: data.mood,
       judul: data.judul,
       status: data.status,
       createdAtMs: data.createdAt?.toMillis?.() ?? Date.now(),
-      prioritas: data.prioritas ?? false,
+      prioritas: adaKategoriPrioritas(kategori) && data.status !== 'selesai',
       guruDitugaskan: data.guruDitugaskan ?? null,
     };
   });

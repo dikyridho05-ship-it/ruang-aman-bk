@@ -1,5 +1,8 @@
 import "server-only";
 import { cookies } from "next/headers";
+import { createHash } from "crypto";
+import { adminDb } from "@/lib/firebase/admin";
+import { FieldValue, Timestamp } from "firebase-admin/firestore";
 
 const COOLDOWN_COOKIE_NAME = "curhat_cooldown";
 const COOLDOWN_SECONDS = 45;
@@ -100,4 +103,82 @@ export async function catatPercobaanGagal(
 export async function resetPercobaan(nama: string): Promise<void> {
   const toko = await cookies();
   toko.delete(`ra_${nama}`);
+}
+
+/* ------------------------------------------------------------------ */
+/* Pembatas percobaan PER-TARGET, disimpan di server (Firestore)       */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Pembatas di atas (`periksaBatasPercobaan`/`catatPercobaanGagal`) berbasis
+ * cookie klien — siapa pun yang tidak menyimpan cookie (mis. skrip curl,
+ * atau browser yang cookie-nya dihapus di antara percobaan) selalu mulai
+ * dari hitungan nol. Itu melumpuhkan pembatasnya sama sekali untuk
+ * penyerang otomatis.
+ *
+ * Pembatas ini menghitung di SERVER, dikunci ke TARGET yang dicoba (mis.
+ * hash dari Kode Konseling atau Nama Samaran yang diserang) — bukan ke IP
+ * atau perangkat penyerang (tetap sesuai prinsip privasi proyek ini: tidak
+ * merekam identitas/perangkat siapa pun). Konsekuensinya: penyerang tidak
+ * bisa lagi menghapus cookie untuk mengulang dari nol, karena hitungannya
+ * menempel ke target yang mereka coba, bukan ke mereka.
+ */
+function hashTarget(target: string): string {
+  return createHash("sha256").update(target.trim().toLowerCase()).digest("hex");
+}
+
+function docRefTarget(nama: string, target: string) {
+  return adminDb.collection("rate_limit_target").doc(`${nama}_${hashTarget(target)}`);
+}
+
+export async function periksaBatasPercobaanTarget(
+  nama: string,
+  target: string,
+  maks = 5,
+  jedaDetik = 300
+): Promise<StatusPercobaan> {
+  const snap = await docRefTarget(nama, target).get();
+  if (!snap.exists) return { diblokir: false, sisaDetik: 0 };
+
+  const data = snap.data() ?? {};
+  const jumlah = typeof data.jumlah === "number" ? data.jumlah : 0;
+  const sampai = data.sampai as Timestamp | undefined;
+
+  if (jumlah >= maks && sampai && sampai.toMillis() > Date.now()) {
+    return { diblokir: true, sisaDetik: Math.ceil((sampai.toMillis() - Date.now()) / 1000) };
+  }
+  return { diblokir: false, sisaDetik: 0 };
+}
+
+export async function catatPercobaanGagalTarget(
+  nama: string,
+  target: string,
+  maks = 5,
+  jedaDetik = 300
+): Promise<void> {
+  const ref = docRefTarget(nama, target);
+  await adminDb.runTransaction(async (tx) => {
+    const snap = await tx.get(ref);
+    const data = snap.exists ? snap.data() ?? {} : {};
+    const sampaiLama = data.sampai as Timestamp | undefined;
+    // Kalau jendela sebelumnya sudah lewat, mulai hitung ulang dari nol.
+    const jumlahLama =
+      typeof data.jumlah === "number" && (!sampaiLama || sampaiLama.toMillis() > Date.now())
+        ? data.jumlah
+        : 0;
+    const jumlah = jumlahLama + 1;
+
+    tx.set(ref, {
+      jumlah,
+      sampai:
+        jumlah >= maks
+          ? Timestamp.fromMillis(Date.now() + jedaDetik * 1000)
+          : sampaiLama ?? null,
+      updatedAt: FieldValue.serverTimestamp(),
+    });
+  });
+}
+
+export async function resetPercobaanTarget(nama: string, target: string): Promise<void> {
+  await docRefTarget(nama, target).delete().catch(() => {});
 }

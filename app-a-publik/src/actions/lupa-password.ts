@@ -5,9 +5,9 @@ import { hashPassword } from "@/lib/crypto/password";
 import { Timestamp } from "firebase-admin/firestore";
 import { verifyAndCreateSiswaSession } from "@/lib/session/siswa-session";
 import {
-  catatPercobaanGagal,
-  periksaBatasPercobaan,
-  resetPercobaan,
+  catatPercobaanGagalTarget,
+  periksaBatasPercobaanTarget,
+  resetPercobaanTarget,
 } from "@/lib/security/rate-limit";
 
 const NAMA_BATAS = "lupa_password";
@@ -43,7 +43,10 @@ export async function resetPasswordSiswaAction(
     return { success: false, error: "Password maksimal 72 karakter." };
   }
 
-  const batas = await periksaBatasPercobaan(NAMA_BATAS, MAKS_PERCOBAAN, JEDA_DETIK);
+  // Dikunci ke Kode Konseling yang diserang, bukan ke cookie klien — lihat
+  // catatan di lib/security/rate-limit.ts soal kenapa pembatas berbasis
+  // cookie bisa dilewati begitu saja oleh skrip yang tidak menyimpan cookie.
+  const batas = await periksaBatasPercobaanTarget(NAMA_BATAS, kode, MAKS_PERCOBAAN, JEDA_DETIK);
   if (batas.diblokir) {
     const menit = Math.ceil(batas.sisaDetik / 60);
     return { success: false, error: `Terlalu banyak percobaan. Coba lagi dalam ${menit} menit.` };
@@ -53,7 +56,7 @@ export async function resetPasswordSiswaAction(
   const snap = await ticketRef.get();
 
   if (!snap.exists) {
-    await catatPercobaanGagal(NAMA_BATAS, MAKS_PERCOBAAN, JEDA_DETIK);
+    await catatPercobaanGagalTarget(NAMA_BATAS, kode, MAKS_PERCOBAAN, JEDA_DETIK);
     return { success: false, error: "Kode Konseling atau Nama Samaran tidak cocok." };
   }
 
@@ -62,20 +65,28 @@ export async function resetPasswordSiswaAction(
 
   // Perbandingan nama samaran (case-insensitive)
   if (namaTersimpan.toLowerCase() !== namaSamaran.toLowerCase()) {
-    await catatPercobaanGagal(NAMA_BATAS, MAKS_PERCOBAAN, JEDA_DETIK);
+    await catatPercobaanGagalTarget(NAMA_BATAS, kode, MAKS_PERCOBAAN, JEDA_DETIK);
     return { success: false, error: "Kode Konseling atau Nama Samaran tidak cocok." };
   }
 
-  // Update password baru
+  // Update password baru DAN cabut semua sesi yang sedang berjalan di semua
+  // perangkat (sesiSiswa dikosongkan). Kalau tidak, siapa pun yang sudah
+  // punya sesi aktif di tiket ini — misalnya karena mengambilnya lewat celah
+  // di atas, atau HP yang dulu dipinjam teman — tetap punya akses penuh
+  // sampai 30 hari meski passwordnya baru saja diganti.
   const newHash = await hashPassword(passwordBaru);
   await ticketRef.update({
     passwordHash: newHash,
+    sesiSiswa: {},
+    sessionToken: null,
+    sessionExpiresAt: null,
     updatedAt: Timestamp.now(),
   });
 
-  await resetPercobaan(NAMA_BATAS);
+  await resetPercobaanTarget(NAMA_BATAS, kode);
 
-  // Sekaligus buatkan sesi login siswa agar bisa langsung buka percakapan
+  // Sekaligus buatkan sesi login siswa BARU (satu-satunya yang sah sekarang)
+  // agar bisa langsung buka percakapan.
   await verifyAndCreateSiswaSession(kode, passwordBaru);
 
   return { success: true, kode };

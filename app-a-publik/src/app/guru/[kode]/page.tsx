@@ -98,8 +98,14 @@ export default async function GuruTicketDetailPage({
             </div>
             <p className="mt-1 text-xs text-slate-500">
               {ticket.kode} &middot; {labelKategori(kategori)} &middot; Mood:{" "}
-              {MOOD_LABEL[ticket.mood]} &middot; Nama samaran: {ticket.namaSamaran}
+              {MOOD_LABEL[ticket.mood]}
             </p>
+            {/* Nama Samaran SENGAJA tidak ditampilkan di sini: bersama Kode
+                Konseling (sudah terlihat di baris atas), itu persis dua
+                faktor yang diminta resetPasswordSiswaAction (lihat
+                actions/lupa-password.ts). Kalau keduanya tampil di satu
+                layar, guru mana pun yang membuka tiket otomatis memegang
+                kunci untuk mengambil alih akses siswa. */}
             {ticket.siapBertemuGuruBk && (
               <p className="mt-1 text-xs font-medium text-emerald-600">
                 ✓ Siswa bersedia bertemu langsung dengan Guru BK

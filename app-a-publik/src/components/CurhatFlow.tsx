@@ -16,9 +16,32 @@ import JamLayananBadge from "@/components/JamLayananBadge";
  * centang), token dari Cloudflare diteruskan ke onConfirm dan diverifikasi
  * ULANG di server (lihat actions/curhat.ts) sebelum curhatan disimpan.
  */
-function ConsentGate({ onConfirm }: { onConfirm: (turnstileToken: string) => void }) {
+/**
+ * `visible={false}` menyembunyikan kartu ini lewat CSS (`hidden`), BUKAN
+ * meng-unmount-nya. Sebelumnya, begitu siswa lanjut ke form curhat,
+ * ConsentGate (berikut TurnstileWidget di dalamnya) benar-benar dilepas dari
+ * tree — cleanup TurnstileWidget lalu memanggil `turnstile.remove()`,
+ * mematikan mekanisme refresh token Cloudflare. Token yang sudah didapat
+ * membeku di state selama ~5 menit sebelum kedaluwarsa, jadi siswa yang
+ * butuh waktu lebih lama menulis curhatnya (justru yang paling butuh
+ * layanan ini) gagal kirim dan disuruh memuat ulang halaman — hilang semua
+ * yang sudah ditulis. Dengan tetap dimount, Turnstile terus berjalan di
+ * belakang layar dan otomatis meminta token baru sebelum kedaluwarsa
+ * (lihat `onVerify` yang terus memperbarui state token di CurhatFlow).
+ */
+function ConsentGate({
+  visible,
+  onConfirm,
+}: {
+  visible: boolean;
+  onConfirm: (turnstileToken: string) => void;
+}) {
   return (
-    <div className="mx-auto max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+    <div
+      className={`mx-auto max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-sm ${
+        visible ? "" : "hidden"
+      }`}
+    >
       <h1 className="text-lg font-bold text-slate-900">Sebelum mulai curhat</h1>
 
       <ul className="mt-4 space-y-3 text-sm text-slate-600">
@@ -107,8 +130,10 @@ function SuccessScreen({ kode }: { kode: string }) {
       </p>
 
       <p className="mt-3 text-xs text-amber-700">
-        Passwordmu tidak disimpan di mana pun. Kalau password lupa, percakapan
-        ini tidak bisa dibuka lagi — jadi ingat baik-baik.
+        Passwordmu tidak disimpan di mana pun (hanya versi terenkripsinya).
+        Ingat baik-baik — tapi kalau lupa, kamu tetap bisa memulihkan akses
+        lewat halaman &quot;Lupa Password&quot; di Cek Balasan, memakai Kode
+        Konseling dan nama samaran ini.
       </p>
 
       <a
@@ -132,11 +157,12 @@ export default function CurhatFlow() {
     // itu saat halaman di-scroll sampai bawah; pb-20 (80px) ini pola yang
     // sama dipakai di CekBalasanFlow.tsx.
     <div className="px-4 pt-8 pb-20">
-      {!turnstileToken ? (
-        <ConsentGate onConfirm={setTurnstileToken} />
-      ) : (
-        <CurhatFormOrSuccess turnstileToken={turnstileToken} />
-      )}
+      {/* ConsentGate SELALU dimount (disembunyikan lewat CSS, bukan
+          unmount) begitu turnstileToken pertama didapat — lihat komentar di
+          ConsentGate untuk alasannya. `onConfirm` di sini juga terus
+          dipanggil ulang setiap Turnstile diam-diam memperbarui tokennya. */}
+      <ConsentGate visible={!turnstileToken} onConfirm={setTurnstileToken} />
+      {turnstileToken && <CurhatFormOrSuccess turnstileToken={turnstileToken} />}
     </div>
   );
 }
@@ -245,9 +271,14 @@ function CurhatFormFields({
           required
           minLength={2}
           maxLength={30}
+          autoComplete="off"
           placeholder="Boleh nama apa saja, bukan nama asli"
           className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-brand-500"
         />
+        <p className="mt-1 text-xs text-slate-500">
+          Dipakai bersama password untuk memulihkan akses kalau kamu lupa —
+          jangan pakai yang gampang ditebak atau kamu ceritakan ke orang lain.
+        </p>
       </div>
 
       <div>

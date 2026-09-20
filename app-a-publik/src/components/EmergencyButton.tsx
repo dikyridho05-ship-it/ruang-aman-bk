@@ -13,6 +13,10 @@ export default function EmergencyButton() {
   const [open, setOpen] = useState(false);
   const panelRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
+  // Lewati efek fokus pada render pertama (mount) — cuma dipakai untuk
+  // mengembalikan fokus ke tombol SOS setelah modal DITUTUP, bukan saat
+  // halaman baru dimuat.
+  const sudahPernahBuka = useRef(false);
 
   const handleClose = useCallback(() => setOpen(false), []);
 
@@ -51,9 +55,10 @@ export default function EmergencyButton() {
   // ─── Fokuskan panel saat buka, kembalikan ke tombol saat tutup ───
   useEffect(() => {
     if (open) {
+      sudahPernahBuka.current = true;
       const closeBtn = panelRef.current?.querySelector("button");
       closeBtn?.focus();
-    } else {
+    } else if (sudahPernahBuka.current) {
       triggerRef.current?.focus();
     }
   }, [open]);

@@ -20,7 +20,7 @@ export default async function BerandaPage() {
     // "Butuh Bantuan Segera?" yang fixed — pola sama seperti CurhatFlow.tsx,
     // LupaKodeFlow.tsx & CekBalasanFlow.tsx.
     <main className="relative flex min-h-screen flex-col items-center justify-center px-4 pt-12 pb-20">
-      <LatarFoto fotoBase64={fotoBase64} />
+      <LatarFoto adaFoto={!!fotoBase64} />
 
       <div className="w-full max-w-md text-center">
         <Logo logoBase64={logoBase64} namaSekolah={namaSekolah} />
@@ -85,14 +85,21 @@ export default async function BerandaPage() {
  * melembutkan tepi FOTO, bukan tepi layar. Mulai layar sedang rasionya
  * sudah mirip, jadi object-cover yang paling rapi.
  */
-function LatarFoto({ fotoBase64 }: { fotoBase64: string | null }) {
-  if (!fotoBase64) return null;
+/**
+ * Sengaja diambil dari endpoint gambar terpisah (`/api/latar-beranda`),
+ * BUKAN data URL base64 disisipkan langsung di HTML halaman ini — lihat
+ * catatan cache di app/api/latar-beranda/route.ts. Halaman ini cuma perlu
+ * tahu SATU bit info (ada fotonya atau tidak) untuk memutuskan menampilkan
+ * elemen ini sama sekali, bukan seluruh isi fotonya.
+ */
+function LatarFoto({ adaFoto }: { adaFoto: boolean }) {
+  if (!adaFoto) return null;
 
   return (
     <div className="pointer-events-none fixed inset-0 -z-10 flex items-center" aria-hidden>
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
-        src={fotoBase64}
+        src="/api/latar-beranda"
         alt=""
         className="latar-beranda-foto h-auto max-h-full w-full object-contain sm:h-full sm:object-cover"
         style={{ opacity: OPASITAS_LATAR_BERANDA }}

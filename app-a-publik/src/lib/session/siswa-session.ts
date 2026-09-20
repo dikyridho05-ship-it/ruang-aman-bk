@@ -1,6 +1,6 @@
 import "server-only";
 import { cookies } from "next/headers";
-import { randomUUID } from "crypto";
+import { randomUUID, timingSafeEqual } from "crypto";
 import { Timestamp } from "firebase-admin/firestore";
 import { adminDb } from "@/lib/firebase/admin";
 import { verifyPassword } from "@/lib/crypto/password";
@@ -89,7 +89,13 @@ export async function getAuthenticatedSiswaKode(): Promise<string | null> {
   // keluar. Bisa dihapus setelah beberapa minggu berjalan.
   const tokenLama = data.sessionToken as string | undefined;
   const sampaiLama = data.sessionExpiresAt as Timestamp | undefined;
-  if (tokenLama && tokenLama === token && sampaiLama && sampaiLama.toMillis() > Date.now()) {
+  if (
+    tokenLama &&
+    tokenLama.length === token.length &&
+    timingSafeEqual(Buffer.from(tokenLama), Buffer.from(token)) &&
+    sampaiLama &&
+    sampaiLama.toMillis() > Date.now()
+  ) {
     return kode;
   }
 
