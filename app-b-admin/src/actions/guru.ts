@@ -15,6 +15,13 @@ const createGuruSchema = z.object({
   password: z.string().min(6, "Password minimal 6 karakter."),
 });
 
+const resetPasswordSchema = z.object({
+  password: z
+    .string()
+    .min(6, "Password minimal 6 karakter.")
+    .max(100, "Password maksimal 100 karakter."),
+});
+
 export async function listGuruAction(): Promise<ListResult> {
   const admin = await getAuthenticatedAdmin();
   if (!admin) return { success: false, error: "Sesi login habis, silakan login ulang." };
@@ -97,6 +104,70 @@ export async function setGuruAktifAction(
   }
 
   await catatAudit(admin.nama, aktif ? "Aktifkan Akun Guru BK" : "Nonaktifkan Akun Guru BK", nama);
+
+  return { success: true };
+}
+
+/**
+ * Atur ulang password satu akun Guru BK dari panel Super Admin.
+ *
+ * Ini jaring pengaman untuk kasus guru yang tidak bisa masuk lagi dan
+ * tautan "Lupa password?" di App A tidak menolong — misalnya akunnya
+ * terlanjur diambil alih penyedia Google (Firebase mencabut kredensial
+ * password lama ketika akun beremail belum terverifikasi masuk lewat
+ * penyedia tepercaya). Sebelum ada ini, satu-satunya jalan lewat panel
+ * adalah hapus lalu buat ulang akunnya — yang menghasilkan UID BARU, dan
+ * ikut memutus penugasan tiket (`guruDitugaskan.uid`) serta langganan
+ * notifikasi milik guru itu. updateUser() memasang password pada UID yang
+ * sama, jadi semua kaitan lamanya utuh.
+ */
+export async function resetPasswordGuruAction(
+  uid: string,
+  passwordBaru: string
+): Promise<MutateResult> {
+  const admin = await getAuthenticatedAdmin();
+  if (!admin) return { success: false, error: "Sesi login habis, silakan login ulang." };
+
+  const parsed = resetPasswordSchema.safeParse({ password: passwordBaru });
+  if (!parsed.success) {
+    return { success: false, error: parsed.error.issues[0]?.message ?? "Password tidak valid." };
+  }
+
+  // WAJIB: pastikan UID-nya memang Guru BK terdaftar. Tanpa cek ini, Server
+  // Action ini jadi alat untuk mengganti password akun Firebase Auth MANA
+  // PUN di proyek ini — termasuk akun Super Admin — cukup dengan mengirim
+  // UID lain dari browser.
+  const guruDoc = await adminDb.collection("guru").doc(uid).get();
+  if (!guruDoc.exists) {
+    return { success: false, error: "Akun ini bukan Guru BK terdaftar." };
+  }
+
+  try {
+    await adminAuth.updateUser(uid, { password: parsed.data.password });
+  } catch (err) {
+    const code = (err as { code?: string }).code;
+    if (code === "auth/user-not-found") {
+      return {
+        success: false,
+        error: "Akun Firebase Auth-nya sudah tidak ada. Hapus entri ini lalu buat akun baru.",
+      };
+    }
+    console.error("[resetPasswordGuruAction] updateUser gagal:", err);
+    return { success: false, error: "Gagal mengatur ulang password. Coba lagi." };
+  }
+
+  // Cabut sesi yang sedang berjalan. Password diatur ulang biasanya justru
+  // karena akunnya bermasalah, jadi sesi lama tidak boleh tetap hidup —
+  // App A memverifikasi cookie sesinya dengan checkRevoked=true (lihat
+  // app-a-publik/src/lib/session/guru-session.ts), jadi efeknya langsung.
+  await adminAuth.revokeRefreshTokens(uid).catch(() => {});
+
+  // Nama yang dicatat diambil dari dokumen Firestore, bukan dari nama yang
+  // dikirim browser — audit log tidak boleh bisa diisi nama karangan hanya
+  // dengan mengubah argumen pemanggilan. Detail audit juga SENGAJA tidak
+  // memuat passwordnya: halaman audit log bisa dibaca Super Admin mana pun.
+  const namaTercatat = (guruDoc.data()?.nama as string) ?? "(tanpa nama)";
+  await catatAudit(admin.nama, "Atur Ulang Password Guru BK", namaTercatat);
 
   return { success: true };
 }

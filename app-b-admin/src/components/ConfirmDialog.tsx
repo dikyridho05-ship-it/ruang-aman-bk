@@ -114,7 +114,7 @@ export default function ConfirmDialog({
             onClick={onCancel}
             disabled={pending}
             className="flex-1 rounded-xl border border-slate-300 py-2 text-sm font-medium text-slate-700
-              focus:outline-none focus:ring-2 focus:ring-brand-500 disabled:opacity-50"
+              focus:outline-none focus:ring-2 focus:ring-admin-500 disabled:opacity-50"
           >
             {cancelLabel}
           </button>
