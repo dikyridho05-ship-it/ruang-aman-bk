@@ -9,6 +9,7 @@ import {
 } from "@/actions/curhatan";
 import { KATEGORI_CURHAT_LABEL, MOOD_EMOJI, STATUS_LABEL, type TicketStatus } from "@/types/statistik";
 import ConfirmDialog from "@/components/ConfirmDialog";
+import { tanggalPendek } from "@/lib/waktu";
 
 const STATUS_BADGE: Record<TicketStatus, string> = {
   baru: "bg-amber-100 text-amber-700",
@@ -150,11 +151,7 @@ export default function CurhatanList({ curhatan }: { curhatan: CurhatanRow[] }) 
                     ? c.kategori.map((k) => KATEGORI_CURHAT_LABEL[k]).join(", ")
                     : "Tanpa kategori"}
                   {c.createdAtMs
-                    ? ` · ${new Date(c.createdAtMs).toLocaleDateString("id-ID", {
-                        day: "2-digit",
-                        month: "short",
-                        year: "numeric",
-                      })}`
+                    ? ` · ${tanggalPendek(c.createdAtMs)}`
                     : ""}
                 </p>
               </div>

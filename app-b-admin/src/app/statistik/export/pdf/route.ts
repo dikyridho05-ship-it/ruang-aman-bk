@@ -4,6 +4,7 @@ import PDFDocument from "pdfkit";
 import { getAuthenticatedAdmin } from "@/lib/session/admin-session";
 import { getStatistikCurhatan } from "@/lib/firestore/statistik";
 import { getSekolahSettings } from "@/lib/firestore/settings";
+import { tanggalWaktu } from "@/lib/waktu";
 import {
   KATEGORI_CURHAT,
   KATEGORI_CURHAT_LABEL,
@@ -47,7 +48,7 @@ function generatePdfBuffer(namaSekolah: string, data: StatistikCurhatan): Promis
     doc
       .fontSize(9)
       .fillColor("#888888")
-      .text(`Dibuat: ${new Date(data.dibuatPada).toLocaleString("id-ID")}`);
+      .text(`Dibuat: ${tanggalWaktu(data.dibuatPada)} WIB`);
     doc.fillColor("#000000");
     doc
       .moveDown(0.5)

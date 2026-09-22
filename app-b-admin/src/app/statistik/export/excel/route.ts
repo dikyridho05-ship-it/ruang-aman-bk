@@ -4,6 +4,7 @@ import ExcelJS from "exceljs";
 import { getAuthenticatedAdmin } from "@/lib/session/admin-session";
 import { getStatistikCurhatan } from "@/lib/firestore/statistik";
 import { getSekolahSettings } from "@/lib/firestore/settings";
+import { tanggalWaktu } from "@/lib/waktu";
 import {
   KATEGORI_CURHAT,
   KATEGORI_CURHAT_LABEL,
@@ -66,7 +67,7 @@ export async function GET() {
   ];
   ringkasan.addRow(["Laporan Statistik — Ruang Aman BK"]).font = { bold: true, size: 14 };
   ringkasan.addRow([sekolah.namaSekolah]);
-  ringkasan.addRow([`Dibuat: ${new Date(data.dibuatPada).toLocaleString("id-ID")}`]);
+  ringkasan.addRow([`Dibuat: ${tanggalWaktu(data.dibuatPada)} WIB`]);
   ringkasan.addRow([]);
   ringkasan.addRow(["Total Curhatan (sepanjang waktu)", data.totalKeseluruhan]);
   ringkasan.addRow(["Curhatan 30 Hari Terakhir", data.total30HariTerakhir]);

@@ -1,5 +1,6 @@
 import LogoutButton from "@/components/LogoutButton";
 import { getActiveNavItem } from "@/lib/nav-items";
+import { tanggalLengkap } from "@/lib/waktu";
 
 export default function AdminTopbar({
   nama,
@@ -9,12 +10,7 @@ export default function AdminTopbar({
   pathname: string;
 }) {
   const inisial = nama.trim().charAt(0).toUpperCase() || "A";
-  const tanggalHariIni = new Date().toLocaleDateString("id-ID", {
-    weekday: "long",
-    day: "2-digit",
-    month: "long",
-    year: "numeric",
-  });
+  const tanggalHariIni = tanggalLengkap(Date.now());
 
   // Sebelumnya heading di sini hardcode "Selamat datang kembali" di SEMUA
   // halaman — di halaman seperti Statistik atau Audit Log, teks itu tidak

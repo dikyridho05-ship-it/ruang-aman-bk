@@ -1,4 +1,5 @@
 import type { SistemStatus } from "@/types/admin";
+import { tanggalWaktu } from "@/lib/waktu";
 
 /**
  * Kartu "Kesehatan Sistem" di dashboard Super Admin (TAHAP 9; restyle
@@ -96,13 +97,7 @@ export default function StatusSistem({ status }: { status: SistemStatus }) {
           <p className="text-slate-500">
             Run terakhir{" "}
             <span className="font-medium text-slate-700">
-              {new Date(retensiTerakhir.waktuMs).toLocaleString("id-ID", {
-                day: "2-digit",
-                month: "short",
-                year: "numeric",
-                hour: "2-digit",
-                minute: "2-digit",
-              })}
+              {tanggalWaktu(retensiTerakhir.waktuMs)}
             </span>{" "}
             &middot; {retensiTerakhir.tutupCount} ditutup, {retensiTerakhir.hapusCount} dihapus.
             {!retensiTerakhir.sukses && retensiTerakhir.pesanError && (

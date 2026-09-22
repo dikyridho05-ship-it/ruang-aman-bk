@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { getAuthenticatedAdmin } from "@/lib/session/admin-session";
 import { getAuditLog } from "@/lib/audit/log";
+import { tanggalWaktu } from "@/lib/waktu";
 
 export const dynamic = "force-dynamic";
 
@@ -31,13 +32,7 @@ export default async function AuditLogPage() {
               <div className="flex items-center justify-between gap-3">
                 <span className="text-sm font-semibold text-slate-900">{e.aksi}</span>
                 <span className="shrink-0 text-xs text-slate-400">
-                  {new Date(e.waktuMs).toLocaleString("id-ID", {
-                    day: "2-digit",
-                    month: "short",
-                    year: "numeric",
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })}
+                  {tanggalWaktu(e.waktuMs)}
                 </span>
               </div>
               {e.detail && <p className="mt-1 text-sm text-slate-600">{e.detail}</p>}
