@@ -8,8 +8,11 @@
  * dari akses publik (lihat /firebase/firestore.rules di root proyek).
  *
  * Client SDK ini dipakai untuk:
- *  - Guru BK login (email/password) via signInWithEmailAndPassword,
- *    lalu ID token-nya diverifikasi di server lewat Admin SDK.
+ *  - Guru BK login (email/password via signInWithEmailAndPassword), lalu
+ *    ID token-nya diverifikasi di server lewat Admin SDK — termasuk cek
+ *    bahwa UID-nya memang terdaftar sebagai Guru BK aktif (lihat
+ *    lib/session/guru-session.ts).
+ *  - Kirim tautan atur ulang password guru (sendPasswordResetEmail).
  */
 import { initializeApp, getApps, getApp, type FirebaseOptions } from "firebase/app";
 import { getAuth } from "firebase/auth";
