@@ -31,3 +31,15 @@ body {
     mask-image: linear-gradient(to bottom, transparent, #000 14%, #000 86%, transparent);
   }
 }
+/* Safari di iPhone otomatis MEMPERBESAR halaman begitu kursor masuk ke kolom
+   isian yang ukuran hurufnya di bawah 16px — tampilan melompat dan tidak
+   kembali sendiri setelah selesai mengetik. Di lebar layar HP semua kolom
+   isian karena itu dipaksa 16px; mulai layar sedang ke atas ukuran dari
+   kelas Tailwind masing-masing dipakai lagi seperti biasa. */
+@media (max-width: 639px) {
+  input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),
+  select,
+  textarea {
+    font-size: 16px;
+  }
+}

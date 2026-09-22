@@ -228,3 +228,24 @@ export interface GuruTugas {
   uid: string;
   nama: string;
 }
+
+/**
+ * Satu baris tiket seperti yang dipakai panel Guru BK (daftar curhatan,
+ * panel samping, dan endpoint pagination /api/guru/tickets).
+ *
+ * Sengaja BUKAN CurhatTicket apa adanya: dokumen Firestore berisi
+ * passwordHash, langganan push, dan Timestamp yang tidak bisa di-serialize
+ * sebagai props Client Component — bentuk ini cuma memuat yang benar-benar
+ * ditampilkan. `prioritas` dihitung di sisi baca (lihat adaKategoriPrioritas),
+ * tidak pernah disimpan di Firestore.
+ */
+export interface TicketRow {
+  kode: string;
+  kategori: KategoriCurhat[];
+  mood: Mood;
+  judul: string;
+  status: TicketStatus;
+  createdAtMs: number;
+  prioritas: boolean;
+  guruDitugaskan: GuruTugas | null;
+}

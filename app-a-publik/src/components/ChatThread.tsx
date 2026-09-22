@@ -3,10 +3,11 @@
 import { useEffect, useRef, useState } from "react";
 import type { SerializedMessage } from "@/types/ticket";
 import { kompresGambarKeDataUrl } from "@/lib/image/kompres-gambar";
+import { jamSekolah, labelHari } from "@/lib/waktu";
 
 const POLL_INTERVAL_MS = 4000;
 
-// TAHAP 13 — restyle tampilan chat meniru nuansa tema gelap Telegram
+// TAHAP 13 — restyle tampilan chat meniru pola tata letak Telegram
 // (wallpaper doodle, bubble tanpa "ekor", bar input bulat) sesuai contoh
 // screenshot yang diberikan pengguna. SAMA seperti restyle WhatsApp
 // sebelumnya: POLA/TATA LETAK yang ditiru dari Telegram, tapi WARNA tetap
@@ -18,17 +19,24 @@ const POLL_INTERVAL_MS = 4000;
 // ikon asli, bubble beruntun dapat sudut yang mengecil di sisi yang
 // menyambung (bukan rounded seragam), wallpaper doodle dibuat relevan ke
 // tema aplikasi (curhat/keamanan/sekolah, bukan bintang/lingkaran acak),
-// dan warna gelap dibuat berlapis per bagian (bukan 1-2 nilai diulang rata).
-const WARNA_BG = "#0c1b2e"; // dasar wallpaper — biru gelap dengan hue nyata, bukan near-black netral
-const WARNA_HEADER = "#112238";
-const WARNA_INPUT_BAR_BG = "#0e1f33";
-const WARNA_BORDER = "#1f3350";
-const WARNA_BUBBLE_LAWAN = "#17293f";
-const WARNA_BUBBLE_SAYA = "#0369a1"; // brand-700 — dipertahankan sebagai warna bubble "aku"
-const WARNA_TEKS_BUBBLE = "#EAF2FA";
-const WARNA_INPUT_PILL = "#1a2e46";
-const WARNA_KIRIM_BG = "#e0f2fe"; // brand-100 — satu-satunya aksen terang di layar, tombol kirim
-const WARNA_KIRIM_ICON = "#0c4a6e"; // biru sangat gelap, supaya kontras di atas tombol terang
+// dan warna dibuat berlapis per bagian (bukan 1-2 nilai diulang rata).
+//
+// Revisi TAHAP 14: temanya dibalik dari GELAP ke TERANG, menyusul panel
+// Guru BK tiga kolom yang seluruhnya terang — ruang chat gelap di tengah
+// panel putih terbaca sebagai lubang, bukan bagian dari halaman yang sama.
+// Pola tata letaknya tidak berubah, cuma nilai warnanya yang dibalik.
+const WARNA_BG = "#f1f5f9"; // slate-100 — wallpaper, sedikit lebih tua dari kartu putih di sekelilingnya
+const WARNA_HEADER = "#ffffff";
+const WARNA_INPUT_BAR_BG = "#ffffff";
+const WARNA_BORDER = "#e2e8f0"; // slate-200
+const WARNA_BUBBLE_LAWAN = "#ffffff";
+const WARNA_BUBBLE_SAYA = "#0284c7"; // brand-600 — bubble "aku" tetap warna brand
+const WARNA_TEKS_BUBBLE_SAYA = "#ffffff";
+const WARNA_TEKS_BUBBLE_LAWAN = "#0f172a"; // slate-900
+const WARNA_TEKS_REDUP = "#64748b"; // slate-500 — jam, nama peran, teks pelengkap
+const WARNA_INPUT_PILL = "#f1f5f9";
+const WARNA_KIRIM_BG = "#0284c7"; // brand-600
+const WARNA_KIRIM_ICON = "#ffffff";
 
 const RADIUS_BESAR = 18;
 const RADIUS_KECIL = 6;
@@ -40,7 +48,7 @@ const RADIUS_KECIL = 6;
 // hampir menyatu dengan latar supaya cuma terasa sebagai tekstur halus.
 const WALLPAPER_DOODLE_URL = `data:image/svg+xml,${encodeURIComponent(
   `<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200' viewBox='0 0 200 200'>
-    <g fill='none' stroke='#22364f' stroke-width='1.4' stroke-linecap='round' stroke-linejoin='round'>
+    <g fill='none' stroke='#dbe4ee' stroke-width='1.4' stroke-linecap='round' stroke-linejoin='round'>
       <path d='M34 30c0-3.3 2.7-6 6-6 2 0 3.8 1 5 2.5 1.2-1.5 3-2.5 5-2.5 3.3 0 6 2.7 6 6 0 5.5-11 12-11 12S34 35.5 34 30Z'/>
       <rect x='120' y='22' width='34' height='24' rx='7'/>
       <polygon points='130,46 130,54 139,46'/>
@@ -68,29 +76,21 @@ interface ChatThreadProps {
    * balasan dengan sekali pilih. Siswa tidak pernah melihat ini.
    */
   templates?: { id: string; judul: string; isi: string }[];
+  /**
+   * Tampilkan bilah judul lawan bicara di dalam komponen ini. Dimatikan
+   * di panel Guru BK: di sana sudah ada bilah info tiket persis di atas
+   * ruang chat, dan dua bilah judul bertumpuk cuma memakan tinggi layar
+   * yang seharusnya jadi milik percakapan.
+   */
+  tampilkanHeader?: boolean;
 }
 
-function formatJam(ms: number): string {
-  return new Date(ms).toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" });
-}
-
-function samaHari(a: Date, b: Date): boolean {
-  return (
-    a.getFullYear() === b.getFullYear() &&
-    a.getMonth() === b.getMonth() &&
-    a.getDate() === b.getDate()
-  );
-}
-
-function labelTanggal(ms: number): string {
-  const tgl = new Date(ms);
-  const sekarang = new Date();
-  if (samaHari(tgl, sekarang)) return "Hari ini";
-  const kemarin = new Date(sekarang);
-  kemarin.setDate(sekarang.getDate() - 1);
-  if (samaHari(tgl, kemarin)) return "Kemarin";
-  return tgl.toLocaleDateString("id-ID", { day: "2-digit", month: "long", year: "numeric" });
-}
+// Jam & pembatas tanggal memakai pemformat berzona tetap dari lib/waktu.ts:
+// daftar pesan ini dirender lebih dulu di server (jam UTC) lalu dihidrasi
+// di perangkat (WIB), jadi format yang mengikuti zona masing-masing bikin
+// teks jamnya berbeda antara keduanya.
+const formatJam = jamSekolah;
+const labelTanggal = labelHari;
 
 /**
  * Sudut bubble mengecil di sisi yang "menyambung" ke pesan beruntun
@@ -253,6 +253,7 @@ export default function ChatThread({
   onSend,
   onPoll,
   templates,
+  tampilkanHeader = true,
 }: ChatThreadProps) {
   const [messages, setMessages] = useState(initialMessages);
   const [draft, setDraft] = useState("");
@@ -383,27 +384,29 @@ export default function ChatThread({
     // container-nya penuh, sudut lurus — halaman pemanggil yang atur mau
     // full-bleed (siswa) atau tetap di dalam kartu dashboard (guru).
     <div className="flex h-full min-h-0 flex-col overflow-hidden">
-      {/* Header ala percakapan Telegram — latar sedikit lebih terang dari
-          wallpaper, dipisahkan dengan garis tipis di bawahnya. */}
-      <div
-        className="flex items-center gap-3 border-b px-4 py-3"
-        style={{ backgroundColor: WARNA_HEADER, borderColor: WARNA_BORDER }}
-      >
+      {/* Header ala percakapan Telegram — latar putih, dipisahkan dari
+          wallpaper oleh garis tipis di bawahnya. */}
+      {tampilkanHeader && (
         <div
-          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full"
-          style={{ backgroundColor: WARNA_BUBBLE_LAWAN, color: "rgba(234,242,250,0.85)" }}
+          className="flex items-center gap-3 border-b px-4 py-3"
+          style={{ backgroundColor: WARNA_HEADER, borderColor: WARNA_BORDER }}
         >
-          <IkonAvatar className="h-5 w-5" />
+          <div
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full"
+            style={{ backgroundColor: "#e0f2fe", color: "#0369a1" }}
+          >
+            <IkonAvatar className="h-5 w-5" />
+          </div>
+          <div className="min-w-0">
+            <p className="truncate text-sm font-semibold text-slate-900">{lawanBicara}</p>
+            <p className="truncate text-[11px]" style={{ color: WARNA_TEKS_REDUP }}>
+              Ruang Aman
+            </p>
+          </div>
         </div>
-        <div className="min-w-0">
-          <p className="truncate text-sm font-semibold text-white">{lawanBicara}</p>
-          <p className="truncate text-[11px]" style={{ color: "rgba(234,242,250,0.55)" }}>
-            Ruang Aman
-          </p>
-        </div>
-      </div>
+      )}
 
-      {/* Wallpaper gelap + daftar pesan */}
+      {/* Wallpaper bertekstur + daftar pesan */}
       <div
         className="flex-1 space-y-0.5 overflow-y-auto px-3 py-3"
         style={{
@@ -416,7 +419,7 @@ export default function ChatThread({
           <div className="flex justify-center pt-4">
             <p
               className="rounded-lg px-3 py-1.5 text-center text-xs shadow-sm"
-              style={{ backgroundColor: WARNA_BUBBLE_LAWAN, color: "rgba(234,242,250,0.7)" }}
+              style={{ backgroundColor: WARNA_BUBBLE_LAWAN, color: WARNA_TEKS_REDUP, border: `1px solid ${WARNA_BORDER}` }}
             >
               Belum ada pesan. Mulai percakapan di bawah.
             </p>
@@ -443,7 +446,7 @@ export default function ChatThread({
                 <div className="flex justify-center py-2">
                   <span
                     className="rounded-lg px-3 py-1 text-[11px] font-medium shadow-sm"
-                    style={{ backgroundColor: WARNA_BUBBLE_LAWAN, color: "rgba(234,242,250,0.75)" }}
+                    style={{ backgroundColor: WARNA_BUBBLE_LAWAN, color: WARNA_TEKS_REDUP, border: `1px solid ${WARNA_BORDER}` }}
                   >
                     {tanggalIni}
                   </span>
@@ -458,7 +461,7 @@ export default function ChatThread({
                   className="max-w-[75%] px-3 py-2 text-sm shadow-sm"
                   style={{
                     backgroundColor: warnaBubble,
-                    color: WARNA_TEKS_BUBBLE,
+                    color: mine ? WARNA_TEKS_BUBBLE_SAYA : WARNA_TEKS_BUBBLE_LAWAN,
                     ...radiusBubble(mine, !satuGrupDenganSebelumnya, !satuGrupDenganSesudahnya),
                   }}
                 >
@@ -480,13 +483,13 @@ export default function ChatThread({
                     className={`float-right -mb-0.5 ml-1.5 mt-0.5 flex items-center gap-1 text-[10px] ${
                       m.isi ? "" : "pt-0.5"
                     }`}
-                    style={{ color: mine ? "rgba(234,242,250,0.75)" : "rgba(234,242,250,0.55)" }}
+                    style={{ color: mine ? "rgba(255,255,255,0.85)" : WARNA_TEKS_REDUP }}
                   >
                     {formatJam(m.createdAtMs)}
                     {/* Centang tunggal = "terkirim" — sengaja BUKAN centang ganda
                         ala status "dibaca", karena data model chat ini tidak
                         melacak status baca per pesan. Cuma di pesan milikku. */}
-                    {mine && <IkonCentang className="h-2.5 w-2.5" style={{ color: "#7dd3fc" }} />}
+                    {mine && <IkonCentang className="h-2.5 w-2.5" style={{ color: "#bae6fd" }} />}
                   </p>
                   <span className="clear-both block" />
                 </div>
@@ -500,7 +503,7 @@ export default function ChatThread({
       {error && (
         <p
           className="border-t px-4 py-2 text-xs"
-          style={{ borderColor: WARNA_BORDER, backgroundColor: "#2a1218", color: "#fca5a5" }}
+          style={{ borderColor: WARNA_BORDER, backgroundColor: "#fef2f2", color: "#b91c1c" }}
         >
           {error}
         </p>
@@ -508,7 +511,7 @@ export default function ChatThread({
       {gambarError && (
         <p
           className="border-t px-4 py-2 text-xs"
-          style={{ borderColor: WARNA_BORDER, backgroundColor: "#2a1218", color: "#fca5a5" }}
+          style={{ borderColor: WARNA_BORDER, backgroundColor: "#fef2f2", color: "#b91c1c" }}
         >
           {gambarError}
         </p>
@@ -529,7 +532,7 @@ export default function ChatThread({
             className="w-full rounded-xl px-3 py-1.5 text-xs outline-none"
             style={{
               backgroundColor: WARNA_INPUT_PILL,
-              color: "rgba(234,242,250,0.85)",
+              color: "#334155",
               border: `1px solid ${WARNA_BORDER}`,
             }}
           >
@@ -561,12 +564,12 @@ export default function ChatThread({
                 onClick={handleBatalkanGambar}
                 aria-label="Batalkan gambar"
                 className="absolute -right-1.5 -top-1.5 flex h-5 w-5 items-center justify-center rounded-full text-xs text-white shadow"
-                style={{ backgroundColor: "#3a4f68" }}
+                style={{ backgroundColor: "#94a3b8" }}
               >
                 ✕
               </button>
             </div>
-            <p className="text-xs" style={{ color: "rgba(234,242,250,0.6)" }}>
+            <p className="text-xs" style={{ color: WARNA_TEKS_REDUP }}>
               Gambar siap dikirim
             </p>
           </div>
@@ -591,7 +594,7 @@ export default function ChatThread({
               maxLength={2000}
               placeholder="Ketik pesan"
               className="w-full bg-transparent text-sm outline-none"
-              style={{ color: WARNA_TEKS_BUBBLE }}
+              style={{ color: WARNA_TEKS_BUBBLE_LAWAN }}
             />
           </div>
           <button
@@ -601,7 +604,7 @@ export default function ChatThread({
             title="Lampirkan gambar"
             aria-label="Lampirkan gambar"
             className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full disabled:opacity-50"
-            style={{ color: "rgba(234,242,250,0.6)" }}
+            style={{ color: WARNA_TEKS_REDUP }}
           >
             {memprosesGambar ? (
               <span className="text-lg leading-none">…</span>

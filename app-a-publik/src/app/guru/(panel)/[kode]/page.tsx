@@ -78,25 +78,40 @@ export default async function GuruTicketDetailPage({
     return tugaskanTiketAction(kode, guruUid);
   }
 
-  // Sengaja "main" jadi flex-col min-h-dvh + area chat "flex-1 min-h-0" —
-  // supaya ruang chat mengisi SISA tinggi layar (bukan card ketinggian
-  // tetap 70vh yang kepotong), sambil kartu info tiket & penugasan di
-  // atasnya tetap apa adanya. Kalau kartu info kebetulan sangat tinggi di
-  // layar kecil, halaman ini yang scroll (min-h-dvh, bukan h-dvh kaku).
   return (
-    <main className="mx-auto flex min-h-dvh max-w-2xl flex-col px-4 py-6">
-      <Link href="/guru" className="shrink-0 text-sm font-medium text-brand-600 hover:underline">
-        &larr; Kembali ke daftar
-      </Link>
+    // Satu kartu setinggi kolom tengah: bilah info tiket yang diam di atas,
+    // ruang chat mengisi sisanya. "min-h-0" di pembungkus chat wajib ada —
+    // tanpa itu tinggi minimum bawaan item flex adalah setinggi isinya,
+    // jadi daftar pesan menolak menyusut dan kotak ketik terdorong ke luar
+    // layar begitu percakapannya panjang.
+    <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+      <div className="shrink-0 border-b border-slate-100 p-3 sm:p-4">
+        <div className="flex items-start gap-3">
+          {/* Di HP kolom daftar disembunyikan selama tiket terbuka, jadi
+              tautan ini satu-satunya jalan kembali ke antrean. Mulai lg
+              daftarnya sudah terlihat permanen di kiri. */}
+          <Link
+            href="/guru"
+            aria-label="Kembali ke daftar curhatan"
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-slate-500
+              hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2
+              focus-visible:ring-brand-500 lg:hidden"
+          >
+            <span aria-hidden className="text-lg leading-none">
+              &larr;
+            </span>
+          </Link>
 
-      <div className="mt-3 shrink-0 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-        <div className="flex items-start justify-between gap-3">
-          <div className="min-w-0">
-            <div className="flex items-center gap-2">
-              <span aria-hidden>{MOOD_EMOJI[ticket.mood]}</span>
-              <h1 className="truncate text-lg font-bold text-slate-900">{ticket.judul}</h1>
-            </div>
-            <p className="mt-1 text-xs text-slate-500">
+          <span
+            aria-hidden
+            className="hidden h-10 w-10 shrink-0 items-center justify-center rounded-full bg-slate-100 text-lg sm:flex"
+          >
+            {MOOD_EMOJI[ticket.mood]}
+          </span>
+
+          <div className="min-w-0 flex-1">
+            <h2 className="line-clamp-2 text-base font-bold text-slate-900 sm:truncate">{ticket.judul}</h2>
+            <p className="truncate text-xs text-slate-500">
               {ticket.kode} &middot; {labelKategori(kategori)} &middot; Mood:{" "}
               {MOOD_LABEL[ticket.mood]}
             </p>
@@ -107,7 +122,7 @@ export default async function GuruTicketDetailPage({
                 layar, guru mana pun yang membuka tiket otomatis memegang
                 kunci untuk mengambil alih akses siswa. */}
             {ticket.siapBertemuGuruBk && (
-              <p className="mt-1 text-xs font-medium text-emerald-600">
+              <p className="mt-0.5 truncate text-xs font-medium text-emerald-600">
                 ✓ Siswa bersedia bertemu langsung dengan Guru BK
               </p>
             )}
@@ -125,15 +140,19 @@ export default async function GuruTicketDetailPage({
         </div>
       </div>
 
-      <div className="mt-4 min-h-0 flex-1 pb-4">
+      {/* tampilkanHeader={false}: bilah info tiket di atas sudah berperan
+          sebagai judul percakapan — bilah "Siswa (Anonim)" bawaan
+          ChatThread di bawahnya cuma menumpuk dua judul. */}
+      <div className="min-h-0 flex-1">
         <ChatThread
           initialMessages={initialMessages}
           myRole="guru"
           onSend={boundSend}
           onPoll={boundPoll}
           templates={templates}
+          tampilkanHeader={false}
         />
       </div>
-    </main>
+    </div>
   );
 }
