@@ -22,4 +22,13 @@ export const EMERGENCY_CONTACTS = [
     whatsapp: "08111129129",
     hrefWhatsapp: "https://wa.me/628111129129",
   },
+  {
+    nama: "Guru BK — WhatsApp Resmi",
+    deskripsi: "Jalur WhatsApp resmi Guru BK sekolah untuk situasi yang butuh perhatian segera.",
+    // Sengaja TIDAK ada telepon/hrefTelepon: yang diberikan sekolah cuma
+    // nomor WhatsApp, bukan nomor yang dipastikan bisa ditelepon langsung —
+    // EmergencyButton.tsx merender tombol telepon hanya kalau field ini ada.
+    whatsapp: "081292665202",
+    hrefWhatsapp: "https://wa.me/6281292665202",
+  },
 ] as const;

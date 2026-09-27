@@ -121,13 +121,20 @@ export default function EmergencyButton() {
                   <p className="font-semibold text-slate-900">{c.nama}</p>
                   <p className="text-xs text-slate-500">{c.deskripsi}</p>
                   <div className="mt-2 flex flex-wrap gap-2">
-                    <a
-                      href={c.hrefTelepon}
-                      className="rounded-lg bg-red-700 px-3 py-1.5 text-xs font-semibold text-white
-                        focus:outline-none focus:ring-2 focus:ring-red-400"
-                    >
-                      📞 Telepon {c.telepon}
-                    </a>
+                    {/* Tombol telepon cuma dirender kalau kontaknya memang
+                        punya nomor yang dipastikan bisa ditelepon — mis.
+                        Guru BK sekolah cuma memberi nomor WhatsApp, bukan
+                        nomor yang dijamin bisa diangkat lewat panggilan
+                        biasa. */}
+                    {"hrefTelepon" in c && (
+                      <a
+                        href={c.hrefTelepon}
+                        className="rounded-lg bg-red-700 px-3 py-1.5 text-xs font-semibold text-white
+                          focus:outline-none focus:ring-2 focus:ring-red-400"
+                      >
+                        📞 Telepon {c.telepon}
+                      </a>
+                    )}
                     {"hrefWhatsapp" in c && (
                       <a
                         href={c.hrefWhatsapp}
