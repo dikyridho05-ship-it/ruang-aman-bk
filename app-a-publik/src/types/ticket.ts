@@ -260,4 +260,6 @@ export interface TicketRow {
   createdAtMs: number;
   prioritas: boolean;
   guruDitugaskan: GuruTugas | null;
+  /** Ada pesan siswa yang belum dibuka Guru BK mana pun. */
+  belumDibaca: boolean;
 }

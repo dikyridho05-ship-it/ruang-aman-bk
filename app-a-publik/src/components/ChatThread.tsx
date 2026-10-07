@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { SerializedMessage } from "@/types/ticket";
 import { kompresGambarKeDataUrl } from "@/lib/image/kompres-gambar";
 import { jamSekolah, labelHari } from "@/lib/waktu";
@@ -60,8 +60,25 @@ const WALLPAPER_DOODLE_URL = `data:image/svg+xml,${encodeURIComponent(
 )}`;
 
 type PollResult =
-  | { success: true; messages: SerializedMessage[] }
+  | {
+      success: true;
+      messages: SerializedMessage[];
+      /** Kapan lawan bicara terakhir membuka percakapan (untuk centang dua). */
+      bacaLawanMs?: number | null;
+      lawanMengetik?: boolean;
+    }
   | { success: false; error: string };
+
+/** Jeda minimal antar laporan "sedang mengetik" ke server. */
+const JEDA_LAPOR_KETIK_MS = 4000;
+
+/** Gabungkan hasil polling bertahap ke daftar pesan yang sudah ada (kunci: id). */
+function gabungPesan(lama: SerializedMessage[], baru: SerializedMessage[]): SerializedMessage[] {
+  if (baru.length === 0) return lama;
+  const peta = new Map(lama.map((m) => [m.id, m]));
+  for (const m of baru) peta.set(m.id, m);
+  return [...peta.values()].sort((a, b) => a.createdAtMs - b.createdAtMs);
+}
 
 interface ChatThreadProps {
   initialMessages: SerializedMessage[];
@@ -69,7 +86,15 @@ interface ChatThreadProps {
   myRole: "siswa" | "guru";
   /** `gambar` — data URL base64 hasil kompresi (lihat lib/image/kompres-gambar.ts), opsional. */
   onSend: (isi: string, gambar?: string) => Promise<{ success: boolean; error?: string }>;
-  onPoll: () => Promise<PollResult>;
+  /**
+   * Ambil pesan sejak `sejakMs` (kosong = semua). `terlihat` memberi tahu
+   * server bahwa percakapan sedang dilihat, jadi boleh ditandai "dibaca".
+   */
+  onPoll: (sejakMs?: number, terlihat?: boolean) => Promise<PollResult>;
+  /** Lapor "sedang mengetik" — dipanggil paling sering sekali per 4 detik. */
+  onKetik?: () => Promise<void>;
+  /** Konten yang disisipkan tepat di bawah bilah judul (mis. kartu janji temu). */
+  slotAtas?: React.ReactNode;
   /**
    * Template balasan cepat (TAHAP 9) — hanya dipakai kalau `myRole==="guru"`,
    * ditampilkan sebagai dropdown di atas kotak ketik untuk mengisi draft
@@ -254,8 +279,17 @@ export default function ChatThread({
   onPoll,
   templates,
   tampilkanHeader = true,
+  onKetik,
+  slotAtas,
 }: ChatThreadProps) {
   const [messages, setMessages] = useState(initialMessages);
+  const [bacaLawanMs, setBacaLawanMs] = useState<number | null>(null);
+  const [lawanMengetik, setLawanMengetik] = useState(false);
+  const pesanRef = useRef(initialMessages);
+  useEffect(() => {
+    pesanRef.current = messages;
+  }, [messages]);
+  const terakhirLaporKetik = useRef(0);
   const [draft, setDraft] = useState("");
   const [sending, setSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -271,6 +305,19 @@ export default function ChatThread({
   const [gambarError, setGambarError] = useState<string | null>(null);
   const [lightbox, setLightbox] = useState<string | null>(null);
 
+  const terapkanHasil = useCallback((result: PollResult) => {
+    if (!result.success) return;
+    setMessages((lama) => gabungPesan(lama, result.messages));
+    if (result.bacaLawanMs !== undefined) setBacaLawanMs(result.bacaLawanMs ?? null);
+    setLawanMengetik(result.lawanMengetik === true);
+  }, []);
+
+  const ambilBaru = useCallback(async () => {
+    const daftar = pesanRef.current;
+    const sejak = daftar.length > 0 ? daftar[daftar.length - 1].createdAtMs : undefined;
+    return onPoll(sejak, !document.hidden);
+  }, [onPoll]);
+
   useEffect(() => {
     let active = true;
 
@@ -282,8 +329,8 @@ export default function ChatThread({
       // beberapa foto ini berarti puluhan MB kuota per menit yang terbuang
       // percuma di tab yang tidak sedang dilihat.
       if (document.hidden) return;
-      const result = await onPoll();
-      if (active && result.success) setMessages(result.messages);
+      const result = await ambilBaru();
+      if (active) terapkanHasil(result);
     }
 
     poll(); // ambil data terbaru segera, tidak nunggu interval pertama
@@ -307,7 +354,7 @@ export default function ChatThread({
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages.length]);
+  }, [messages.length, lawanMengetik]);
 
   async function handleSend(e: React.FormEvent) {
     e.preventDefault();
@@ -326,8 +373,17 @@ export default function ChatThread({
 
     setDraft("");
     handleBatalkanGambar();
-    const refreshed = await onPoll();
-    if (refreshed.success) setMessages(refreshed.messages);
+    terakhirLaporKetik.current = 0;
+    terapkanHasil(await ambilBaru());
+  }
+
+  function handleKetik(nilai: string) {
+    setDraft(nilai);
+    if (!onKetik || nilai.trim().length === 0) return;
+    const sekarang = Date.now();
+    if (sekarang - terakhirLaporKetik.current < JEDA_LAPOR_KETIK_MS) return;
+    terakhirLaporKetik.current = sekarang;
+    onKetik().catch(() => {});
   }
 
   async function handlePilihGambar(e: React.ChangeEvent<HTMLInputElement>) {
@@ -399,12 +455,18 @@ export default function ChatThread({
           </div>
           <div className="min-w-0">
             <p className="truncate text-sm font-semibold text-slate-900">{lawanBicara}</p>
-            <p className="truncate text-[11px]" style={{ color: WARNA_TEKS_REDUP }}>
-              Ruang Aman
+            <p
+              className="truncate text-[11px]"
+              style={{ color: lawanMengetik ? "#0284c7" : WARNA_TEKS_REDUP }}
+              aria-live="polite"
+            >
+              {lawanMengetik ? "sedang mengetik…" : "Ruang Aman"}
             </p>
           </div>
         </div>
       )}
+
+      {slotAtas}
 
       {/* Wallpaper bertekstur + daftar pesan */}
       <div
@@ -440,8 +502,10 @@ export default function ChatThread({
 
           const warnaBubble = mine ? WARNA_BUBBLE_SAYA : WARNA_BUBBLE_LAWAN;
 
+          const dibaca = mine && bacaLawanMs !== null && bacaLawanMs >= m.createdAtMs;
+
           return (
-            <div key={i}>
+            <div key={m.id}>
               {tampilkanPembatasTanggal && (
                 <div className="flex justify-center py-2">
                   <span
@@ -486,10 +550,20 @@ export default function ChatThread({
                     style={{ color: mine ? "rgba(255,255,255,0.85)" : WARNA_TEKS_REDUP }}
                   >
                     {formatJam(m.createdAtMs)}
-                    {/* Centang tunggal = "terkirim" — sengaja BUKAN centang ganda
-                        ala status "dibaca", karena data model chat ini tidak
-                        melacak status baca per pesan. Cuma di pesan milikku. */}
-                    {mine && <IkonCentang className="h-2.5 w-2.5" style={{ color: "#bae6fd" }} />}
+                    {/* Centang satu = terkirim, centang dua = sudah dibuka lawan
+                        bicara (dari penanda `baca*Ms` di dokumen tiket). */}
+                    {mine && (
+                      <span
+                        className="inline-flex"
+                        aria-label={dibaca ? "Dibaca" : "Terkirim"}
+                        title={dibaca ? "Dibaca" : "Terkirim"}
+                      >
+                        <IkonCentang className="h-2.5 w-2.5" style={{ color: dibaca ? "#ffffff" : "#bae6fd" }} />
+                        {dibaca && (
+                          <IkonCentang className="-ml-1.5 h-2.5 w-2.5" style={{ color: "#ffffff" }} />
+                        )}
+                      </span>
+                    )}
                   </p>
                   <span className="clear-both block" />
                 </div>
@@ -497,6 +571,23 @@ export default function ChatThread({
             </div>
           );
         })}
+        {lawanMengetik && (
+          <div className="mt-2 flex justify-start" aria-hidden>
+            <span
+              className="flex items-center gap-1 px-3.5 py-3 shadow-sm"
+              style={{ backgroundColor: WARNA_BUBBLE_LAWAN, borderRadius: RADIUS_BESAR }}
+            >
+              <span className="titik-ketik" />
+              <span className="titik-ketik [animation-delay:150ms]" />
+              <span className="titik-ketik [animation-delay:300ms]" />
+            </span>
+          </div>
+        )}
+        {lawanMengetik && (
+          <p className="sr-only" aria-live="polite">
+            {lawanBicara} sedang mengetik
+          </p>
+        )}
         <div ref={bottomRef} />
       </div>
 
@@ -537,7 +628,7 @@ export default function ChatThread({
             }}
           >
             <option value="" disabled>
-              ⚡ Pakai template balasan cepat...
+              Isi dari template balasan…
             </option>
             {templates.map((t) => (
               <option key={t.id} value={t.id}>
@@ -566,7 +657,7 @@ export default function ChatThread({
                 className="absolute -right-1.5 -top-1.5 flex h-5 w-5 items-center justify-center rounded-full text-xs text-white shadow"
                 style={{ backgroundColor: "#94a3b8" }}
               >
-                ✕
+                <IkonTutup className="h-3 w-3" />
               </button>
             </div>
             <p className="text-xs" style={{ color: WARNA_TEKS_REDUP }}>
@@ -590,7 +681,7 @@ export default function ChatThread({
             <input
               type="text"
               value={draft}
-              onChange={(e) => setDraft(e.target.value)}
+              onChange={(e) => handleKetik(e.target.value)}
               maxLength={2000}
               placeholder="Ketik pesan"
               className="w-full bg-transparent text-sm outline-none"

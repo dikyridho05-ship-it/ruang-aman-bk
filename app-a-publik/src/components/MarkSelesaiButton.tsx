@@ -23,9 +23,9 @@ export default function MarkSelesaiButton({
       type="button"
       onClick={handleClick}
       disabled={loading}
-      className="shrink-0 rounded-xl border border-emerald-300 bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-700 disabled:opacity-60"
+      className="shrink-0 rounded-lg bg-tinta px-3 py-1.5 text-xs font-semibold text-white hover:bg-tinta-soft disabled:opacity-60"
     >
-      {loading ? "..." : "Tandai Selesai"}
+      {loading ? "Menutup…" : "Tutup curhatan"}
     </button>
   );
 }

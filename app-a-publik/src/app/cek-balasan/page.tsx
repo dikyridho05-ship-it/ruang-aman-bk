@@ -1,5 +1,7 @@
 import { getAuthenticatedSiswaKode } from "@/lib/session/siswa-session";
 import { getMessagesForSiswaAction } from "@/actions/chat";
+import { janjiUntukTiket } from "@/lib/janji/server";
+import type { JanjiTemu } from "@/types/janji";
 import CekBalasanFlow from "@/components/CekBalasanFlow";
 import EmergencyButton from "@/components/EmergencyButton";
 import type { SerializedMessage } from "@/types/ticket";
@@ -20,14 +22,21 @@ export default async function CekBalasanPage() {
   const kode = await getAuthenticatedSiswaKode();
 
   let initialMessages: SerializedMessage[] = [];
+  let janjiAwal: JanjiTemu | null = null;
   if (kode) {
-    const hasil = await getMessagesForSiswaAction();
+    const [hasil, janji] = await Promise.all([getMessagesForSiswaAction(), janjiUntukTiket(kode)]);
     if (hasil.success) initialMessages = hasil.messages;
+    janjiAwal = janji;
   }
 
   return (
     <main className="min-h-screen">
-      <CekBalasanFlow initialVerified={!!kode} initialMessages={initialMessages} />
+      <CekBalasanFlow
+        initialVerified={!!kode}
+        initialMessages={initialMessages}
+        kodeAwal={kode}
+        janjiAwal={janjiAwal}
+      />
       <EmergencyButton />
     </main>
   );

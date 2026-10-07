@@ -23,6 +23,8 @@ export interface JanjiTemuDoc {
   guru: { uid: string; nama: string } | null;
   dibuatMs: number;
   diperbaruiMs: number;
+  /** Diisi saat status "dibatalkan". */
+  dibatalkanOleh?: PihakJanji;
 }
 
 /** Bentuk yang dikirim ke komponen klien. */

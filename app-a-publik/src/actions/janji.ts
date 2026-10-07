@@ -15,7 +15,11 @@ import type { HariLayanan } from "@/lib/janji/aturan";
 import type { JanjiTemu } from "@/types/janji";
 
 export type DataJanji =
-  | { success: true; janji: JanjiTemu | null; pilihan: HariLayanan[] }
+  | { success: true; janji: JanjiTemu | null }
+  | { success: false; error: string };
+
+export type DataPilihan =
+  | { success: true; pilihan: HariLayanan[] }
   | { success: false; error: string };
 
 const SESI_SISWA_HABIS = "Sesi habis, silakan cek balasan ulang.";
@@ -27,8 +31,15 @@ const SESI_GURU_HABIS = "Sesi login habis, silakan login ulang.";
 export async function dataJanjiSiswaAction(): Promise<DataJanji> {
   const kode = await getAuthenticatedSiswaKode();
   if (!kode) return { success: false, error: SESI_SISWA_HABIS };
+  return { success: true, janji: await janjiUntukTiket(kode) };
+}
+
+/** Slot kosong — diambil hanya saat pemilih waktu dibuka (bukan tiap polling). */
+export async function pilihanSlotSiswaAction(): Promise<DataPilihan> {
+  const kode = await getAuthenticatedSiswaKode();
+  if (!kode) return { success: false, error: SESI_SISWA_HABIS };
   const janji = await janjiUntukTiket(kode);
-  return { success: true, janji, pilihan: await pilihanSlot(janji?.id) };
+  return { success: true, pilihan: await pilihanSlot(janji?.id) };
 }
 
 export async function ajukanJanjiSiswaAction(waktuMulaiMs: number, catatan?: string): Promise<HasilJanji> {
@@ -54,8 +65,14 @@ export async function batalkanJanjiSiswaAction(): Promise<HasilJanji> {
 export async function dataJanjiGuruAction(kode: string): Promise<DataJanji> {
   const guru = await getAuthenticatedGuru();
   if (!guru) return { success: false, error: SESI_GURU_HABIS };
+  return { success: true, janji: await janjiUntukTiket(kode) };
+}
+
+export async function pilihanSlotGuruAction(kode: string): Promise<DataPilihan> {
+  const guru = await getAuthenticatedGuru();
+  if (!guru) return { success: false, error: SESI_GURU_HABIS };
   const janji = await janjiUntukTiket(kode);
-  return { success: true, janji, pilihan: await pilihanSlot(janji?.id) };
+  return { success: true, pilihan: await pilihanSlot(janji?.id) };
 }
 
 export async function konfirmasiJanjiGuruAction(kode: string): Promise<HasilJanji> {

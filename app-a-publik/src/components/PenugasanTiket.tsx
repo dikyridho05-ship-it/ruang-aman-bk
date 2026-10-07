@@ -36,15 +36,15 @@ export default function PenugasanTiket({ guruOptions, currentUid, onAssign }: Pe
 
   return (
     <div>
-      <label htmlFor="penugasan" className="block text-xs font-medium text-slate-500">
-        Ditugaskan ke
+      <label htmlFor="penugasan" className="block text-[13px] text-slate-500">
+        Ditangani oleh
       </label>
       <select
         id="penugasan"
         defaultValue={currentUid ?? ""}
         onChange={handleChange}
         disabled={saving}
-        className="mt-1 rounded-lg border border-slate-300 px-2.5 py-1.5 text-sm outline-none focus:ring-2 focus:ring-brand-500 disabled:opacity-60"
+        className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-2.5 py-1.5 text-[13px] outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-200 disabled:opacity-60"
       >
         <option value="">Belum ditugaskan</option>
         {guruOptions.map((g) => (

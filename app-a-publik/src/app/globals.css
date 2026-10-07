@@ -8,7 +8,7 @@ body {
 }
 
 body {
-  @apply bg-slate-50 text-slate-900 antialiased;
+  @apply bg-kertas font-sans text-slate-900 antialiased;
 }
 
 /* Sebagian siswa menyetel perangkatnya untuk mengurangi animasi (mis. karena
@@ -42,4 +42,17 @@ body {
   textarea {
     font-size: 16px;
   }
+}
+
+/* Tiga titik "sedang mengetik" di ruang chat. */
+.titik-ketik {
+  @apply block h-1.5 w-1.5 rounded-full bg-slate-400;
+  animation: titik-ketik 1.1s ease-in-out infinite;
+}
+@keyframes titik-ketik {
+  0%, 60%, 100% { opacity: 0.35; transform: translateY(0); }
+  30% { opacity: 1; transform: translateY(-2px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .titik-ketik { animation: none; opacity: 0.7; }
 }

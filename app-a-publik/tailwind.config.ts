@@ -8,10 +8,20 @@ const config: Config = {
   ],
   theme: {
     extend: {
+      fontFamily: {
+        // Plus Jakarta Sans — dirancang di Indonesia (Tokotype). Dimuat dari
+        // paket npm @fontsource (lihat app/layout.tsx), bukan Google Fonts.
+        sans: ['"Plus Jakarta Sans Variable"', "system-ui", "sans-serif"],
+      },
       colors: {
-        // Palet netral & menenangkan — cocok untuk konteks konseling.
-        // Sesuaikan nanti dengan warna identitas sekolah (TAHAP 3/5).
         brand: WARNA_BRAND,
+        // Navy tinta — warna teks judul & elemen tegas, satu keluarga dengan
+        // biru sky brand (dan sama dengan warna utama dasbor Super Admin).
+        tinta: {
+          DEFAULT: "#0c2340",
+          soft: "#3b5574",
+        },
+        kertas: "#f4f7fa",
       },
       keyframes: {
         // Getaran pendek untuk penanda "maks 3" saat siswa menekan kategori

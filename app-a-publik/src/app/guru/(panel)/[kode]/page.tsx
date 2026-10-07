@@ -1,5 +1,4 @@
 import { redirect, notFound } from "next/navigation";
-import Link from "next/link";
 import { FieldValue } from "firebase-admin/firestore";
 import { getAuthenticatedGuru } from "@/lib/session/guru-session";
 import { adminDb } from "@/lib/firebase/admin";
@@ -7,26 +6,21 @@ import {
   getMessagesForGuruAction,
   sendGuruReplyAction,
   markTicketSelesaiAction,
+  tandaiGuruMengetikAction,
 } from "@/actions/chat";
 import { listGuruAktifAction, tugaskanTiketAction } from "@/actions/penugasan";
 import { getTemplateBalasan } from "@/lib/firestore/template";
+import { janjiUntukTiket } from "@/lib/janji/server";
 import ChatThread from "@/components/ChatThread";
-import MarkSelesaiButton from "@/components/MarkSelesaiButton";
-import PenugasanTiket from "@/components/PenugasanTiket";
-import {
-  MOOD_EMOJI,
-  MOOD_LABEL,
-  labelKategori,
-  normalizeKategori,
-  type CurhatTicket,
-} from "@/types/ticket";
+import HeaderTiket from "@/components/guru/HeaderTiket";
+import KonteksTiket, { type DataKonteksTiket } from "@/components/guru/KonteksTiket";
+import { adaKategoriPrioritas, normalizeKategori, type CurhatTicket } from "@/types/ticket";
 
 export const dynamic = "force-dynamic";
 
 export default async function GuruTicketDetailPage({
   params,
 }: {
-  // Next.js 15: params sekarang berupa Promise, wajib di-await.
   params: Promise<{ kode: string }>;
 }) {
   const guru = await getAuthenticatedGuru();
@@ -46,26 +40,30 @@ export default async function GuruTicketDetailPage({
     ticket.status = "dibaca";
   }
 
-  const initialMessagesResult = await getMessagesForGuruAction(kode);
+  const [initialMessagesResult, guruOptionsResult, templates, janji] = await Promise.all([
+    getMessagesForGuruAction(kode),
+    listGuruAktifAction(),
+    getTemplateBalasan(),
+    janjiUntukTiket(kode),
+  ]);
   const initialMessages = initialMessagesResult.success ? initialMessagesResult.messages : [];
-
-  const guruOptionsResult = await listGuruAktifAction();
   const guruOptions = guruOptionsResult.success ? guruOptionsResult.guru : [];
 
-  const templates = await getTemplateBalasan();
-
-  // Closure "use server" inline — menangkap `kode` dari params. Ini SATU-SATUNYA
-  // cara di Next.js supaya fungsi ber-parameter tambahan bisa dioper sebagai
-  // prop callable ke Client Component (ChatThread/MarkSelesaiButton); closure
-  // biasa tanpa "use server" tidak bisa melewati boundary client/server.
+  // Closure "use server" inline — menangkap `kode` dari params, satu-satunya
+  // cara mengoper fungsi ber-parameter tambahan ke Client Component.
   async function boundSend(isi: string, gambar?: string) {
     "use server";
     return sendGuruReplyAction(kode, isi, gambar);
   }
 
-  async function boundPoll() {
+  async function boundPoll(sejakMs?: number, terlihat?: boolean) {
     "use server";
-    return getMessagesForGuruAction(kode);
+    return getMessagesForGuruAction(kode, sejakMs, terlihat);
+  }
+
+  async function boundKetik() {
+    "use server";
+    return tandaiGuruMengetikAction(kode);
   }
 
   async function boundMarkSelesai() {
@@ -78,81 +76,56 @@ export default async function GuruTicketDetailPage({
     return tugaskanTiketAction(kode, guruUid);
   }
 
+  const konteks: DataKonteksTiket = {
+    kode,
+    kategori,
+    mood: ticket.mood,
+    createdAtMs: ticket.createdAt?.toMillis?.() ?? Date.now(),
+    siapBertemu: ticket.siapBertemuGuruBk === true,
+    selesai: ticket.status === "selesai",
+    guruUid: guru.uid,
+    guruOptions,
+    ditugaskanUid: ticket.guruDitugaskan?.uid ?? null,
+    janji,
+  };
+
+  // Nama Samaran SENGAJA tidak ditampilkan di mana pun di halaman ini:
+  // bersama Kode Konseling, itu persis dua faktor yang diminta
+  // resetPasswordSiswaAction. Kalau keduanya tampil di satu layar, guru mana
+  // pun yang membuka tiket otomatis memegang kunci untuk mengambil alih
+  // akses siswa.
   return (
-    // Satu kartu setinggi kolom tengah: bilah info tiket yang diam di atas,
-    // ruang chat mengisi sisanya. "min-h-0" di pembungkus chat wajib ada —
-    // tanpa itu tinggi minimum bawaan item flex adalah setinggi isinya,
-    // jadi daftar pesan menolak menyusut dan kotak ketik terdorong ke luar
-    // layar begitu percakapannya panjang.
-    <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-      <div className="shrink-0 border-b border-slate-100 p-3 sm:p-4">
-        <div className="flex items-start gap-3">
-          {/* Di HP kolom daftar disembunyikan selama tiket terbuka, jadi
-              tautan ini satu-satunya jalan kembali ke antrean. Mulai lg
-              daftarnya sudah terlihat permanen di kiri. */}
-          <Link
-            href="/guru"
-            aria-label="Kembali ke daftar curhatan"
-            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-slate-500
-              hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2
-              focus-visible:ring-brand-500 lg:hidden"
-          >
-            <span aria-hidden className="text-lg leading-none">
-              &larr;
-            </span>
-          </Link>
-
-          <span
-            aria-hidden
-            className="hidden h-10 w-10 shrink-0 items-center justify-center rounded-full bg-slate-100 text-lg sm:flex"
-          >
-            {MOOD_EMOJI[ticket.mood]}
-          </span>
-
-          <div className="min-w-0 flex-1">
-            <h2 className="line-clamp-2 text-base font-bold text-slate-900 sm:truncate">{ticket.judul}</h2>
-            <p className="truncate text-xs text-slate-500">
-              {ticket.kode} &middot; {labelKategori(kategori)} &middot; Mood:{" "}
-              {MOOD_LABEL[ticket.mood]}
-            </p>
-            {/* Nama Samaran SENGAJA tidak ditampilkan di sini: bersama Kode
-                Konseling (sudah terlihat di baris atas), itu persis dua
-                faktor yang diminta resetPasswordSiswaAction (lihat
-                actions/lupa-password.ts). Kalau keduanya tampil di satu
-                layar, guru mana pun yang membuka tiket otomatis memegang
-                kunci untuk mengambil alih akses siswa. */}
-            {ticket.siapBertemuGuruBk && (
-              <p className="mt-0.5 truncate text-xs font-medium text-emerald-600">
-                ✓ Siswa bersedia bertemu langsung dengan Guru BK
-              </p>
-            )}
-          </div>
-
-          {ticket.status !== "selesai" && <MarkSelesaiButton action={boundMarkSelesai} />}
-        </div>
-
-        <div className="mt-3 border-t border-slate-100 pt-3">
-          <PenugasanTiket
-            guruOptions={guruOptions}
-            currentUid={ticket.guruDitugaskan?.uid ?? null}
-            onAssign={boundAssign}
+    <div className="flex min-h-0 flex-1 gap-4">
+      <section className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-xl bg-white ring-1 ring-slate-200">
+        <HeaderTiket
+          judul={ticket.judul}
+          status={ticket.status}
+          prioritas={adaKategoriPrioritas(kategori) && ticket.status !== "selesai"}
+          konteks={konteks}
+          onAssign={boundAssign}
+          onSelesai={boundMarkSelesai}
+          janjiMenunggu={janji?.status === "menunggu" && janji.menungguPihak === "guru"}
+        />
+        <div className="min-h-0 flex-1">
+          <ChatThread
+            key={kode}
+            initialMessages={initialMessages}
+            myRole="guru"
+            onSend={boundSend}
+            onPoll={boundPoll}
+            onKetik={boundKetik}
+            templates={templates}
+            tampilkanHeader={false}
           />
         </div>
-      </div>
+      </section>
 
-      {/* tampilkanHeader={false}: bilah info tiket di atas sudah berperan
-          sebagai judul percakapan — bilah "Siswa (Anonim)" bawaan
-          ChatThread di bawahnya cuma menumpuk dua judul. */}
-      <div className="min-h-0 flex-1">
-        <ChatThread
-          initialMessages={initialMessages}
-          myRole="guru"
-          onSend={boundSend}
-          onPoll={boundPoll}
-          templates={templates}
-          tampilkanHeader={false}
-        />
-      </div>
+      <aside
+        aria-label="Detail curhatan"
+        className="hidden min-h-0 w-80 shrink-0 overflow-y-auto rounded-xl bg-white p-4 ring-1 ring-slate-200 xl:block"
+      >
+        <KonteksTiket key={kode} data={konteks} onAssign={boundAssign} />
+      </aside>
     </div>
   );
 }

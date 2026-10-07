@@ -7,8 +7,8 @@ import { savePushSubscriptionAction, removePushSubscriptionAction } from "@/acti
 export default function PushSubscribeButton() {
   return (
     <PushToggleButton
-      enableLabel="Aktifkan Notifikasi Curhatan Baru"
-      activeLabel="Notifikasi aktif di perangkat ini"
+      enableLabel="Kabari saya kalau ada curhatan baru"
+      activeLabel="Notifikasi curhatan baru aktif"
       subscribeAction={savePushSubscriptionAction}
       unsubscribeAction={removePushSubscriptionAction}
     />
