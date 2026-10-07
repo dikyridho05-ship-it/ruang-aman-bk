@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
+import "@fontsource-variable/plus-jakarta-sans";
 import "./globals.css";
 import { getAuthenticatedAdmin } from "@/lib/session/admin-session";
+import { getSekolahSettings } from "@/lib/firestore/settings";
+import { hitungPermintaanMenunggu } from "@/actions/akun-admin";
 import AdminShell from "@/components/AdminShell";
 
 export const metadata: Metadata = {
@@ -15,23 +18,31 @@ export const metadata: Metadata = {
 };
 
 /**
- * `admin` di-fetch di sini (bukan di AdminShell — Client Component tidak
- * boleh panggil kode server-only) cuma untuk tampilan sidebar/header (TAHAP
- * 9). Ini TIDAK menggantikan proteksi per-halaman: tiap page.tsx tetap
- * panggil getAuthenticatedAdmin() sendiri dan redirect ke /login kalau
- * belum login — kalau itu terjadi, Next.js membatalkan seluruh render
- * (termasuk layout ini) dan langsung redirect, jadi `admin: null` di sini
- * tidak pernah bocor menampilkan apa pun ke pengguna yang belum login.
+ * `admin`, nama sekolah & jumlah permintaan akses di-fetch di sini cuma
+ * untuk tampilan sidebar/header. Ini TIDAK menggantikan proteksi
+ * per-halaman: tiap page.tsx tetap memanggil getAuthenticatedAdmin() sendiri
+ * dan redirect ke /login kalau belum masuk. Nama sekolah & hitungan hanya
+ * dibaca kalau memang ada admin yang masuk — halaman login tidak memicu
+ * baca Firestore tambahan dari sini.
  */
 export default async function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   const admin = await getAuthenticatedAdmin();
+  const [sekolah, permintaanMenunggu] = admin
+    ? await Promise.all([getSekolahSettings(), hitungPermintaanMenunggu()])
+    : [null, 0];
 
   return (
     <html lang="id">
       <body>
-        <AdminShell admin={admin}>{children}</AdminShell>
+        <AdminShell
+          admin={admin}
+          sekolah={sekolah?.namaSekolah ?? ""}
+          permintaanMenunggu={permintaanMenunggu}
+        >
+          {children}
+        </AdminShell>
       </body>
     </html>
   );

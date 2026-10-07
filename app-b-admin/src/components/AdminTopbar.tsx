@@ -1,51 +1,34 @@
-import LogoutButton from "@/components/LogoutButton";
+"use client";
+
+import { useSyncExternalStore } from "react";
 import { getActiveNavItem } from "@/lib/nav-items";
 import { tanggalLengkap } from "@/lib/waktu";
 
+// Tanggal dibaca di browser (bukan saat render server) supaya tidak terjadi
+// selisih hidrasi kalau server & browser beda zona waktu atau beda hari.
+const subscribe = () => () => {};
+const ambilTanggal = () => tanggalLengkap(Date.now());
+const tanpaTanggal = () => "";
+
 export default function AdminTopbar({
-  nama,
+  sekolah,
   pathname,
 }: {
-  nama: string;
+  sekolah: string;
   pathname: string;
 }) {
-  const inisial = nama.trim().charAt(0).toUpperCase() || "A";
-  const tanggalHariIni = tanggalLengkap(Date.now());
-
-  // Sebelumnya heading di sini hardcode "Selamat datang kembali" di SEMUA
-  // halaman — di halaman seperti Statistik atau Audit Log, teks itu tidak
-  // memberi tahu Super Admin sedang berada di halaman mana. Sekarang judul
-  // ikut halaman aktif (pakai daftar menu yang sama dengan AdminSidebar),
-  // dan sapaan "Selamat datang kembali" disimpan khusus untuk Dashboard.
-  const activeItem = getActiveNavItem(pathname);
-  const heading =
-    pathname === "/"
-      ? "Selamat datang kembali 👋"
-      : activeItem?.label ?? "Ruang Aman BK";
+  const tanggal = useSyncExternalStore(subscribe, ambilTanggal, tanpaTanggal);
+  const judul = getActiveNavItem(pathname)?.label ?? "Ruang Aman BK";
 
   return (
-    <div className="mb-6 flex flex-wrap items-center justify-between gap-x-4 gap-y-3">
-      <div className="min-w-0">
-        <h1 className="text-xl font-extrabold tracking-tight text-slate-900 sm:text-3xl">
-          {heading}
-        </h1>
-        <p className="mt-1 truncate text-sm text-slate-500">
-          {tanggalHariIni} &middot; {nama}
-        </p>
-      </div>
-      <div className="flex shrink-0 items-center gap-3">
-        {/* Sebelumnya bg-admin-100 di atas bg-slate-100 (warna latar
-            <div> pembungkus konten) — dua warna itu nyaris sama terangnya,
-            jadi bentuk lingkaran badge ini nyaris tidak kelihatan. Ditambah
-            border + sedikit digelapkan supaya kontras lingkarannya jelas. */}
-        <div
-          className="flex h-10 w-10 items-center justify-center rounded-full border border-admin-200 bg-admin-200 text-sm font-bold text-admin-800"
-          aria-hidden
-        >
-          {inisial}
-        </div>
-        <LogoutButton />
-      </div>
-    </div>
+    <header className="mb-6 lg:mb-8">
+      {/* Di HP sidebar (yang memuat nama sekolah) disembunyikan — nama
+          sekolah pindah ke sini supaya tetap jelas sedang mengelola apa. */}
+      <p className="mb-1 truncate text-xs font-medium text-admin-600 lg:hidden">{sekolah}</p>
+      <h1 className="text-2xl font-extrabold tracking-tight text-admin-900 sm:text-[28px]">{judul}</h1>
+      <p className="mt-1 min-h-5 text-sm text-slate-500" suppressHydrationWarning>
+        {tanggal}
+      </p>
+    </header>
   );
 }

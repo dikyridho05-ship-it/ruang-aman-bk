@@ -19,9 +19,20 @@ export interface AuthenticatedAdmin {
  * tapi belum terdaftar di `admins` TETAP DITOLAK — mencegah sembarang akun
  * Firebase project ini otomatis jadi Super Admin.
  */
-export async function createAdminSession(
-  idToken: string
-): Promise<{ success: true } | { success: false; error: string }> {
+/**
+ * `alasan` membedakan kenapa akun yang SUDAH terbukti pemiliknya (lolos
+ * verifikasi token) tetap ditolak, supaya halaman login bisa mengarahkan:
+ * belum pernah daftar → ke /daftar, masih menunggu → cukup diberi tahu.
+ * Aman dibedakan karena yang menerima pesan ini hanya pemilik akun itu
+ * sendiri — beda dengan pesan "email/password salah" yang tetap seragam.
+ */
+export type AlasanTolakAdmin = "belum-daftar" | "menunggu" | "ditolak" | "nonaktif";
+
+export type HasilSesiAdmin =
+  | { success: true }
+  | { success: false; error: string; alasan?: AlasanTolakAdmin };
+
+export async function createAdminSession(idToken: string): Promise<HasilSesiAdmin> {
   let decoded;
   try {
     decoded = await adminAuth.verifyIdToken(idToken, true);
@@ -32,9 +43,34 @@ export async function createAdminSession(
 
   const adminSnap = await adminDb.collection("admins").doc(decoded.uid).get();
   if (!adminSnap.exists || adminSnap.data()?.aktif !== true) {
+    if (adminSnap.exists) {
+      return {
+        success: false,
+        alasan: "nonaktif",
+        error: "Akun ini sudah dinonaktifkan. Hubungi Super Admin lain kalau ini keliru.",
+      };
+    }
+    const permintaan = await adminDb.collection("permintaanAdmin").doc(decoded.uid).get();
+    const status = permintaan.exists ? (permintaan.data()?.status as string) : null;
+    if (status === "menunggu") {
+      return {
+        success: false,
+        alasan: "menunggu",
+        error:
+          "Permintaan akses kamu sudah terkirim dan masih menunggu persetujuan Super Admin.",
+      };
+    }
+    if (status === "ditolak") {
+      return {
+        success: false,
+        alasan: "ditolak",
+        error: "Permintaan akses untuk akun ini ditolak. Kamu bisa mengajukan ulang dari halaman daftar.",
+      };
+    }
     return {
       success: false,
-      error: "Akun ini belum terdaftar sebagai Super Admin aktif.",
+      alasan: "belum-daftar",
+      error: "Akun ini belum punya akses ke dasbor Super Admin.",
     };
   }
 

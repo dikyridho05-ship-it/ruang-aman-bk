@@ -1,33 +1,49 @@
+import type { NamaIkon } from "@/components/Ikon";
+
 export interface NavItem {
   href: string;
   /** Label lengkap — dipakai di sidebar desktop dan judul halaman di topbar. */
   label: string;
-  /** Label singkat — dipakai di navigasi bawah HP (`text-[9px]`, ruang sempit). */
+  /** Label singkat — dipakai di navigasi bawah HP yang sempit. */
   shortLabel: string;
-  icon: string;
+  ikon: NamaIkon;
+  /** Kelompok di sidebar desktop. */
+  kelompok: "harian" | "kelola" | "laporan";
+  /** Tampil langsung di navigasi bawah HP (sisanya masuk "Lainnya"). */
+  utamaHp?: boolean;
 }
+
+export const KELOMPOK_LABEL: Record<NavItem["kelompok"], string> = {
+  harian: "Harian",
+  kelola: "Kelola",
+  laporan: "Laporan",
+};
 
 /**
  * Satu sumber kebenaran untuk daftar menu App B, dipakai bareng oleh
  * AdminSidebar (sidebar desktop + nav bawah HP) dan AdminTopbar (judul
- * halaman dinamis). Sebelumnya array ini didefinisikan cuma di
- * AdminSidebar.tsx — topbar jadi tidak punya cara ambil judul halaman
- * aktif tanpa duplikasi daftar menu (dan risiko dua daftar itu berbeda).
+ * halaman dinamis).
  */
 export const NAV_ITEMS: NavItem[] = [
-  { href: "/", label: "Dashboard", shortLabel: "Dashboard", icon: "🏠" },
-  { href: "/guru-bk", label: "Akun Guru BK", shortLabel: "Guru BK", icon: "👩‍🏫" },
-  { href: "/curhatan", label: "Curhatan", shortLabel: "Curhatan", icon: "🗂️" },
-  { href: "/piket", label: "Jadwal Piket", shortLabel: "Piket", icon: "🗓️" },
-  { href: "/template-balasan", label: "Template Balasan", shortLabel: "Balasan", icon: "💬" },
-  { href: "/statistik", label: "Statistik", shortLabel: "Statistik", icon: "📊" },
-  { href: "/audit-log", label: "Audit Log", shortLabel: "Audit Log", icon: "📜" },
-  { href: "/pengaturan", label: "Pengaturan", shortLabel: "Pengaturan", icon: "🏫" },
+  { href: "/", label: "Dasbor", shortLabel: "Dasbor", ikon: "dasbor", kelompok: "harian", utamaHp: true },
+  { href: "/curhatan", label: "Curhatan", shortLabel: "Curhatan", ikon: "curhatan", kelompok: "harian", utamaHp: true },
+  { href: "/piket", label: "Jadwal piket", shortLabel: "Piket", ikon: "piket", kelompok: "harian", utamaHp: true },
+  { href: "/guru-bk", label: "Akun Guru BK", shortLabel: "Guru BK", ikon: "guru", kelompok: "kelola" },
+  { href: "/template-balasan", label: "Template balasan", shortLabel: "Balasan", ikon: "balasan", kelompok: "kelola" },
+  { href: "/akun-admin", label: "Akun Super Admin", shortLabel: "Admin", ikon: "admin", kelompok: "kelola" },
+  { href: "/pengaturan", label: "Pengaturan sekolah", shortLabel: "Sekolah", ikon: "sekolah", kelompok: "kelola" },
+  { href: "/statistik", label: "Statistik", shortLabel: "Statistik", ikon: "statistik", kelompok: "laporan" },
+  { href: "/audit-log", label: "Jejak aktivitas", shortLabel: "Jejak", ikon: "jejak", kelompok: "laporan" },
 ];
 
-/** Cocokkan pathname aktif ke salah satu item menu (logika sama seperti penanda aktif di sidebar). */
-export function getActiveNavItem(pathname: string): NavItem | undefined {
-  return NAV_ITEMS.find((item) =>
-    item.href === "/" ? pathname === "/" : pathname.startsWith(item.href)
-  );
+export function isNavActive(item: NavItem, pathname: string): boolean {
+  return item.href === "/" ? pathname === "/" : pathname.startsWith(item.href);
 }
+
+/** Cocokkan pathname aktif ke salah satu item menu. */
+export function getActiveNavItem(pathname: string): NavItem | undefined {
+  return NAV_ITEMS.find((item) => isNavActive(item, pathname));
+}
+
+/** Halaman yang tampil tanpa sidebar (belum ada admin yang login). */
+export const HALAMAN_TANPA_SHELL = ["/login", "/daftar"];

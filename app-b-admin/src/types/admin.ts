@@ -9,6 +9,33 @@ export interface AdminProfile {
   aktif: boolean;
 }
 
+/** Super Admin yang ditampilkan di halaman Akun Admin. */
+export interface AdminAccount {
+  uid: string;
+  nama: string;
+  email: string;
+  aktif: boolean;
+}
+
+/** Peran yang bisa dipilih pemohon saat mengajukan akses (halaman /daftar). */
+export const PERAN_PEMOHON = [
+  "Kepala Sekolah",
+  "Wakil Kepala Sekolah",
+  "Koordinator BK",
+  "Operator Sekolah",
+] as const;
+export type PeranPemohon = (typeof PERAN_PEMOHON)[number];
+
+/** Satu dokumen `permintaanAdmin/{uid}` — akun Google yang minta akses ke App B. */
+export interface PermintaanAdmin {
+  uid: string;
+  nama: string;
+  email: string;
+  peran: string;
+  status: "menunggu" | "disetujui" | "ditolak";
+  diajukanMs: number;
+}
+
 /**
  * Ringkasan akun Guru BK untuk ditampilkan di dashboard App B — dilengkapi
  * `uid` (Document ID di collection `guru`, sekaligus Firebase Auth UID)

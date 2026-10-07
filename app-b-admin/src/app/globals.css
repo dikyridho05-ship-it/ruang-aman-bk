@@ -13,5 +13,5 @@ body {
 }
 
 body {
-  @apply bg-slate-100 text-slate-900 antialiased;
+  @apply bg-kertas font-sans text-slate-900 antialiased;
 }

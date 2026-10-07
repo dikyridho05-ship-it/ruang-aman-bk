@@ -3,41 +3,46 @@
 import { usePathname } from "next/navigation";
 import AdminSidebar from "@/components/AdminSidebar";
 import AdminTopbar from "@/components/AdminTopbar";
+import { HALAMAN_TANPA_SHELL } from "@/lib/nav-items";
 import type { AuthenticatedAdmin } from "@/lib/session/admin-session";
 
 /**
- * Bungkus tetap (TAHAP 9 — redesain dashboard) di root layout — render
- * sidebar + header di semua halaman KECUALI /login (belum ada admin yang
- * login, tidak ada apa-apa buat dinavigasikan). `admin` di-fetch sekali di
- * layout.tsx (Server Component) lalu dioper turun ke sini sebagai prop,
- * karena Client Component tidak boleh panggil `getAuthenticatedAdmin()`
- * (dia server-only). Tiap halaman TETAP panggil `getAuthenticatedAdmin()`
- * sendiri untuk proteksi & datanya masing-masing — konsisten dengan pola
- * proyek ini: verifikasi ulang tiap render, tidak pakai middleware.
+ * Bungkus tetap di root layout — sidebar + judul di semua halaman kecuali
+ * halaman masuk/daftar. `admin` di-fetch sekali di layout.tsx (Server
+ * Component) lalu dioper sebagai prop. Tiap halaman TETAP memanggil
+ * `getAuthenticatedAdmin()` sendiri untuk proteksi — pola proyek ini:
+ * verifikasi ulang tiap render, tanpa middleware.
  */
 export default function AdminShell({
   admin,
+  sekolah,
+  permintaanMenunggu,
   children,
 }: {
   admin: AuthenticatedAdmin | null;
+  sekolah: string;
+  permintaanMenunggu: number;
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
-  const isLoginPage = pathname === "/login";
 
-  if (isLoginPage) {
+  if (HALAMAN_TANPA_SHELL.includes(pathname)) {
     return <>{children}</>;
   }
 
   return (
-    <div className="flex min-h-screen">
-      <AdminSidebar />
-      {/* pb-24 di HP: kasih ruang buat navigasi bawah (fixed, lihat AdminSidebar)
-          biar konten paling bawah halaman tidak ketutup. Di sm+ navigasi itu
-          disembunyikan lagi jadi padding-nya balik normal. */}
-      <div className="min-w-0 flex-1 overflow-x-hidden px-4 py-6 pb-24 sm:px-8 sm:py-8 sm:pb-8">
-        <AdminTopbar nama={admin?.nama ?? "Super Admin"} pathname={pathname} />
-        {children}
+    <div className="flex min-h-dvh">
+      <AdminSidebar
+        nama={admin?.nama ?? "Super Admin"}
+        sekolah={sekolah}
+        permintaanMenunggu={permintaanMenunggu}
+      />
+      {/* pb-28 di HP: ruang untuk bar navigasi bawah (fixed). */}
+      <div className="min-w-0 flex-1 overflow-x-hidden px-4 pb-28 pt-5 sm:px-8 lg:pb-10 lg:pt-8">
+        <div className="mx-auto max-w-6xl">
+          <AdminTopbar sekolah={sekolah} pathname={pathname} />
+          {children}
+        </div>
       </div>
     </div>
   );

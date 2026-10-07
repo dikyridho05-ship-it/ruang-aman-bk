@@ -7,26 +7,38 @@ const config: Config = {
   ],
   theme: {
     extend: {
+      fontFamily: {
+        // Plus Jakarta Sans — dirancang di Indonesia (Tokotype). Dimuat dari
+        // paket npm @fontsource (lihat layout.tsx), bukan Google Fonts, jadi
+        // ikut ter-bundle dan tetap tampil walau jaringan sekolah membatasi.
+        sans: ['"Plus Jakarta Sans Variable"', "system-ui", "sans-serif"],
+      },
       colors: {
-        // Palet berbeda dari App A supaya dev/QA gampang membedakan
-        // sedang membuka dashboard internal, bukan portal publik.
-        // 100/200/300/800 ditambahkan menyusul: kelas bg-admin-100,
-        // bg-admin-200, hover:border-admin-300, dan text-admin-800 sudah
-        // dipakai di topbar, kalender, dan halaman statistik, tapi
-        // nuansanya tidak pernah ada di sini — Tailwind tidak menghasilkan
-        // CSS untuk kelas yang tidak terdefinisi, jadi avatar di topbar
-        // tampil tanpa latar & tanpa warna huruf sama sekali. Nilainya
-        // mengikuti tangga "violet" yang sama dengan nuansa yang ada.
+        // Okt 2026: palet App B pindah dari ungu (violet) ke "tinta" — biru
+        // navy yang satu keluarga dengan biru sky App A, supaya dua aplikasi
+        // ini terasa satu produk. Nama kunci `admin` sengaja dipertahankan
+        // supaya kelas lama (bg-admin-600, text-admin-700, …) ikut berganti
+        // warna tanpa harus diubah satu per satu.
         admin: {
-          50: "#faf5ff",
-          100: "#ede9fe",
-          200: "#ddd6fe",
-          300: "#c4b5fd",
-          500: "#8b5cf6",
-          600: "#7c3aed",
-          700: "#6d28d9",
-          800: "#5b21b6",
+          50: "#f1f6fb",
+          100: "#e1ecf6",
+          200: "#c3d7ea",
+          300: "#93b6d6",
+          400: "#5f8fbd",
+          500: "#2f6ea6",
+          600: "#1d5a8f",
+          700: "#164873",
+          800: "#10365a",
+          900: "#0c2340",
         },
+        // Biru sky App A — dipakai di App B hanya untuk aksen kecil (titik
+        // status, sorotan hari ini di kalender) supaya ada benang merah.
+        langit: {
+          100: "#e0f2fe",
+          500: "#0ea5e9",
+          600: "#0284c7",
+        },
+        kertas: "#f4f7fa",
       },
     },
   },
