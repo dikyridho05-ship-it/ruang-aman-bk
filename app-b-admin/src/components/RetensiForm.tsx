@@ -53,7 +53,7 @@ export default function RetensiForm({ initial }: { initial: RetensiSettings }) {
   return (
     <form
       onSubmit={handleSubmit}
-      className="space-y-5 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm"
+      className="space-y-5 rounded-xl bg-white p-6 ring-1 ring-slate-200"
     >
       <div>
         <h2 className="font-semibold text-slate-900">Retensi &amp; Arsip Otomatis</h2>
@@ -84,7 +84,7 @@ export default function RetensiForm({ initial }: { initial: RetensiSettings }) {
           name="aktif"
           checked={aktif}
           onChange={(e) => setAktif(e.target.checked)}
-          className="h-4 w-4 rounded border-slate-300 text-admin-600 focus:ring-admin-500"
+          className="h-4 w-4 rounded border-slate-300 text-admin-600 focus:ring-admin-200 focus:border-admin-500"
         />
         Aktifkan retensi otomatis
       </label>
@@ -102,9 +102,9 @@ export default function RetensiForm({ initial }: { initial: RetensiSettings }) {
             max={3650}
             value={tutupHari}
             onChange={(e) => setTutupHari(e.target.value)}
-            className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-admin-500"
+            className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-admin-200 focus:border-admin-500"
           />
-          <p className="mt-1 text-xs text-slate-500">Tiket tanpa aktivitas selama ini ditandai "selesai". 0 = mati.</p>
+          <p className="mt-1 text-xs text-slate-500">Tiket tanpa aktivitas selama ini ditandai “selesai”. 0 = mati.</p>
         </div>
         <div>
           <label htmlFor="hapusOtomatisHari" className="block text-sm font-medium text-slate-700">
@@ -118,10 +118,10 @@ export default function RetensiForm({ initial }: { initial: RetensiSettings }) {
             max={3650}
             value={hapusHari}
             onChange={(e) => setHapusHari(e.target.value)}
-            className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-admin-500"
+            className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-admin-200 focus:border-admin-500"
           />
           <p className="mt-1 text-xs text-slate-500">
-            Dihitung sejak tiket berstatus "selesai" (manual atau otomatis). 0 = mati.
+            Dihitung sejak tiket berstatus “selesai” (manual atau otomatis). 0 = mati.
           </p>
         </div>
       </div>

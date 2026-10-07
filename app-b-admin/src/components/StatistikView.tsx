@@ -68,7 +68,7 @@ function StatCard({
   aksen?: string;
 }) {
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+    <div className="rounded-xl bg-white p-4 ring-1 ring-slate-200">
       <p className="text-xs font-medium text-slate-500">{label}</p>
       <p className={`mt-1 text-2xl font-bold ${aksen ?? "text-slate-900"}`}>{nilai}</p>
       <p className="mt-0.5 text-xs text-slate-400">{keterangan}</p>
@@ -88,10 +88,7 @@ export default function StatistikView({ data }: { data: StatistikCurhatan }) {
   if (totalKeseluruhan === 0) {
     return (
       <div className="rounded-2xl border border-slate-200 bg-white p-8 text-center shadow-sm">
-        <p className="text-3xl" aria-hidden>
-          📭
-        </p>
-        <p className="mt-3 text-sm font-medium text-slate-700">Belum ada data curhatan.</p>
+        <p className="text-sm font-semibold text-admin-900">Belum ada data curhatan.</p>
         <p className="mt-1 text-sm text-slate-500">
           Statistik akan muncul di sini begitu ada siswa yang mengirim curhatan lewat App A.
         </p>
@@ -117,7 +114,7 @@ export default function StatistikView({ data }: { data: StatistikCurhatan }) {
         <StatCard label="Tingkat Selesai" nilai={`${persenSelesai}%`} keterangan="Tiket berstatus selesai" />
       </div>
 
-      <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+      <div className="rounded-xl bg-white p-5 ring-1 ring-slate-200">
         <h2 className="text-sm font-semibold text-slate-900">Status Tiket</h2>
         <div className="mt-3 flex flex-wrap gap-2">
           {STATUS_ORDER.map((s) => (
@@ -132,7 +129,7 @@ export default function StatistikView({ data }: { data: StatistikCurhatan }) {
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">
-        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+        <div className="rounded-xl bg-white p-5 ring-1 ring-slate-200">
           <h2 className="text-sm font-semibold text-slate-900">Per Kategori</h2>
           <p className="mt-0.5 text-xs text-slate-400">
             Tanpa identitas siswa mana pun. Satu curhatan boleh memilih sampai 3
@@ -151,7 +148,7 @@ export default function StatistikView({ data }: { data: StatistikCurhatan }) {
           </div>
         </div>
 
-        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+        <div className="rounded-xl bg-white p-5 ring-1 ring-slate-200">
           <h2 className="text-sm font-semibold text-slate-900">Per Mood</h2>
           <p className="mt-0.5 text-xs text-slate-400">Mood yang dipilih siswa saat curhat.</p>
           <div className="mt-4 space-y-2.5">
@@ -168,7 +165,7 @@ export default function StatistikView({ data }: { data: StatistikCurhatan }) {
         </div>
       </div>
 
-      <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+      <div className="rounded-xl bg-white p-5 ring-1 ring-slate-200">
         <h2 className="text-sm font-semibold text-slate-900">Tren 6 Bulan Terakhir</h2>
         <p className="mt-0.5 text-xs text-slate-400">Jumlah curhatan masuk per bulan.</p>
         <div className="mt-5 flex items-end gap-3" style={{ height: 140 }}>

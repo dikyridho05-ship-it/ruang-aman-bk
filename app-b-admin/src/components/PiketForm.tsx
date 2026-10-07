@@ -51,7 +51,7 @@ export default function PiketForm({
   return (
     <form
       onSubmit={handleSubmit}
-      className="space-y-5 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm"
+      className="space-y-5 rounded-xl bg-white p-6 ring-1 ring-slate-200"
     >
       {message && (
         <div
@@ -81,7 +81,7 @@ export default function PiketForm({
                     name={hari}
                     value={g.uid}
                     defaultChecked={initial[hari]?.includes(g.uid)}
-                    className="h-4 w-4 rounded border-slate-300 text-admin-600 focus:ring-admin-500"
+                    className="h-4 w-4 rounded border-slate-300 text-admin-600 focus:ring-admin-200 focus:border-admin-500"
                   />
                   {g.nama}
                 </label>

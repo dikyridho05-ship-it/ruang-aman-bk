@@ -1,5 +1,7 @@
 "use client";
 
+import Ikon from "@/components/Ikon";
+
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { updateSekolahSettingsAction } from "@/actions/settings";
@@ -83,7 +85,7 @@ export default function PengaturanForm({
   return (
     <form
       onSubmit={handleSubmit}
-      className="space-y-5 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm"
+      className="space-y-5 rounded-xl bg-white p-6 ring-1 ring-slate-200"
     >
       {message && (
         <div
@@ -109,7 +111,7 @@ export default function PengaturanForm({
           required
           value={namaSekolah}
           onChange={(e) => setNamaSekolah(e.target.value)}
-          className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-admin-500"
+          className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-admin-200 focus:border-admin-500"
         />
         <p className="mt-1 text-xs text-slate-500">Tampil di Beranda portal siswa (App A).</p>
       </div>
@@ -124,8 +126,8 @@ export default function PengaturanForm({
               className="h-16 w-16 rounded-full border border-slate-200 object-contain"
             />
           ) : (
-            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-slate-100 text-2xl">
-              🏫
+            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-admin-50 text-admin-400" aria-hidden>
+              <Ikon nama="sekolah" className="h-7 w-7" />
             </div>
           )}
           <input

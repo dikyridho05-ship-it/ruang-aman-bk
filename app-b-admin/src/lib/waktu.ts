@@ -56,3 +56,28 @@ export function tanggalPendek(ms: number): string {
 export function tanggalLengkap(ms: number): string {
   return fmtTanggalLengkap.format(new Date(ms));
 }
+
+const OFFSET_WIB_MS = 7 * 60 * 60 * 1000;
+
+/** "YYYY-MM-DD" menurut waktu sekolah (WIB), tidak bergantung zona mesin server. */
+export function kunciTanggal(ms: number): string {
+  const d = new Date(ms + OFFSET_WIB_MS);
+  return `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, "0")}-${String(d.getUTCDate()).padStart(2, "0")}`;
+}
+
+/** Indeks hari WIB (0 = Minggu) — pengganti `new Date().getDay()` di server UTC. */
+export function hariKeWib(ms: number): number {
+  return new Date(ms + OFFSET_WIB_MS).getUTCDay();
+}
+
+/** Jam:menit WIB, mis. "10.30". */
+export function jamWib(ms: number): string {
+  const d = new Date(ms + OFFSET_WIB_MS);
+  return `${String(d.getUTCHours()).padStart(2, "0")}.${String(d.getUTCMinutes()).padStart(2, "0")}`;
+}
+
+/** Epoch ms tengah malam WIB untuk tanggal yang memuat `ms`, digeser `hari` hari. */
+export function tengahMalamWib(ms: number, hari = 0): number {
+  const d = new Date(ms + OFFSET_WIB_MS);
+  return Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate() + hari) - OFFSET_WIB_MS;
+}

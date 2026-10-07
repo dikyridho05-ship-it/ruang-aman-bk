@@ -85,7 +85,7 @@ export default function LatarBerandaForm({ initialFotoBase64 }: Props) {
   }
 
   return (
-    <section className="space-y-4 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+    <section className="space-y-4 rounded-xl bg-white p-6 ring-1 ring-slate-200">
       <div>
         <h2 className="text-sm font-semibold text-slate-900">Foto Latar Beranda</h2>
         <p className="mt-0.5 text-xs text-slate-500">

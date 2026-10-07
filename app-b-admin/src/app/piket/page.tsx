@@ -14,9 +14,8 @@ export default async function PiketPage() {
   const guruAktif = guruResult.success ? guruResult.guru.filter((g) => g.aktif) : [];
 
   return (
-    <main className="mx-auto max-w-2xl">
-      <h1 className="mb-1 text-xl font-bold text-slate-900">Jadwal Piket Guru BK</h1>
-      <p className="mb-4 text-sm text-slate-500">
+    <main className="max-w-3xl">
+      <p className="mb-6 max-w-2xl text-[15px] text-slate-600">
         Atur Guru BK yang bertugas tiap hari — jadwalnya juga tampil di dashboard Guru BK (App A)
         supaya semua tahu siapa piket hari itu, terutama menjelang musim ujian.
       </p>

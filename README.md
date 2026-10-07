@@ -836,6 +836,40 @@ Diverifikasi: `npx tsc --noEmit` + `next build` bersih untuk App A & App B, dan
 tampilan Beranda dicek lewat screenshot Playwright di dua ukuran layar (HP
 390px & laptop 1280px) memakai foto sungguhan.
 
+## Pembaruan Oktober 2026 — Update teknis, fitur baru, tampilan baru
+
+### Update teknis
+- Next.js 15 → **16**, Firebase 11 → **12**, firebase-admin 13 → **14**, React 19.3.
+- `npm audit --omit=dev`: **0 temuan** di kedua app (sebelumnya 16 dan 18). Dua paket turunan
+  dipaksa ke versi yang sudah ditambal lewat `overrides` di `package.json` (`@grpc/grpc-js`, `uuid`).
+- `next lint` sudah dihapus di Next 16 → `npm run lint` sekarang `eslint .` dengan `eslint.config.mjs`.
+- App B: `pdfkit` & `exceljs` dijadikan `serverExternalPackages` supaya font PDF tetap terbaca.
+- Perbaikan zona waktu: "piket hari ini" sebelumnya memakai hari UTC (server Vercel), jadi salah
+  hari antara pukul 00.00–07.00 WIB. Sekarang dihitung dalam WIB di kedua app.
+- Polling chat sekarang **bertahap** (hanya pesan baru), bukan mengunduh ulang seluruh percakapan
+  tiap 4 detik — jauh lebih hemat kuota baca Firestore dan data siswa.
+
+### Fitur baru
+1. **Masuk & ajukan akses dengan Google di App B.** Halaman `/login` punya tombol Google di samping
+   email/password. Halaman `/daftar` membuat *permintaan akses* (`permintaanAdmin/{uid}`), bukan akun
+   aktif — Super Admin yang ada menyetujui/menolak di menu **Akun Super Admin** (`/akun-admin`).
+   Minimal satu Super Admin selalu aktif; tidak bisa menonaktifkan diri sendiri.
+   **Wajib sekali:** Firebase Console → Authentication → Sign-in method → aktifkan **Google**.
+2. **Catatan internal Guru BK** per curhatan (`curhatan/{kode}/catatanGuru`). Tidak pernah dibaca
+   kode sisi siswa maupun App B; ikut terhapus bersama tiketnya.
+3. **Tanda dibaca & sedang mengetik** di chat (centang dua, tiga titik). Penanda baca hanya ditulis
+   saat ada pesan baru dari lawan bicara, bukan tiap polling.
+4. **Janji temu tatap muka** (koleksi `janjiTemu`). Siswa memilih slot 30 menit (Senin–Jumat
+   07.30–15.30, hanya hari yang ada piket, melewati libur nasional), Guru BK mengonfirmasi atau
+   mengusulkan waktu lain, lalu mencatat hasilnya. Anti-bentrok lewat transaksi. Kalender App B
+   menampilkan jam & nama Guru BK saja, tanpa kode tiket. Aturan diuji: `npx tsx scripts/uji-janji.ts`.
+
+### Tampilan
+- Font **Plus Jakarta Sans** (paket npm, bukan Google Fonts). App B pindah dari ungu ke navy tinta.
+- Beranda siswa, formulir cerita 3 langkah (isian tidak hilang saat server menolak), panel Guru BK
+  (saringan "Perlu dibalas", ringkasan hari ini, kolom detail), dasbor & navigasi App B, ikon SVG
+  menggantikan emoji.
+
 ## Status Tahapan
 
 - [x] **TAHAP 1** — Struktur proyek + `firebaseClient.ts` + `firebaseAdmin.ts` (App A & App B)
@@ -852,8 +886,9 @@ tampilan Beranda dicek lewat screenshot Playwright di dua ukuran layar (HP
 - [x] **TAHAP 10** — Perbaikan "Kode Konseling hilang" (sesi 30 hari multi-perangkat,
       browser mengingat kode, kartu kode, halaman Lupa Kode, pembatas percobaan,
       kode acak, password minimal 8)
+- [x] **Okt 2026** — Next.js 16 & Firebase 12, login Google App B, catatan internal, tanda dibaca &
+      mengetik, janji temu tatap muka, tampilan baru kedua app
 
 Semua 8 tahap dari roadmap awal (artefak "Peta Jalan Ruang Aman BK") sudah selesai dibangun,
-ditambah TAHAP 9 di luar roadmap awal. Langkah besar berikutnya yang belum diputuskan:
-**deploy publik** (mis. ke Vercel) dan/atau **publikasi ke Google Play Store** lewat TWA —
-lihat artefak "Ruang Aman BK ke Play Store" untuk peta jalannya kalau/waktu kamu siap.
+ditambah TAHAP 9 dan seterusnya. Kedua app sudah live di Vercel (lihat DEPLOY.md); publikasi ke
+Google Play Store lewat TWA masih opsional — lihat artefak "Ruang Aman BK ke Play Store".

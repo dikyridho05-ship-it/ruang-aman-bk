@@ -94,7 +94,7 @@ export default function GuruList({ guru }: { guru: GuruAccount[] }) {
         <div
           role="alert"
           aria-live="assertive"
-          className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700"
+          className="rounded-lg border-l-4 border-red-500 bg-red-50 px-3.5 py-3 text-sm text-red-800"
         >
           {error}
         </div>

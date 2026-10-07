@@ -119,7 +119,7 @@ export default function ResetPasswordGuruDialog({
             <div
               role="alert"
               aria-live="assertive"
-              className="mt-3 rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700"
+              className="mt-3 rounded-lg border-l-4 border-red-500 bg-red-50 px-3.5 py-3 text-sm text-red-800"
             >
               {error}
             </div>
@@ -167,7 +167,7 @@ export default function ResetPasswordGuruDialog({
               onClick={onCancel}
               disabled={pending}
               className="min-h-[2.75rem] flex-1 rounded-xl border border-slate-300 text-sm font-medium text-slate-700
-                focus:outline-none focus:ring-2 focus:ring-admin-500 disabled:opacity-50"
+                focus:outline-none focus:ring-2 focus:ring-admin-200 focus:border-admin-500 disabled:opacity-50"
             >
               Batal
             </button>
@@ -175,7 +175,7 @@ export default function ResetPasswordGuruDialog({
               type="submit"
               disabled={pending}
               className="min-h-[2.75rem] flex-1 rounded-xl bg-admin-600 text-sm font-semibold text-white
-                focus:outline-none focus:ring-2 focus:ring-admin-500 disabled:opacity-60"
+                focus:outline-none focus:ring-2 focus:ring-admin-200 focus:border-admin-500 disabled:opacity-60"
             >
               {pending ? "Menyimpan..." : "Simpan Password"}
             </button>

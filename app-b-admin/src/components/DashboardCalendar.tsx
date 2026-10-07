@@ -5,40 +5,19 @@ import type { HariPiket } from "@/types/admin";
 import type { EventKalender } from "@/lib/kalender/data-nasional";
 import type { JadwalPiketNama } from "@/lib/firestore/piket";
 
-const HARI_BY_JS_DAY: HariPiket[] = [
-  "minggu",
-  "senin",
-  "selasa",
-  "rabu",
-  "kamis",
-  "jumat",
-  "sabtu",
-];
-
+const HARI_BY_JS_DAY: HariPiket[] = ["minggu", "senin", "selasa", "rabu", "kamis", "jumat", "sabtu"];
 const NAMA_BULAN = [
-  "Januari",
-  "Februari",
-  "Maret",
-  "April",
-  "Mei",
-  "Juni",
-  "Juli",
-  "Agustus",
-  "September",
-  "Oktober",
-  "November",
-  "Desember",
+  "Januari", "Februari", "Maret", "April", "Mei", "Juni",
+  "Juli", "Agustus", "September", "Oktober", "November", "Desember",
 ];
+const HARI_HEADER = ["Sen", "Sel", "Rab", "Kam", "Jum", "Sab", "Min"];
 
-const HARI_HEADER: { key: HariPiket; label: string }[] = [
-  { key: "senin", label: "SEN" },
-  { key: "selasa", label: "SEL" },
-  { key: "rabu", label: "RAB" },
-  { key: "kamis", label: "KAM" },
-  { key: "jumat", label: "JUM" },
-  { key: "sabtu", label: "SAB" },
-  { key: "minggu", label: "MIN" },
-];
+export interface JanjiDiKalender {
+  tanggalIso: string;
+  jam: string;
+  guruNama: string | null;
+  dikonfirmasi: boolean;
+}
 
 interface SelKalender {
   tanggalIso: string;
@@ -47,36 +26,41 @@ interface SelKalender {
   isToday: boolean;
   piket: { uid: string; nama: string }[];
   event: EventKalender | null;
+  janji: JanjiDiKalender[];
 }
 
 function keIso(d: Date): string {
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(
-    d.getDate()
-  ).padStart(2, "0")}`;
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+
+function labelTanggal(iso: string): string {
+  const [y, m, d] = iso.split("-").map(Number);
+  const hari = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"][new Date(y, m - 1, d).getDay()];
+  return `${hari}, ${d} ${NAMA_BULAN[m - 1]}`;
 }
 
 /**
- * Kalender dashboard utama (TAHAP 9 — redesain, terinspirasi mockup
- * "Lesson schedule") — gabungan DUA sumber data: jadwal piket Guru BK
- * (berulang tiap minggu, dari Firestore lewat props) & kalender pendidikan
- * nasional (libur nasional + cuti bersama + agenda akademik Banten, data
- * statis dari lib/kalender/data-nasional.ts). Client Component karena
- * navigasi bulan (‹ ›) murni state lokal, tidak perlu Server Action.
+ * Kalender dasbor: libur nasional & agenda akademik (data statis), jadwal
+ * piket (berulang mingguan), dan janji temu tatap muka (dari App A, tanpa
+ * identitas siswa). Mengetuk satu tanggal menampilkan rinciannya di bawah
+ * kalender — sebelumnya rincian hanya ada di tooltip, yang tidak bisa
+ * dibuka sama sekali di HP.
  */
 export default function DashboardCalendar({
   todayIso,
   jadwalPiket,
   events,
+  janji,
 }: {
-  /** Tanggal hari ini dari SERVER (bukan `new Date()` di client) — supaya konsisten dengan SSR, hindari hydration mismatch. */
+  /** Tanggal hari ini (WIB) dari server, supaya sama dengan hasil render server. */
   todayIso: string;
   jadwalPiket: JadwalPiketNama;
   events: EventKalender[];
+  janji: JanjiDiKalender[];
 }) {
   const today = useMemo(() => new Date(`${todayIso}T00:00:00`), [todayIso]);
-  const [monthCursor, setMonthCursor] = useState(
-    () => new Date(today.getFullYear(), today.getMonth(), 1)
-  );
+  const [monthCursor, setMonthCursor] = useState(() => new Date(today.getFullYear(), today.getMonth(), 1));
+  const [dipilih, setDipilih] = useState(todayIso);
 
   const eventByTanggal = useMemo(() => {
     const map = new Map<string, EventKalender>();
@@ -84,15 +68,20 @@ export default function DashboardCalendar({
     return map;
   }, [events]);
 
+  const janjiByTanggal = useMemo(() => {
+    const map = new Map<string, JanjiDiKalender[]>();
+    for (const j of janji) map.set(j.tanggalIso, [...(map.get(j.tanggalIso) ?? []), j]);
+    return map;
+  }, [janji]);
+
   const selKalender: SelKalender[] = useMemo(() => {
     const firstOfMonth = new Date(monthCursor.getFullYear(), monthCursor.getMonth(), 1);
-    const offset = (firstOfMonth.getDay() + 6) % 7; // Senin dianggap kolom pertama
+    const offset = (firstOfMonth.getDay() + 6) % 7; // Senin kolom pertama
     const gridStart = new Date(firstOfMonth);
     gridStart.setDate(firstOfMonth.getDate() - offset);
 
     const hasil: SelKalender[] = [];
     for (let i = 0; i < 42; i++) {
-      // 6 minggu penuh — tinggi kalender konsisten tiap bulan, tidak "lompat"
       const d = new Date(gridStart);
       d.setDate(gridStart.getDate() + i);
       const iso = keIso(d);
@@ -103,126 +92,126 @@ export default function DashboardCalendar({
         isToday: iso === todayIso,
         piket: jadwalPiket[HARI_BY_JS_DAY[d.getDay()]] ?? [],
         event: eventByTanggal.get(iso) ?? null,
+        janji: janjiByTanggal.get(iso) ?? [],
       });
     }
     return hasil;
-  }, [monthCursor, jadwalPiket, eventByTanggal, todayIso]);
+  }, [monthCursor, jadwalPiket, eventByTanggal, janjiByTanggal, todayIso]);
 
-  function gantiBulan(delta: number) {
-    setMonthCursor((prev) => new Date(prev.getFullYear(), prev.getMonth() + delta, 1));
-  }
-
-  const agendaMendatang = useMemo(
-    () => events.filter((e) => e.tanggal >= todayIso).slice(0, 4),
-    [events, todayIso]
-  );
+  const selDipilih = selKalender.find((s) => s.tanggalIso === dipilih);
+  const rincianDipilih = selDipilih ?? {
+    tanggalIso: dipilih,
+    event: eventByTanggal.get(dipilih) ?? null,
+    janji: janjiByTanggal.get(dipilih) ?? [],
+    piket: [],
+  };
 
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+    <section aria-labelledby="judul-kalender" className="rounded-xl bg-white p-5 ring-1 ring-slate-200">
       <div className="flex items-center justify-between">
-        <h2 className="text-lg font-bold text-slate-900">
+        <h2 id="judul-kalender" className="text-base font-bold text-admin-900">
           {NAMA_BULAN[monthCursor.getMonth()]} {monthCursor.getFullYear()}
         </h2>
         <div className="flex gap-1">
-          <button
-            type="button"
-            onClick={() => gantiBulan(-1)}
-            aria-label="Bulan sebelumnya"
-            className="flex h-7 w-7 items-center justify-center rounded-full border border-slate-200 text-slate-500 hover:bg-slate-50"
-          >
-            ‹
-          </button>
-          <button
-            type="button"
-            onClick={() => gantiBulan(1)}
-            aria-label="Bulan berikutnya"
-            className="flex h-7 w-7 items-center justify-center rounded-full border border-slate-200 text-slate-500 hover:bg-slate-50"
-          >
-            ›
-          </button>
+          <TombolBulan label="Bulan sebelumnya" onClick={() => setMonthCursor((p) => new Date(p.getFullYear(), p.getMonth() - 1, 1))} arah="kiri" />
+          <TombolBulan label="Bulan berikutnya" onClick={() => setMonthCursor((p) => new Date(p.getFullYear(), p.getMonth() + 1, 1))} arah="kanan" />
         </div>
       </div>
 
-      <div className="mt-4 grid grid-cols-7 text-center text-[10px] font-semibold text-slate-400">
+      <div className="mt-4 grid grid-cols-7 text-center text-xs text-slate-500" aria-hidden>
         {HARI_HEADER.map((h) => (
-          <span key={h.key}>{h.label}</span>
+          <span key={h}>{h}</span>
         ))}
       </div>
 
-      <div className="mt-1 grid grid-cols-7 gap-y-1 text-center text-xs">
+      <div className="mt-1 grid grid-cols-7 gap-y-1 text-center text-sm">
         {selKalender.map((h) => {
-          const adaEvent = h.event !== null;
-          const adaPiket = h.piket.length > 0;
-
-          let gaya = "text-slate-700";
-          if (!h.diBulanIni) {
-            gaya = "text-slate-300";
-          } else if (adaEvent) {
-            gaya = "bg-admin-600 font-semibold text-white";
-          } else if (adaPiket) {
-            gaya = "bg-admin-50 font-semibold text-admin-700";
-          }
-          const cincin = h.isToday ? "ring-2 ring-admin-500 ring-offset-1" : "";
-
+          const libur = h.event && h.event.jenis !== "akademik";
+          const aktif = h.tanggalIso === dipilih;
           return (
-            <div key={h.tanggalIso} className="flex items-center justify-center py-0.5">
+            <button
+              key={h.tanggalIso}
+              type="button"
+              onClick={() => setDipilih(h.tanggalIso)}
+              aria-pressed={aktif}
+              aria-label={`${labelTanggal(h.tanggalIso)}${h.event ? `, ${h.event.label}` : ""}${h.janji.length ? `, ${h.janji.length} janji temu` : ""}`}
+              className="group flex flex-col items-center py-0.5 focus-visible:outline-none"
+            >
               <span
-                title={
-                  h.event?.label ??
-                  (adaPiket ? `Piket: ${h.piket.map((p) => p.nama).join(", ")}` : undefined)
-                }
-                className={`flex h-7 w-7 items-center justify-center rounded-full ${gaya} ${cincin}`}
+                className={`flex h-8 w-8 items-center justify-center rounded-full tabular-nums transition-colors group-focus-visible:ring-2 group-focus-visible:ring-langit-500 ${
+                  aktif
+                    ? "bg-admin-800 font-bold text-white"
+                    : h.isToday
+                      ? "font-bold text-admin-800 ring-1 ring-admin-400"
+                      : !h.diBulanIni
+                        ? "text-slate-300"
+                        : libur
+                          ? "font-semibold text-red-600"
+                          : h.piket.length > 0
+                            ? "text-slate-800"
+                            : "text-slate-400"
+                }`}
               >
                 {h.tanggal}
               </span>
-            </div>
+              <span className="mt-0.5 flex h-1.5 gap-0.5" aria-hidden>
+                {h.janji.length > 0 && <span className="h-1.5 w-1.5 rounded-full bg-langit-500" />}
+                {h.event?.jenis === "akademik" && <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />}
+              </span>
+            </button>
           );
         })}
       </div>
 
-      <div className="mt-4 flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-slate-500">
-        <span className="flex items-center gap-1">
-          <span className="h-2.5 w-2.5 rounded-full bg-admin-600" aria-hidden />
-          Libur / agenda akademik
+      <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-xs text-slate-500">
+        <span className="flex items-center gap-1.5">
+          <span className="font-semibold text-red-600">12</span> Libur
         </span>
-        <span className="flex items-center gap-1">
-          <span className="h-2.5 w-2.5 rounded-full bg-admin-50 ring-1 ring-admin-200" aria-hidden />
-          Ada piket
+        <span className="flex items-center gap-1.5">
+          <span className="h-1.5 w-1.5 rounded-full bg-langit-500" aria-hidden /> Janji temu
         </span>
+        <span className="flex items-center gap-1.5">
+          <span className="h-1.5 w-1.5 rounded-full bg-amber-500" aria-hidden /> Agenda akademik
+        </span>
+        <span>Angka pudar: tanpa piket</span>
       </div>
 
-      {agendaMendatang.length > 0 && (
-        <div className="mt-5 space-y-2 border-t border-slate-100 pt-4">
-          <h3 className="text-xs font-semibold uppercase tracking-wide text-slate-400">
-            Agenda Mendatang
-          </h3>
-          {agendaMendatang.map((e) => (
-            <div
-              key={e.tanggal + e.label}
-              className="flex items-center gap-3 rounded-xl bg-slate-50 p-2.5"
-            >
-              <span
-                className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-sm ${
-                  e.jenis === "akademik" ? "bg-amber-100" : "bg-admin-100"
-                }`}
-                aria-hidden
-              >
-                {e.jenis === "akademik" ? "🎓" : "🎌"}
-              </span>
-              <div className="min-w-0">
-                <p className="truncate text-xs font-medium text-slate-800">{e.label}</p>
-                <p className="text-[11px] text-slate-400">
-                  {new Date(`${e.tanggal}T00:00:00`).toLocaleDateString("id-ID", {
-                    day: "2-digit",
-                    month: "short",
-                    year: "numeric",
-                  })}
-                </p>
-              </div>
-            </div>
+      <div className="mt-4 border-t border-slate-100 pt-4" aria-live="polite">
+        <p className="text-sm font-bold text-admin-900">{labelTanggal(rincianDipilih.tanggalIso)}</p>
+        <ul className="mt-2 space-y-1.5 text-sm">
+          {rincianDipilih.event && (
+            <li className={rincianDipilih.event.jenis === "akademik" ? "text-amber-800" : "text-red-700"}>
+              {rincianDipilih.event.label}
+            </li>
+          )}
+          <li className="text-slate-700">
+            <span className="text-slate-500">Piket: </span>
+            {rincianDipilih.piket.length > 0 ? rincianDipilih.piket.map((p) => p.nama).join(", ") : "tidak ada"}
+          </li>
+          {rincianDipilih.janji.map((j) => (
+            <li key={j.jam} className="text-slate-700">
+              <span className="font-semibold tabular-nums text-admin-900">{j.jam}</span> janji temu
+              {j.guruNama ? ` dengan ${j.guruNama}` : ""}
+              {!j.dikonfirmasi && <span className="text-amber-700"> (belum dikonfirmasi)</span>}
+            </li>
           ))}
-        </div>
-      )}
-    </div>
+        </ul>
+      </div>
+    </section>
+  );
+}
+
+function TombolBulan({ label, onClick, arah }: { label: string; onClick: () => void; arah: "kiri" | "kanan" }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-label={label}
+      className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 hover:bg-kertas hover:text-admin-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-langit-500"
+    >
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4" aria-hidden>
+        <path d={arah === "kiri" ? "M15 5l-7 7 7 7" : "M9 5l7 7-7 7"} />
+      </svg>
+    </button>
   );
 }

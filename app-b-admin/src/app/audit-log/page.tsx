@@ -12,9 +12,8 @@ export default async function AuditLogPage() {
   const entries = await getAuditLog(100);
 
   return (
-    <main className="mx-auto max-w-2xl">
-      <h1 className="mb-1 text-xl font-bold text-slate-900">Audit Log</h1>
-      <p className="mb-4 text-sm text-slate-500">
+    <main className="max-w-3xl">
+      <p className="mb-6 max-w-2xl text-[15px] text-slate-600">
         100 aktivitas Super Admin terbaru — akun Guru BK, pengaturan sekolah, dan retensi data.
       </p>
 

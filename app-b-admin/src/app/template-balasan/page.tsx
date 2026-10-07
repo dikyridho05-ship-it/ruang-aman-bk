@@ -12,9 +12,8 @@ export default async function TemplateBalasanPage() {
   const templates = await getTemplateBalasan();
 
   return (
-    <main className="mx-auto max-w-2xl">
-      <h1 className="mb-1 text-xl font-bold text-slate-900">Template Balasan Cepat</h1>
-      <p className="mb-4 text-sm text-slate-500">
+    <main className="max-w-3xl">
+      <p className="mb-6 max-w-2xl text-[15px] text-slate-600">
         Balasan siap pakai untuk Guru BK saat menjawab curhatan — muncul sebagai pilihan cepat di
         halaman chat, mempercepat waktu respons.
       </p>

@@ -13,9 +13,8 @@ export default async function CurhatanPage() {
   const curhatan = result.success ? result.curhatan : [];
 
   return (
-    <main className="mx-auto max-w-2xl">
-      <h1 className="mb-1 text-xl font-bold text-slate-900">Curhatan</h1>
-      <p className="mb-4 text-sm text-slate-500">
+    <main className="max-w-3xl">
+      <p className="mb-6 max-w-2xl text-[15px] text-slate-600">
         Kelola tiket curhatan siswa — pilih tiket tertentu atau hapus semuanya sekaligus.
       </p>
 
@@ -23,7 +22,7 @@ export default async function CurhatanPage() {
         <div
           role="alert"
           aria-live="assertive"
-          className="mb-4 rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700"
+          className="mb-4 rounded-lg border-l-4 border-red-500 bg-red-50 px-3.5 py-3 text-sm text-red-800"
         >
           {result.error}
         </div>

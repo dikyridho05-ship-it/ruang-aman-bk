@@ -14,14 +14,13 @@ export default async function GuruBkPage() {
   const guru = result.success ? result.guru : [];
 
   return (
-    <main className="mx-auto max-w-2xl">
-      <h1 className="mb-4 text-xl font-bold text-slate-900">Akun Guru BK</h1>
+    <main className="max-w-3xl">
 
       {!result.success && (
         <div
           role="alert"
           aria-live="assertive"
-          className="mb-4 rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700"
+          className="mb-4 rounded-lg border-l-4 border-red-500 bg-red-50 px-3.5 py-3 text-sm text-red-800"
         >
           {result.error}
         </div>

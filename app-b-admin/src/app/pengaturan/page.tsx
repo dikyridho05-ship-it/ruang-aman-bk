@@ -14,8 +14,7 @@ export default async function PengaturanPage() {
   const [settings, latar] = await Promise.all([getSekolahSettings(), getLatarBeranda()]);
 
   return (
-    <main className="mx-auto max-w-2xl">
-      <h1 className="mb-4 text-xl font-bold text-slate-900">Identitas Sekolah</h1>
+    <main className="max-w-3xl">
 
       <PengaturanForm
         initialNamaSekolah={settings.namaSekolah}

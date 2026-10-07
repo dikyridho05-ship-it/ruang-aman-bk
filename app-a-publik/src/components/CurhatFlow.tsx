@@ -162,7 +162,7 @@ const LANGKAH = [
  * Ketiga langkah tetap SATU <form> (langkah yang tidak aktif disembunyikan
  * lewat CSS), jadi pengiriman tetap satu Server Action seperti sebelumnya.
  */
-export function CurhatFormOrSuccess({ turnstileToken }: { turnstileToken: string }) {
+function CurhatFormOrSuccess({ turnstileToken }: { turnstileToken: string }) {
   const [state, formAction, isPending] = useActionState(curhatFormAction, null);
   const [langkah, setLangkah] = useState(0);
   const [galatLangkah, setGalatLangkah] = useState<string | null>(null);

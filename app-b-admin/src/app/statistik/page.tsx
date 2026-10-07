@@ -12,15 +12,10 @@ export default async function StatistikPage() {
   const data = await getStatistikCurhatan();
 
   return (
-    /* max-w-2xl — disamakan dengan halaman App B lainnya (Akun Guru BK,
-       Jadwal Piket, dll). Sebelumnya halaman ini satu-satunya yang pakai
-       max-w-3xl, jadi lebar konten desktop terasa tidak konsisten saat
-       pindah antar halaman. */
-    <main className="mx-auto max-w-2xl">
+    <main className="max-w-3xl">
       <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="text-xl font-bold text-slate-900">Statistik &amp; Laporan</h1>
-          <p className="mt-0.5 text-sm text-slate-500">
+          <p className="max-w-xl text-[15px] text-slate-600">
             Ringkasan anonim untuk Kepala Sekolah — tidak ada judul, nama samaran, atau isi
             curhatan yang ditampilkan di sini.
           </p>
@@ -28,15 +23,15 @@ export default async function StatistikPage() {
         <div className="flex gap-2">
           <a
             href="/statistik/export/excel"
-            className="rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs font-semibold text-slate-700 hover:border-admin-300"
+            className="rounded-lg bg-white px-3.5 py-2 text-sm font-semibold text-admin-800 ring-1 ring-slate-300 hover:ring-admin-400"
           >
-            📊 Unduh Excel
+            Unduh Excel
           </a>
           <a
             href="/statistik/export/pdf"
-            className="rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs font-semibold text-slate-700 hover:border-admin-300"
+            className="rounded-lg bg-white px-3.5 py-2 text-sm font-semibold text-admin-800 ring-1 ring-slate-300 hover:ring-admin-400"
           >
-            📄 Unduh PDF
+            Unduh PDF
           </a>
         </div>
       </div>

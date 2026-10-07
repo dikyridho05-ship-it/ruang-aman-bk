@@ -37,7 +37,9 @@ export default function TurnstileWidget({
   const containerRef = useRef<HTMLDivElement>(null);
   const widgetIdRef = useRef<string | undefined>(undefined);
   const onVerifyRef = useRef(onVerify);
-  onVerifyRef.current = onVerify;
+  useEffect(() => {
+    onVerifyRef.current = onVerify;
+  }, [onVerify]);
 
   const sitekey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
 
