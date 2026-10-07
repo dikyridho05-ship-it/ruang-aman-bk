@@ -78,6 +78,8 @@ export async function jalankanRetensi(
     // `pesan` sekalian), tidak bisa lewat WriteBatch biasa.
     for (const kode of kandidatHapus) {
       await db.recursiveDelete(db.collection("curhatan").doc(kode));
+      // Janji temu tiket ini disimpan di koleksi terpisah — ikut dihapus.
+      await hapusJanjiTiket(db, kode);
     }
 
     const hasil: HasilRetensi = { tutupCount: kandidatTutup.length, hapusCount: kandidatHapus.length };
@@ -116,4 +118,11 @@ async function catatStatusRetensi(
   } catch (err) {
     console.error("[catatStatusRetensi] gagal menulis status sistem:", err);
   }
+}
+
+
+/** Hapus dokumen `janjiTemu` milik satu tiket (koleksi tingkat atas, tidak ikut recursiveDelete). */
+async function hapusJanjiTiket(db: FirebaseFirestore.Firestore, kode: string): Promise<void> {
+  const snap = await db.collection("janjiTemu").where("kodeTiket", "==", kode).get();
+  await Promise.all(snap.docs.map((d) => d.ref.delete()));
 }

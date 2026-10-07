@@ -70,6 +70,8 @@ export async function deleteCurhatanAction(kodeList: string[]): Promise<DeleteRe
 
   for (const kode of kodeUnik) {
     await adminDb.recursiveDelete(adminDb.collection("curhatan").doc(kode));
+    // Janji temu tiket ini disimpan di koleksi terpisah — ikut dihapus.
+    await hapusJanjiTiket(adminDb, kode);
   }
 
   await catatAudit(
@@ -94,6 +96,8 @@ export async function deleteAllCurhatanAction(): Promise<DeleteResult> {
 
     for (const kode of kodeList) {
       await adminDb.recursiveDelete(adminDb.collection("curhatan").doc(kode));
+    // Janji temu tiket ini disimpan di koleksi terpisah — ikut dihapus.
+    await hapusJanjiTiket(adminDb, kode);
     }
 
     await catatAudit(admin.nama, "Hapus Semua Tiket Curhatan", `${kodeList.length} tiket dihapus`);
@@ -103,4 +107,11 @@ export async function deleteAllCurhatanAction(): Promise<DeleteResult> {
     console.error("[deleteAllCurhatanAction] gagal hapus semua curhatan:", err);
     return { success: false, error: "Gagal menghapus semua tiket." };
   }
+}
+
+
+/** Hapus dokumen `janjiTemu` milik satu tiket (koleksi tingkat atas, tidak ikut recursiveDelete). */
+async function hapusJanjiTiket(db: FirebaseFirestore.Firestore, kode: string): Promise<void> {
+  const snap = await db.collection("janjiTemu").where("kodeTiket", "==", kode).get();
+  await Promise.all(snap.docs.map((d) => d.ref.delete()));
 }

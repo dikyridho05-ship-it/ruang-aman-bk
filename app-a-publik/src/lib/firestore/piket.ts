@@ -1,12 +1,12 @@
 import "server-only";
 import { adminDb } from "@/lib/firebase/admin";
+import { hariWib } from "@/lib/janji/aturan";
 
 export interface GuruPiket {
   uid: string;
   nama: string;
 }
 
-const HARI_KEY = ["minggu", "senin", "selasa", "rabu", "kamis", "jumat", "sabtu"] as const;
 
 /**
  * Baca Guru BK yang piket HARI INI dari `settings/piket` (TAHAP 9, diatur
@@ -22,7 +22,9 @@ const HARI_KEY = ["minggu", "senin", "selasa", "rabu", "kamis", "jumat", "sabtu"
  */
 export async function getPiketHariIni(): Promise<GuruPiket[]> {
   try {
-    const hariIni = HARI_KEY[new Date().getDay()];
+    // Hari menurut WIB — server Vercel berjalan di UTC, jadi getDay() biasa
+    // menunjuk hari kemarin antara pukul 00.00–07.00 WIB.
+    const hariIni = hariWib(Date.now());
     const snap = await adminDb.collection("settings").doc("piket").get();
     if (!snap.exists) return [];
 

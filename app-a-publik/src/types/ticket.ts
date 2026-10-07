@@ -166,8 +166,18 @@ export interface CurhatTicket {
   guruDitugaskan?: GuruTugas | null;
   /** true kalau status "selesai" di sini didapat dari retensi otomatis, bukan Guru BK. */
   ditutupOtomatis?: boolean;
-  /** Timestamp epoch ms saat siswa terakhir kali membuka/membaca ruang chat. */
-  dibacaSiswaAtMs?: number | null;
+  /**
+   * Penanda baca & mengetik (Okt 2026) — epoch ms, semuanya opsional karena
+   * tiket lama tidak punya. Ditulis & dibaca hanya lewat actions/chat.ts.
+   */
+  bacaSiswaMs?: number;
+  bacaGuruMs?: number;
+  pesanTerakhirSiswaMs?: number;
+  pesanTerakhirGuruMs?: number;
+  ketikSiswaSampaiMs?: number;
+  ketikGuruSampaiMs?: number;
+  /** ID dokumen `janjiTemu` yang sedang berjalan untuk tiket ini, kalau ada. */
+  janjiAktifId?: string | null;
 }
 
 /**
@@ -194,6 +204,8 @@ export interface CurhatMessage {
  * di-serialize langsung sebagai props, jadi diubah ke epoch ms biasa.
  */
 export interface SerializedMessage {
+  /** Document ID pesan — kunci penggabungan hasil polling bertahap. */
+  id: string;
   pengirim: "siswa" | "guru";
   isi: string;
   gambar?: string;

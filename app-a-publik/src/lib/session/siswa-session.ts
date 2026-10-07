@@ -71,6 +71,18 @@ export async function verifyAndCreateSiswaSession(
 
 /** Dipanggil dari actions/chat.ts — mengembalikan Kode Konseling kalau sesi masih valid. */
 export async function getAuthenticatedSiswaKode(): Promise<string | null> {
+  return (await getSesiSiswa())?.kode ?? null;
+}
+
+/**
+ * Sama seperti getAuthenticatedSiswaKode, tapi ikut mengembalikan isi
+ * dokumen tiket yang sudah terbaca saat memverifikasi sesi — supaya polling
+ * chat (tiap beberapa detik) tidak membaca dokumen yang sama dua kali.
+ */
+export async function getSesiSiswa(): Promise<{
+  kode: string;
+  data: FirebaseFirestore.DocumentData;
+} | null> {
   const cookieStore = await cookies();
   const raw = cookieStore.get(COOKIE_NAME)?.value;
   if (!raw || !raw.includes("::")) return null;
@@ -82,7 +94,7 @@ export async function getAuthenticatedSiswaKode(): Promise<string | null> {
   if (!snap.exists) return null;
 
   const data = snap.data() ?? {};
-  if (sesiMasihBerlaku(data.sesiSiswa as PetaSesi | undefined, token)) return kode;
+  if (sesiMasihBerlaku(data.sesiSiswa as PetaSesi | undefined, token)) return { kode, data };
 
   // Jalur lama (sebelum sesi multi-perangkat) — tetap dilayani supaya siswa
   // yang sesinya masih hidup saat pembaruan ini dipasang tidak terlempar
@@ -96,7 +108,7 @@ export async function getAuthenticatedSiswaKode(): Promise<string | null> {
     sampaiLama &&
     sampaiLama.toMillis() > Date.now()
   ) {
-    return kode;
+    return { kode, data };
   }
 
   return null;
