@@ -72,35 +72,39 @@ export function unduhKartuKode(kode: string, namaSekolah: string): void {
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    ctx.fillStyle = "#0f172a";
+    ctx.fillStyle = "#0c2340";
     ctx.fillRect(0, 0, L, T);
 
-    ctx.fillStyle = "#38bdf8";
-    ctx.font = "600 22px system-ui, -apple-system, sans-serif";
-    ctx.fillText("KODE KONSELING", 48, 78);
+    // Warna & susunan sama dengan contoh kartu di Beranda.
+    const huruf = '"Plus Jakarta Sans Variable", system-ui, -apple-system, sans-serif';
+    ctx.fillStyle = "#bae6fd";
+    ctx.font = `600 22px ${huruf}`;
+    ctx.fillText("Kode Konseling", 48, 78);
 
-    ctx.fillStyle = "#94a3b8";
-    ctx.font = "20px system-ui, -apple-system, sans-serif";
+    ctx.fillStyle = "#93b6d6";
+    ctx.font = `20px ${huruf}`;
     ctx.fillText(namaSekolah, 48, 112);
 
     ctx.fillStyle = "#ffffff";
     ctx.font = "700 64px ui-monospace, Menlo, monospace";
     ctx.fillText(kode, 48, 216);
 
-    ctx.strokeStyle = "#1e293b";
+    ctx.strokeStyle = "rgba(255,255,255,0.25)";
     ctx.lineWidth = 2;
+    ctx.setLineDash([8, 8]);
     ctx.beginPath();
     ctx.moveTo(48, 258);
     ctx.lineTo(L - 48, 258);
     ctx.stroke();
+    ctx.setLineDash([]);
 
-    ctx.fillStyle = "#cbd5e1";
-    ctx.font = "19px system-ui, -apple-system, sans-serif";
+    ctx.fillStyle = "#e0f2fe";
+    ctx.font = `19px ${huruf}`;
     ctx.fillText("Simpan gambar ini. Dipakai bersama password", 48, 300);
     ctx.fillText("yang kamu buat sendiri untuk cek balasan.", 48, 330);
 
-    ctx.fillStyle = "#64748b";
-    ctx.font = "17px system-ui, -apple-system, sans-serif";
+    ctx.fillStyle = "#93b6d6";
+    ctx.font = `17px ${huruf}`;
     ctx.fillText(
       `Dibuat ${new Date().toLocaleDateString("id-ID", { dateStyle: "long" })}`,
       48,

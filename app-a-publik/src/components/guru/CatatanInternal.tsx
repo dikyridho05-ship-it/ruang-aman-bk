@@ -91,7 +91,7 @@ export default function CatatanInternal({ kode, guruUid }: { kode: string; guruU
       </form>
 
       {catatan === null ? (
-        <p className="mt-3 text-xs text-slate-500">Memuat catatan…</p>
+        galat ? null : <p className="mt-3 text-xs text-slate-500">Memuat catatan…</p>
       ) : catatan.length === 0 ? (
         <p className="mt-3 text-xs leading-relaxed text-slate-500">
           Belum ada catatan untuk curhatan ini.

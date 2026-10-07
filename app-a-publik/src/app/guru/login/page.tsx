@@ -87,32 +87,25 @@ export default function GuruLoginPage() {
   }
 
   return (
-    // Latar gradien brand hanya di layar ini — pintu masuk yang terasa beda
-    // dari halaman kerja, sekaligus penanda jelas bahwa ini area Guru BK,
-    // bukan halaman siswa. py cukup besar supaya di HP layar pendek dengan
-    // papan ketik terbuka kartunya tetap bisa digulir, bukan terjepit.
-    <main className="flex min-h-dvh flex-col items-center justify-center bg-gradient-to-br from-brand-700 via-brand-600 to-sky-400 px-4 py-10 sm:py-12">
+    // Latar navy tinta hanya di layar ini — penanda jelas bahwa ini area
+    // Guru BK, bukan halaman siswa (warna yang sama dengan bilah atas panel).
+    <main className="flex min-h-dvh flex-col items-center justify-center bg-tinta px-4 py-10 sm:py-12">
       <div className="w-full max-w-sm">
         <form
           onSubmit={handleSubmit}
-          className="rounded-3xl bg-white p-6 shadow-xl shadow-brand-900/20 sm:p-7"
+          className="rounded-2xl bg-white p-6 sm:p-8"
         >
-          <div className="flex flex-col items-center text-center">
-            <span
-              aria-hidden
-              className="flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-brand-500 to-brand-700 text-white shadow-lg shadow-brand-600/30"
-            >
-              <IkonPengguna className="h-8 w-8" />
-            </span>
-            <h1 className="mt-3 text-2xl font-bold text-slate-900">Login Guru BK</h1>
-            <p className="mt-1 text-sm text-slate-500">Khusus untuk Guru BK terdaftar.</p>
+          <div>
+            <p className="text-sm font-semibold text-brand-700">Ruang Aman</p>
+            <h1 className="mt-1 text-[26px] font-extrabold leading-tight tracking-tight text-tinta">Masuk Guru BK</h1>
+            <p className="mt-1 text-sm text-slate-600">Pakai akun yang dibuatkan Super Admin sekolah.</p>
           </div>
 
           {error && (
             <div
               role="alert"
               aria-live="assertive"
-              className="mt-5 rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700"
+              className="mt-5 rounded-lg border-l-4 border-red-500 bg-red-50 px-3.5 py-3 text-sm text-red-800"
             >
               {error}
             </div>
@@ -122,7 +115,7 @@ export default function GuruLoginPage() {
             <div
               role="status"
               aria-live="polite"
-              className="mt-5 rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-700"
+              className="mt-5 rounded-lg border-l-4 border-emerald-500 bg-emerald-50 px-3.5 py-3 text-sm text-emerald-800"
             >
               {info}
             </div>
@@ -205,7 +198,7 @@ export default function GuruLoginPage() {
               hover:from-brand-700 hover:to-brand-600 focus-visible:outline-none focus-visible:ring-2
               focus-visible:ring-brand-500 focus-visible:ring-offset-2 disabled:opacity-60"
           >
-            {loading ? "Memproses..." : "Masuk"}
+            {loading ? "Memeriksa…" : "Masuk"}
           </button>
 
           {/* Tidak ada pendaftaran mandiri: akun Guru BK dibuat Super Admin
@@ -221,7 +214,7 @@ export default function GuruLoginPage() {
           className="mx-auto mt-5 block w-fit rounded-lg px-3 py-1.5 text-center text-sm font-medium text-white/90
             hover:bg-white/10 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70"
         >
-          &larr; Kembali ke Beranda
+          Kembali ke beranda
         </Link>
       </div>
     </main>
@@ -235,24 +228,6 @@ function kodeError(err: unknown): string | null {
     return typeof code === "string" ? code : null;
   }
   return null;
-}
-
-function IkonPengguna({ className }: { className?: string }) {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth={2}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className={className}
-      aria-hidden
-    >
-      <circle cx="12" cy="8" r="4" />
-      <path d="M4 20c0-4.4 3.6-8 8-8s8 3.6 8 8" />
-    </svg>
-  );
 }
 
 function IkonAmplop({ className }: { className?: string }) {

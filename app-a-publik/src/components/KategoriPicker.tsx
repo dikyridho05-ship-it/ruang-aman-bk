@@ -8,17 +8,6 @@ import {
   type KategoriCurhat,
 } from "@/types/ticket";
 
-const KATEGORI_EMOJI: Record<KategoriCurhat, string> = {
-  akademik: "📚",
-  bullying: "🛡️",
-  keluarga: "🏠",
-  percintaan: "💌",
-  teman: "🤝",
-  kesehatan_mental: "🧠",
-  kekerasan: "⚠️",
-  lainnya: "✨",
-};
-
 /** Berapa lama penanda "maks 3" bertahan merah setelah siswa menekan kategori berlebih. */
 const DURASI_PERINGATAN_MS = 1600;
 
@@ -74,16 +63,12 @@ export default function KategoriPicker({
   return (
     <div>
       <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-        <span className="text-sm font-medium text-slate-700">Kategori masalah</span>
+        <span className="text-[15px] font-semibold text-tinta">Tentang apa?</span>
         <span
           key={peringatan}
           aria-hidden
-          className={`rounded-full border px-2 py-0.5 text-[11px] font-semibold transition-colors ${
-            memberiPeringatan
-              ? "animate-getar border-red-300 bg-red-100 text-red-700"
-              : penuh
-                ? "border-brand-200 bg-brand-50 text-brand-700"
-                : "border-slate-200 bg-slate-50 text-slate-500"
+          className={`text-xs font-semibold transition-colors ${
+            memberiPeringatan ? "animate-getar text-red-600" : penuh ? "text-brand-700" : "text-slate-500"
           }`}
         >
           maks {MAKS_KATEGORI}
@@ -96,7 +81,7 @@ export default function KategoriPicker({
         <input key={kategori} type="hidden" name="kategori" value={kategori} />
       ))}
 
-      <div className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-4">
+      <div className="mt-2.5 flex flex-wrap gap-2">
         {KATEGORI_CURHAT.map((kategori) => {
           const active = selected.includes(kategori);
           const terkunci = penuh && !active;
@@ -106,21 +91,16 @@ export default function KategoriPicker({
               type="button"
               onClick={() => toggle(kategori)}
               aria-pressed={active}
-              className={`flex items-center gap-2 rounded-xl border p-2.5 text-left text-sm transition
+              className={`rounded-full px-4 py-2.5 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-1
                 ${
                   active
-                    ? "border-brand-600 bg-brand-50 ring-2 ring-brand-500"
+                    ? "bg-tinta text-white"
                     : terkunci
-                      ? "border-slate-200 bg-white opacity-50"
-                      : "border-slate-200 bg-white hover:border-slate-300"
+                      ? "bg-white text-slate-400 ring-1 ring-slate-200"
+                      : "bg-white text-slate-700 ring-1 ring-slate-300 hover:ring-brand-400"
                 }`}
             >
-              <span className="text-lg" aria-hidden>
-                {KATEGORI_EMOJI[kategori]}
-              </span>
-              <span className="font-medium text-slate-700">
-                {KATEGORI_CURHAT_LABEL[kategori]}
-              </span>
+              {KATEGORI_CURHAT_LABEL[kategori]}
             </button>
           );
         })}

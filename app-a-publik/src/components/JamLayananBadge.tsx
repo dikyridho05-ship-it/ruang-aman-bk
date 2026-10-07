@@ -20,7 +20,7 @@ function cekJamLayananAktif(): { aktif: boolean; keterangan: string } {
   if (hariKerja && jamKerja) {
     return {
       aktif: true,
-      keterangan: "Guru BK sedang bertugas dan siap merespons curhatanmu.",
+      keterangan: "Ceritamu bisa dibaca dan dibalas hari ini juga.",
     };
   }
 
@@ -63,7 +63,7 @@ export default function JamLayananBadge({ compact = false }: { compact?: boolean
     return (
       <div
         aria-hidden
-        className={compact ? "h-[26px]" : "h-[70px] rounded-2xl border border-transparent"}
+        className={compact ? "h-[26px]" : "h-[46px]"}
       />
     );
   }
@@ -91,25 +91,20 @@ export default function JamLayananBadge({ compact = false }: { compact?: boolean
 
   return (
     <div
-      className={`rounded-2xl border p-3.5 text-xs transition-colors ${
-        status.aktif
-          ? "border-emerald-200 bg-emerald-50/70 text-emerald-900"
-          : "border-slate-200 bg-slate-50 text-slate-700"
-      }`}
+      className="flex gap-3 text-sm"
     >
-      <div className="flex items-center gap-2 font-semibold">
-        <span
-          className={`h-2.5 w-2.5 rounded-full ${
-            status.aktif ? "animate-pulse bg-emerald-500" : "bg-slate-400"
-          }`}
-        />
-        <span>
+      <span
+        aria-hidden
+        className={`mt-1.5 h-2 w-2 shrink-0 rounded-full ${status.aktif ? "bg-emerald-500" : "bg-slate-400"}`}
+      />
+      <div>
+        <p className="font-semibold text-tinta">
           {status.aktif
-            ? "Jam Layanan BK Aktif (07.30 – 15.30 WIB)"
-            : "Di Luar Jam Layanan Sekolah (Senin–Jumat, 07.30 – 15.30 WIB)"}
-        </span>
+            ? "Guru BK sedang bertugas"
+            : "Di luar jam layanan (Senin–Jumat, 07.30–15.30)"}
+        </p>
+        <p className="mt-0.5 leading-relaxed text-slate-600">{status.keterangan}</p>
       </div>
-      <p className="mt-1 text-slate-600">{status.keterangan}</p>
     </div>
   );
 }

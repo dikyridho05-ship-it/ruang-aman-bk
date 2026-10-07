@@ -208,7 +208,7 @@ export default function DaftarCurhatan({
                 type="button"
                 aria-pressed={saringan === f.id}
                 onClick={() => setSaringan(f.id)}
-                className={`flex flex-1 items-center justify-center gap-1.5 rounded-md px-2 py-1.5 text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 ${
+                className={`flex flex-1 items-center justify-center gap-1.5 whitespace-nowrap rounded-md px-1.5 py-1.5 text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 ${
                   saringan === f.id ? "bg-white text-tinta shadow-[0_1px_2px_rgba(12,35,64,0.12)]" : "text-slate-500 hover:text-tinta"
                 }`}
               >
