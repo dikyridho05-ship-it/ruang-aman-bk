@@ -20,3 +20,6 @@ yarn-error.log*
 
 # file kunci service account kalau tidak sengaja ketaruh di root
 *firebase-adminsdk*.json
+
+# keluaran sesi Claude / file sementara — jangan ikut ke repo
+Claude outputs/
