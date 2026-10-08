@@ -25,6 +25,8 @@ interface CekBalasanFlowProps {
   initialMessages?: SerializedMessage[];
   kodeAwal?: string | null;
   janjiAwal?: JanjiTemu | null;
+  /** Belum ada Guru BK yang ditugaskan Super Admin untuk curhatan ini. */
+  menungguPenugasan?: boolean;
 }
 
 export default function CekBalasanFlow({
@@ -32,6 +34,7 @@ export default function CekBalasanFlow({
   initialMessages = [],
   kodeAwal = null,
   janjiAwal = null,
+  menungguPenugasan = false,
 }: CekBalasanFlowProps) {
   const router = useRouter();
   const [verified, setVerified] = useState(initialVerified);
@@ -76,6 +79,12 @@ export default function CekBalasanFlow({
             onKetik={tandaiSiswaMengetikAction}
             slotAtas={
               <>
+                {menungguPenugasan && (
+                  <p className="shrink-0 border-b border-amber-100 bg-amber-50 px-4 py-2.5 text-[13px] leading-snug text-amber-900">
+                    Ceritamu sudah diterima dan sedang diteruskan ke Guru BK yang akan menanganimu. Kalau
+                    kamu dalam bahaya sekarang, tekan tombol Bantuan darurat.
+                  </p>
+                )}
                 <div className="shrink-0 border-b border-slate-100 bg-white px-4 py-2">
                   <SiswaPushSubscribeButton />
                 </div>

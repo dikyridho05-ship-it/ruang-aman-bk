@@ -2,7 +2,7 @@
 
 import { FieldValue, Timestamp } from "firebase-admin/firestore";
 import { adminDb } from "@/lib/firebase/admin";
-import { getAuthenticatedGuru } from "@/lib/session/guru-session";
+import { aksesTiketGuru } from "@/lib/akses/tiket-guru";
 import { getSesiSiswa } from "@/lib/session/siswa-session";
 import { notifySiswaOnBalasan } from "@/lib/push/send-push";
 import type { CurhatMessage, SerializedMessage } from "@/types/ticket";
@@ -140,7 +140,6 @@ async function simpanPesan(kode: string, peran: Peran, isi: string, gambar?: str
 }
 
 const SESI_SISWA_HABIS = "Sesi habis, silakan cek balasan ulang.";
-const SESI_GURU_HABIS = "Sesi login habis, silakan login ulang.";
 
 // ============ SISWA ============
 // Tidak menerima parameter `kode` dari client sama sekali — kode diambil
@@ -193,20 +192,19 @@ export async function tandaiSiswaMengetikAction(): Promise<void> {
 }
 
 // ============ GURU BK ============
-// `kode` diterima dari parameter (Guru boleh buka tiket mana saja), tapi
-// setiap panggilan tetap wajib lolos getAuthenticatedGuru() dulu.
+// `kode` datang dari browser, jadi SETIAP aksi di bawah lewat aksesTiketGuru():
+// sesi valid DAN curhatan ini ditugaskan Super Admin ke guru yang sedang
+// login. Guru lain — atau curhatan yang belum ditugaskan — ditolak di sini,
+// bukan cuma disembunyikan di tampilan.
 
 export async function getMessagesForGuruAction(
   kode: string,
   sejakMs?: number,
   terlihat = true
 ): Promise<HasilChat> {
-  const guru = await getAuthenticatedGuru();
-  if (!guru) return { success: false, error: SESI_GURU_HABIS };
-
-  const snap = await adminDb.collection("curhatan").doc(kode).get();
-  if (!snap.exists) return { success: false, error: "Curhatan ini sudah tidak ada." };
-  return muatChat(kode, snap.data() ?? {}, "guru", sejakMs, terlihat);
+  const akses = await aksesTiketGuru(kode);
+  if (!akses.ok) return { success: false, error: akses.error };
+  return muatChat(kode, akses.data, "guru", sejakMs, terlihat);
 }
 
 export async function sendGuruReplyAction(
@@ -214,8 +212,8 @@ export async function sendGuruReplyAction(
   isi: string,
   gambar?: string
 ): Promise<MutateResult> {
-  const guru = await getAuthenticatedGuru();
-  if (!guru) return { success: false, error: SESI_GURU_HABIS };
+  const akses = await aksesTiketGuru(kode);
+  if (!akses.ok) return { success: false, error: akses.error };
 
   const validationError = validatePesan(isi, gambar);
   if (validationError) return { success: false, error: validationError };
@@ -239,23 +237,20 @@ export async function sendGuruReplyAction(
 }
 
 export async function tandaiGuruMengetikAction(kode: string): Promise<void> {
-  const guru = await getAuthenticatedGuru();
-  if (!guru) return;
+  const akses = await aksesTiketGuru(kode);
+  if (!akses.ok) return;
   try {
-    await adminDb
-      .collection("curhatan")
-      .doc(kode)
-      .update({ ketikGuruSampaiMs: Date.now() + MASA_KETIK_MS });
+    await akses.ref.update({ ketikGuruSampaiMs: Date.now() + MASA_KETIK_MS });
   } catch {
     // Tanda mengetik cuma kosmetik — gagal tulis tidak perlu dilaporkan.
   }
 }
 
 export async function markTicketSelesaiAction(kode: string): Promise<MutateResult> {
-  const guru = await getAuthenticatedGuru();
-  if (!guru) return { success: false, error: SESI_GURU_HABIS };
+  const akses = await aksesTiketGuru(kode);
+  if (!akses.ok) return { success: false, error: akses.error };
 
-  await adminDb.collection("curhatan").doc(kode).update({
+  await akses.ref.update({
     status: "selesai",
     updatedAt: FieldValue.serverTimestamp(),
   });

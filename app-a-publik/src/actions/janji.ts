@@ -1,6 +1,6 @@
 "use server";
 
-import { getAuthenticatedGuru } from "@/lib/session/guru-session";
+import { aksesTiketGuru } from "@/lib/akses/tiket-guru";
 import { getAuthenticatedSiswaKode } from "@/lib/session/siswa-session";
 import {
   batalkanJanji,
@@ -23,7 +23,6 @@ export type DataPilihan =
   | { success: false; error: string };
 
 const SESI_SISWA_HABIS = "Sesi habis, silakan cek balasan ulang.";
-const SESI_GURU_HABIS = "Sesi login habis, silakan login ulang.";
 
 // ============ SISWA ============
 // Sama seperti chat: kode tiket SELALU dari sesi, tidak pernah dari klien.
@@ -61,23 +60,27 @@ export async function batalkanJanjiSiswaAction(): Promise<HasilJanji> {
 }
 
 // ============ GURU BK ============
+// Semua lewat aksesTiketGuru(): hanya Guru BK yang ditugaskan ke curhatan ini.
 
 export async function dataJanjiGuruAction(kode: string): Promise<DataJanji> {
-  const guru = await getAuthenticatedGuru();
-  if (!guru) return { success: false, error: SESI_GURU_HABIS };
+  const akses = await aksesTiketGuru(kode);
+  if (!akses.ok) return { success: false, error: akses.error };
+  const { guru } = akses;
   return { success: true, janji: await janjiUntukTiket(kode) };
 }
 
 export async function pilihanSlotGuruAction(kode: string): Promise<DataPilihan> {
-  const guru = await getAuthenticatedGuru();
-  if (!guru) return { success: false, error: SESI_GURU_HABIS };
+  const akses = await aksesTiketGuru(kode);
+  if (!akses.ok) return { success: false, error: akses.error };
+  const { guru } = akses;
   const janji = await janjiUntukTiket(kode);
   return { success: true, pilihan: await pilihanSlot(janji?.id) };
 }
 
 export async function konfirmasiJanjiGuruAction(kode: string): Promise<HasilJanji> {
-  const guru = await getAuthenticatedGuru();
-  if (!guru) return { success: false, error: SESI_GURU_HABIS };
+  const akses = await aksesTiketGuru(kode);
+  if (!akses.ok) return { success: false, error: akses.error };
+  const { guru } = akses;
   return setujuiWaktu(kode, "guru", { uid: guru.uid, nama: guru.nama });
 }
 
@@ -86,19 +89,22 @@ export async function usulkanJanjiGuruAction(
   waktuMulaiMs: number,
   catatan?: string
 ): Promise<HasilJanji> {
-  const guru = await getAuthenticatedGuru();
-  if (!guru) return { success: false, error: SESI_GURU_HABIS };
+  const akses = await aksesTiketGuru(kode);
+  if (!akses.ok) return { success: false, error: akses.error };
+  const { guru } = akses;
   return usulkanWaktu(kode, "guru", waktuMulaiMs, catatan, { uid: guru.uid, nama: guru.nama });
 }
 
 export async function batalkanJanjiGuruAction(kode: string, alasan?: string): Promise<HasilJanji> {
-  const guru = await getAuthenticatedGuru();
-  if (!guru) return { success: false, error: SESI_GURU_HABIS };
+  const akses = await aksesTiketGuru(kode);
+  if (!akses.ok) return { success: false, error: akses.error };
+  const { guru } = akses;
   return batalkanJanji(kode, "guru", alasan);
 }
 
 export async function catatHasilJanjiGuruAction(kode: string, hadir: boolean): Promise<HasilJanji> {
-  const guru = await getAuthenticatedGuru();
-  if (!guru) return { success: false, error: SESI_GURU_HABIS };
+  const akses = await aksesTiketGuru(kode);
+  if (!akses.ok) return { success: false, error: akses.error };
+  const { guru } = akses;
   return catatHasilJanji(kode, hadir);
 }

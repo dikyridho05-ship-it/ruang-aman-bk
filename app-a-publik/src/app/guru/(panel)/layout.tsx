@@ -3,7 +3,7 @@ import { getAuthenticatedGuru } from "@/lib/session/guru-session";
 import { adminDb } from "@/lib/firebase/admin";
 import { getPiketHariIni } from "@/lib/firestore/piket";
 import { keTicketRow } from "@/lib/firestore/ticket-row";
-import { janjiMenungguGuru, janjiPadaHari } from "@/lib/janji/server";
+import { janjiMenungguGuru, janjiMilikGuru, janjiPadaHari } from "@/lib/janji/server";
 import { tanggalPanjang } from "@/lib/waktu";
 import GuruShell from "@/components/guru/GuruShell";
 import PushSubscribeButton from "@/components/PushSubscribeButton";
@@ -35,14 +35,21 @@ export default async function GuruPanelLayout({
   if (!guru) redirect("/guru/login");
 
   const sekarang = Date.now();
-  const [snap, piketHariIni, janjiHariIni, janjiMenunggu] = await Promise.all([
+  const [snap, piketHariIni, janjiHariIniSemua, janjiMenungguSemua] = await Promise.all([
     adminDb.collection("curhatan").orderBy("createdAt", "desc").limit(50).get(),
     getPiketHariIni(),
     janjiPadaHari(sekarang),
     janjiMenungguGuru(),
   ]);
+  // Janji temu hanya dari curhatan yang ditugaskan ke guru ini.
+  const [janjiHariIni, janjiMenunggu] = await Promise.all([
+    janjiMilikGuru(janjiHariIniSemua, guru.uid),
+    janjiMilikGuru(janjiMenungguSemua, guru.uid),
+  ]);
 
-  const rawTickets: TicketRow[] = snap.docs.map((d) => keTicketRow(d.data()));
+  // Curhatan milik guru lain / belum ditugaskan ikut dikirim dalam bentuk
+  // terkunci (tanpa judul) — lihat keTicketRow.
+  const rawTickets: TicketRow[] = snap.docs.map((d) => keTicketRow(d.data(), guru.uid));
 
   // Kursor "Muat lebih banyak" mengikuti halaman MENTAH apa adanya —
   // penyaringan terjadi di sisi klien (lihat DaftarCurhatan).

@@ -8,10 +8,11 @@ import {
   markTicketSelesaiAction,
   tandaiGuruMengetikAction,
 } from "@/actions/chat";
-import { listGuruAktifAction, tugaskanTiketAction } from "@/actions/penugasan";
 import { getTemplateBalasan } from "@/lib/firestore/template";
 import { janjiUntukTiket } from "@/lib/janji/server";
 import ChatThread from "@/components/ChatThread";
+import TiketTerkunci from "@/components/guru/TiketTerkunci";
+import { aksesGuru, bacaPenugasan } from "@/lib/akses/aturan-tiket";
 import HeaderTiket from "@/components/guru/HeaderTiket";
 import KonteksTiket, { type DataKonteksTiket } from "@/components/guru/KonteksTiket";
 import { adaKategoriPrioritas, normalizeKategori, type CurhatTicket } from "@/types/ticket";
@@ -33,6 +34,22 @@ export default async function GuruTicketDetailPage({
 
   const ticket = snap.data() as CurhatTicket;
   const kategori = normalizeKategori(ticket.kategori);
+  const penugasan = bacaPenugasan(ticket.guruDitugaskan);
+
+  // Kunci akses: hanya Guru BK yang ditugaskan Super Admin. Pemeriksaan ini
+  // terjadi SEBELUM pesan, catatan, atau janji temu dibaca — guru lain
+  // hanya menerima kode, kategori, dan waktu masuk.
+  const akses = aksesGuru(penugasan, guru.uid);
+  if (!akses.boleh) {
+    return (
+      <TiketTerkunci
+        kode={kode}
+        kategori={kategori}
+        createdAtMs={ticket.createdAt?.toMillis?.() ?? Date.now()}
+        namaGuru={akses.alasan === "guru-lain" ? akses.namaGuru : null}
+      />
+    );
+  }
 
   // Begitu Guru BK membuka tiket yang masih "baru", tandai sudah dibaca.
   if (ticket.status === "baru") {
@@ -40,14 +57,12 @@ export default async function GuruTicketDetailPage({
     ticket.status = "dibaca";
   }
 
-  const [initialMessagesResult, guruOptionsResult, templates, janji] = await Promise.all([
+  const [initialMessagesResult, templates, janji] = await Promise.all([
     getMessagesForGuruAction(kode),
-    listGuruAktifAction(),
     getTemplateBalasan(),
     janjiUntukTiket(kode),
   ]);
   const initialMessages = initialMessagesResult.success ? initialMessagesResult.messages : [];
-  const guruOptions = guruOptionsResult.success ? guruOptionsResult.guru : [];
 
   // Closure "use server" inline — menangkap `kode` dari params, satu-satunya
   // cara mengoper fungsi ber-parameter tambahan ke Client Component.
@@ -71,11 +86,6 @@ export default async function GuruTicketDetailPage({
     return markTicketSelesaiAction(kode);
   }
 
-  async function boundAssign(guruUid: string | null) {
-    "use server";
-    return tugaskanTiketAction(kode, guruUid);
-  }
-
   const konteks: DataKonteksTiket = {
     kode,
     kategori,
@@ -84,8 +94,6 @@ export default async function GuruTicketDetailPage({
     siapBertemu: ticket.siapBertemuGuruBk === true,
     selesai: ticket.status === "selesai",
     guruUid: guru.uid,
-    guruOptions,
-    ditugaskanUid: ticket.guruDitugaskan?.uid ?? null,
     janji,
   };
 
@@ -102,8 +110,7 @@ export default async function GuruTicketDetailPage({
           status={ticket.status}
           prioritas={adaKategoriPrioritas(kategori) && ticket.status !== "selesai"}
           konteks={konteks}
-          onAssign={boundAssign}
-          onSelesai={boundMarkSelesai}
+                    onSelesai={boundMarkSelesai}
           janjiMenunggu={janji?.status === "menunggu" && janji.menungguPihak === "guru"}
         />
         <div className="min-h-0 flex-1">
@@ -124,7 +131,7 @@ export default async function GuruTicketDetailPage({
         aria-label="Detail curhatan"
         className="hidden min-h-0 w-80 shrink-0 overflow-y-auto rounded-xl bg-white p-4 ring-1 ring-slate-200 xl:block"
       >
-        <KonteksTiket key={kode} data={konteks} onAssign={boundAssign} />
+        <KonteksTiket key={kode} data={konteks} />
       </aside>
     </div>
   );

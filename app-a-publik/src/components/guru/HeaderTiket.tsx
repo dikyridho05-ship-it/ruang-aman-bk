@@ -23,7 +23,6 @@ export default function HeaderTiket({
   status,
   prioritas,
   konteks,
-  onAssign,
   onSelesai,
   janjiMenunggu,
 }: {
@@ -31,7 +30,6 @@ export default function HeaderTiket({
   status: TicketStatus;
   prioritas: boolean;
   konteks: DataKonteksTiket;
-  onAssign: (guruUid: string | null) => Promise<{ success: boolean; error?: string }>;
   onSelesai: () => Promise<{ success: boolean; error?: string }>;
   /** Ada permintaan janji temu yang menunggu jawaban Guru BK — beri titik di tombol Detail. */
   janjiMenunggu: boolean;
@@ -109,7 +107,7 @@ export default function HeaderTiket({
               </button>
             </div>
             <div className="min-h-0 flex-1 overflow-y-auto p-4">
-              <KonteksTiket data={konteks} onAssign={onAssign} />
+              <KonteksTiket data={konteks} />
             </div>
           </div>
         </div>

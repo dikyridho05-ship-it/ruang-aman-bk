@@ -10,9 +10,7 @@ import {
 } from "@/types/ticket";
 
 interface NewTicketInfo {
-  kode: string;
   kategori: KategoriCurhat[];
-  judul: string;
 }
 
 /**
@@ -67,11 +65,14 @@ export async function notifyGuruOnNewTicket(ticket: NewTicketInfo): Promise<void
     return;
   }
 
+  // Sejak Okt 2026 curhatan baru terkunci sampai Super Admin menugaskannya,
+  // jadi notifikasi ini cuma pemberitahuan antrean: TANPA judul (tulisan
+  // siswa tampil di layar kunci HP semua guru) dan tanpa tautan ke tiketnya.
   const prioritas = adaKategoriPrioritas(ticket.kategori);
   const payload = JSON.stringify({
-    title: prioritas ? "🔴 Curhatan Prioritas Baru" : "Curhatan Baru Masuk",
-    body: `${labelKategori(ticket.kategori)} — ${ticket.judul}`,
-    url: `/guru/${ticket.kode}`,
+    title: prioritas ? "Curhatan prioritas baru masuk" : "Curhatan baru masuk",
+    body: `${labelKategori(ticket.kategori)}. Menunggu penugasan dari Super Admin.`,
+    url: "/guru",
   });
 
   const guruSnap = await adminDb.collection("guru").where("aktif", "==", true).get();
@@ -129,23 +130,31 @@ interface PesanPush {
 }
 
 /**
- * Push umum ke semua Guru BK aktif (dipakai janji temu). Isi pesan sengaja
- * TIDAK memuat judul/isi curhatan — notifikasi tampil di layar kunci HP.
- * Tidak pernah melempar error ke pemanggil.
+ * Push ke satu Guru BK (semua perangkatnya yang berlangganan). Tidak pernah
+ * melempar error ke pemanggil.
  */
-export async function notifySemuaGuru(pesan: PesanPush): Promise<void> {
+export async function notifyGuru(guruUid: string, pesan: PesanPush): Promise<void> {
   const webpush = getWebPushClient();
   if (!webpush) return;
-  const payload = JSON.stringify(pesan);
-  const guruSnap = await adminDb.collection("guru").where("aktif", "==", true).get();
-  await Promise.all(
-    guruSnap.docs.map(async (doc) => {
-      const subs = (doc.data().pushSubscriptions ?? []) as PushSubscriptionRecord[];
-      if (subs.length === 0) return;
-      const { stillValid, changed } = await kirimKeSubscriptions(webpush, subs, payload);
-      if (changed) await doc.ref.update({ pushSubscriptions: stillValid });
-    })
-  );
+  const ref = adminDb.collection("guru").doc(guruUid);
+  const snap = await ref.get();
+  if (!snap.exists || snap.data()?.aktif !== true) return;
+  const subs = (snap.data()?.pushSubscriptions ?? []) as PushSubscriptionRecord[];
+  if (subs.length === 0) return;
+  const { stillValid, changed } = await kirimKeSubscriptions(webpush, subs, JSON.stringify(pesan));
+  if (changed) await ref.update({ pushSubscriptions: stillValid });
+}
+
+/**
+ * Push ke Guru BK yang DITUGASKAN pada satu curhatan (dipakai janji temu).
+ * Curhatan yang belum ditugaskan tidak mengirim apa pun — guru lain tidak
+ * boleh tahu ada kegiatan di curhatan yang bukan miliknya.
+ */
+export async function notifyGuruDitugaskan(kode: string, pesan: PesanPush): Promise<void> {
+  const snap = await adminDb.collection("curhatan").doc(kode).get();
+  const uid = (snap.data()?.guruDitugaskan as { uid?: string } | null | undefined)?.uid;
+  if (!uid) return;
+  await notifyGuru(uid, pesan);
 }
 
 /** Push ke perangkat siswa yang berlangganan untuk satu tiket. Tidak pernah melempar error. */

@@ -14,7 +14,8 @@ import {
   type HariLayanan,
   type PihakJanji,
 } from "@/lib/janji/aturan";
-import { notifySemuaGuru, notifySiswa } from "@/lib/push/send-push";
+import { notifyGuruDitugaskan, notifySiswa } from "@/lib/push/send-push";
+import { bacaPenugasan } from "@/lib/akses/aturan-tiket";
 import type { JanjiRingkas, JanjiTemu, JanjiTemuDoc } from "@/types/janji";
 
 export const TEMPAT_BAWAAN = "Ruang BK";
@@ -187,7 +188,7 @@ export async function usulkanWaktu(
 
   const waktu = labelWaktuJanji(waktuMulaiMs);
   if (oleh === "siswa") {
-    notifySemuaGuru({
+    notifyGuruDitugaskan(kode, {
       title: "Permintaan janji temu",
       body: `${kode} minta bertemu ${waktu}.`,
       url: `/guru/${kode}`,
@@ -233,7 +234,7 @@ export async function setujuiWaktu(
       url: "/cek-balasan",
     }).catch(() => {});
   } else {
-    notifySemuaGuru({
+    notifyGuruDitugaskan(kode, {
       title: "Janji temu disetujui siswa",
       body: `${kode}: ${waktu}.`,
       url: `/guru/${kode}`,
@@ -269,7 +270,7 @@ export async function batalkanJanji(
       url: "/cek-balasan",
     }).catch(() => {});
   } else {
-    notifySemuaGuru({
+    notifyGuruDitugaskan(kode, {
       title: "Janji temu dibatalkan siswa",
       body: `${kode}: ${labelWaktuJanji(janji.waktuMulaiMs)}.`,
       url: `/guru/${kode}`,
@@ -344,6 +345,30 @@ export async function janjiMenungguGuru(): Promise<JanjiRingkas[]> {
       }));
   } catch (err) {
     console.error("[janjiMenungguGuru]", err);
+    return [];
+  }
+}
+
+/**
+ * Saring daftar janji supaya hanya berisi curhatan yang ditugaskan ke guru
+ * ini. Dokumen `janjiTemu` tidak menyimpan siapa yang menangani (penugasan
+ * bisa dipindah Super Admin kapan saja), jadi dicocokkan ke dokumen tiket
+ * terkini lewat satu getAll().
+ */
+export async function janjiMilikGuru(daftar: JanjiRingkas[], guruUid: string): Promise<JanjiRingkas[]> {
+  const kodeUnik = [...new Set(daftar.map((j) => j.kodeTiket))];
+  if (kodeUnik.length === 0) return [];
+  try {
+    const snaps = await adminDb.getAll(
+      ...kodeUnik.map((k) => adminDb.collection("curhatan").doc(k)),
+      { fieldMask: ["guruDitugaskan"] }
+    );
+    const milik = new Set(
+      snaps.filter((s) => bacaPenugasan(s.data()?.guruDitugaskan)?.uid === guruUid).map((s) => s.id)
+    );
+    return daftar.filter((j) => milik.has(j.kodeTiket));
+  } catch (err) {
+    console.error("[janjiMilikGuru]", err);
     return [];
   }
 }

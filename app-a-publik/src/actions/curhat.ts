@@ -106,6 +106,9 @@ export async function createCurhatTicket(
       passwordHash,
       status: "baru",
       siapBertemuGuruBk,
+      // Ditulis eksplisit (bukan dibiarkan tidak ada) supaya App B bisa
+      // menghitung "belum ditugaskan" dengan where("guruDitugaskan","==",null).
+      guruDitugaskan: null,
       createdAt: FieldValue.serverTimestamp(),
       updatedAt: FieldValue.serverTimestamp(),
     });
@@ -122,7 +125,7 @@ export async function createCurhatTicket(
     // siswa walau salah satunya error — makanya dipanggil setelah tiket
     // sudah pasti tersimpan, dan notifikasi dibungkus try/catch sendiri.
     await markCurhatSubmitted();
-    notifyGuruOnNewTicket({ kode, kategori, judul }).catch((err) => {
+    notifyGuruOnNewTicket({ kategori }).catch((err) => {
       console.error("[createCurhatTicket] gagal kirim notifikasi push:", err);
     });
 

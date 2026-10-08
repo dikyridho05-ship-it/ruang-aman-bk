@@ -1,4 +1,4 @@
-import { getAuthenticatedSiswaKode } from "@/lib/session/siswa-session";
+import { getSesiSiswa } from "@/lib/session/siswa-session";
 import { getMessagesForSiswaAction } from "@/actions/chat";
 import { janjiUntukTiket } from "@/lib/janji/server";
 import type { JanjiTemu } from "@/types/janji";
@@ -19,7 +19,11 @@ export const dynamic = "force-dynamic";
  * masuk ke percakapan tanpa mengetik ulang kode & password.
  */
 export default async function CekBalasanPage() {
-  const kode = await getAuthenticatedSiswaKode();
+  const sesi = await getSesiSiswa();
+  const kode = sesi?.kode ?? null;
+  // Siswa diberi tahu bahwa ceritanya sudah diterima tapi belum ada Guru BK
+  // yang ditugaskan — supaya diamnya chat tidak terbaca "tidak dipedulikan".
+  const menungguPenugasan = sesi ? !sesi.data.guruDitugaskan?.uid && sesi.data.status !== "selesai" : false;
 
   let initialMessages: SerializedMessage[] = [];
   let janjiAwal: JanjiTemu | null = null;
@@ -36,6 +40,7 @@ export default async function CekBalasanPage() {
         initialMessages={initialMessages}
         kodeAwal={kode}
         janjiAwal={janjiAwal}
+        menungguPenugasan={menungguPenugasan}
       />
       <EmergencyButton />
     </main>

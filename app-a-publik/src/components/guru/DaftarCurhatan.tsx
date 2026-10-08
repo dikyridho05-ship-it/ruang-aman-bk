@@ -20,17 +20,21 @@ const STATUS_TITIK: Record<TicketStatus, string> = {
   selesai: "bg-emerald-500",
 };
 
-type Saringan = "semua" | "perlu" | "saya";
+type Saringan = "saya" | "perlu" | "semua";
 
 const SARINGAN: { id: Saringan; label: string }[] = [
-  { id: "semua", label: "Semua" },
-  { id: "perlu", label: "Perlu dibalas" },
   { id: "saya", label: "Tugas saya" },
+  { id: "perlu", label: "Perlu dibalas" },
+  { id: "semua", label: "Semua" },
 ];
 
-/** Tiket yang menunggu tindakan Guru BK: belum pernah dibalas, atau siswa menulis lagi. */
+/** Curhatan MILIK guru ini yang menunggu tindakan: belum dibalas, atau siswa menulis lagi. */
 function perluDibalas(t: TicketRow): boolean {
-  return t.status !== "selesai" && (t.status === "baru" || t.status === "dibaca" || t.belumDibaca);
+  return (
+    !t.terkunci &&
+    t.status !== "selesai" &&
+    (t.status === "baru" || t.status === "dibaca" || t.belumDibaca)
+  );
 }
 
 // Batas iterasi auto-lanjut saat saringan aktif — lihat komentar di
@@ -61,7 +65,7 @@ export default function DaftarCurhatan({
 }: DaftarCurhatanProps) {
   const pathname = usePathname();
   const [tickets, setTickets] = useState<TicketRow[]>(initialTickets);
-  const [saringan, setSaringan] = useState<Saringan>("semua");
+  const [saringan, setSaringan] = useState<Saringan>("saya");
   const [query, setQuery] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -95,7 +99,7 @@ export default function DaftarCurhatan({
     (t: TicketRow) =>
       saringan === "semua" ||
       (saringan === "perlu" && perluDibalas(t)) ||
-      (saringan === "saya" && t.guruDitugaskan?.uid === guruUid),
+      (saringan === "saya" && !t.terkunci && t.guruDitugaskan?.uid === guruUid),
     [saringan, guruUid],
   );
 
@@ -107,7 +111,7 @@ export default function DaftarCurhatan({
       if (!cocokSaringan(t)) return false;
       if (!q) return true;
       return (
-        t.judul.toLowerCase().includes(q) ||
+        (!t.terkunci && t.judul.toLowerCase().includes(q)) ||
         t.kode.toLowerCase().includes(q) ||
         labelKategori(t.kategori).toLowerCase().includes(q) ||
         (t.guruDitugaskan?.nama.toLowerCase().includes(q) ?? false)
@@ -117,6 +121,7 @@ export default function DaftarCurhatan({
     // Tiket prioritas (kategori berisiko tinggi, belum selesai) naik ke atas,
     // sisanya terbaru di atas.
     return hasil.sort((a, b) => {
+      if (a.terkunci !== b.terkunci) return a.terkunci ? 1 : -1;
       if (a.prioritas !== b.prioritas) return a.prioritas ? -1 : 1;
       return b.createdAtMs - a.createdAtMs;
     });
@@ -243,61 +248,25 @@ export default function DaftarCurhatan({
               {tickets.length === 0
                 ? "Belum ada curhatan masuk. Curhatan baru muncul di sini begitu siswa mengirimnya."
                 : saringan === "perlu"
-                  ? "Semua curhatan sudah dibalas."
-                  : "Tidak ada curhatan yang cocok."}
+                  ? "Semua curhatanmu sudah dibalas."
+                  : saringan === "saya"
+                    ? "Belum ada curhatan yang ditugaskan kepadamu. Super Admin menugaskan curhatan lewat dasbor Super Admin."
+                    : "Tidak ada curhatan yang cocok."}
             </li>
           )}
 
-          {terlihat.map((t) => {
-            const aktif = pathname === `/guru/${t.kode}`;
-            const tebal = t.status === "baru" || t.belumDibaca;
-            return (
-              <li key={t.kode}>
-                <Link
-                  href={`/guru/${t.kode}`}
-                  onClick={() => tandaiDibacaLokal(t.kode)}
-                  aria-current={aktif ? "page" : undefined}
-                  className={`relative block px-4 py-3 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand-500 ${
-                    aktif ? "bg-brand-50" : "hover:bg-kertas"
-                  }`}
-                >
-                  {/* Garis kiri: merah untuk prioritas, biru untuk yang sedang dibuka. */}
-                  {(t.prioritas || aktif) && (
-                    <span
-                      aria-hidden
-                      className={`absolute inset-y-0 left-0 w-[3px] ${t.prioritas ? "bg-red-500" : "bg-brand-600"}`}
-                    />
-                  )}
-                  <span className="flex items-baseline gap-2">
-                    <span
-                      className={`min-w-0 flex-1 truncate text-sm ${
-                        tebal ? "font-bold text-tinta" : "font-medium text-slate-700"
-                      }`}
-                    >
-                      {t.judul}
-                    </span>
-                    <span className={`shrink-0 text-[11px] tabular-nums ${tebal ? "font-semibold text-brand-700" : "text-slate-400"}`}>
-                      {waktuSingkat(t.createdAtMs)}
-                    </span>
-                  </span>
-                  <span className="mt-0.5 block truncate text-xs text-slate-500">
-                    {labelKategori(t.kategori)}
-                  </span>
-                  <span className="mt-1.5 flex items-center gap-1.5 text-[11px] text-slate-500">
-                    <span aria-hidden className={`h-1.5 w-1.5 rounded-full ${STATUS_TITIK[t.status]}`} />
-                    <span className="font-medium text-slate-600">{STATUS_LABEL[t.status]}</span>
-                    {t.belumDibaca && t.status !== "baru" && (
-                      <span className="font-semibold text-brand-700">pesan baru</span>
-                    )}
-                    {t.prioritas && <span className="font-semibold text-red-700">prioritas</span>}
-                    <span className="ml-auto truncate">
-                      {t.guruDitugaskan ? t.guruDitugaskan.nama : <span className="text-slate-400">Belum ditangani</span>}
-                    </span>
-                  </span>
-                </Link>
-              </li>
-            );
-          })}
+          {terlihat.map((t) =>
+            t.terkunci ? (
+              <BarisTerkunci key={t.kode} t={t} />
+            ) : (
+              <BarisMilik
+                key={t.kode}
+                t={t}
+                aktif={pathname === `/guru/${t.kode}`}
+                onBuka={() => tandaiDibacaLokal(t.kode)}
+              />
+            ),
+          )}
         </ul>
 
         {(error || hasMore) && (
@@ -321,6 +290,75 @@ export default function DaftarCurhatan({
         )}
       </div>
     </div>
+  );
+}
+
+function BarisMilik({ t, aktif, onBuka }: { t: TicketRow; aktif: boolean; onBuka: () => void }) {
+  const tebal = t.status === "baru" || t.belumDibaca;
+  return (
+    <li>
+      <Link
+        href={`/guru/${t.kode}`}
+        onClick={onBuka}
+        aria-current={aktif ? "page" : undefined}
+        className={`relative block px-4 py-3 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand-500 ${
+          aktif ? "bg-brand-50" : "hover:bg-kertas"
+        }`}
+      >
+        {/* Garis kiri: merah untuk prioritas, biru untuk yang sedang dibuka. */}
+        {(t.prioritas || aktif) && (
+          <span
+            aria-hidden
+            className={`absolute inset-y-0 left-0 w-[3px] ${t.prioritas ? "bg-red-500" : "bg-brand-600"}`}
+          />
+        )}
+        <span className="flex items-baseline gap-2">
+          <span className={`min-w-0 flex-1 truncate text-sm ${tebal ? "font-bold text-tinta" : "font-medium text-slate-700"}`}>
+            {t.judul}
+          </span>
+          <span className={`shrink-0 text-[11px] tabular-nums ${tebal ? "font-semibold text-brand-700" : "text-slate-400"}`}>
+            {waktuSingkat(t.createdAtMs)}
+          </span>
+        </span>
+        <span className="mt-0.5 block truncate text-xs text-slate-500">{labelKategori(t.kategori)}</span>
+        <span className="mt-1.5 flex items-center gap-1.5 text-[11px] text-slate-500">
+          <span aria-hidden className={`h-1.5 w-1.5 rounded-full ${STATUS_TITIK[t.status]}`} />
+          <span className="font-medium text-slate-600">{STATUS_LABEL[t.status]}</span>
+          {t.belumDibaca && t.status !== "baru" && <span className="font-semibold text-brand-700">pesan baru</span>}
+          {t.prioritas && <span className="font-semibold text-red-700">prioritas</span>}
+        </span>
+      </Link>
+    </li>
+  );
+}
+
+/**
+ * Curhatan yang bukan milik guru ini: bukan tautan (tidak bisa dibuka),
+ * tanpa judul — judulnya memang tidak pernah dikirim server.
+ */
+function BarisTerkunci({ t }: { t: TicketRow }) {
+  return (
+    <li className="relative bg-kertas/60 px-4 py-3" aria-label={`${t.kode}, terkunci`}>
+      {t.prioritas && <span aria-hidden className="absolute inset-y-0 left-0 w-[3px] bg-red-300" />}
+      <span className="flex items-baseline gap-2">
+        <span className="flex min-w-0 flex-1 items-center gap-1.5 text-sm text-slate-500">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" className="h-3.5 w-3.5 shrink-0" aria-hidden>
+            <rect x="5" y="10.5" width="14" height="9.5" rx="1.5" />
+            <path d="M8.5 10.5V8a3.5 3.5 0 0 1 7 0v2.5" />
+          </svg>
+          <span className="truncate font-mono text-[13px]">{t.kode}</span>
+        </span>
+        <span className="shrink-0 text-[11px] tabular-nums text-slate-400">{waktuSingkat(t.createdAtMs)}</span>
+      </span>
+      <span className="mt-0.5 block truncate text-xs text-slate-500">{labelKategori(t.kategori)}</span>
+      <span className="mt-1.5 block truncate text-[11px] text-slate-500">
+        {t.guruDitugaskan ? (
+          <>Ditangani {t.guruDitugaskan.nama}</>
+        ) : (
+          <span className="font-semibold text-amber-700">Menunggu penugasan Super Admin</span>
+        )}
+      </span>
+    </li>
   );
 }
 

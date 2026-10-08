@@ -45,7 +45,7 @@ export async function GET(request: Request) {
   }
 
   const snap = await query.get();
-  const tickets = snap.docs.map((doc) => keTicketRow(doc.data()));
+  const tickets = snap.docs.map((doc) => keTicketRow(doc.data(), guru.uid));
 
   return NextResponse.json({ tickets });
 }

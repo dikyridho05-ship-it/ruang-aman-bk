@@ -1,6 +1,5 @@
 "use client";
 
-import PenugasanTiket from "@/components/PenugasanTiket";
 import JanjiGuru from "@/components/guru/JanjiGuru";
 import CatatanInternal from "@/components/guru/CatatanInternal";
 import { tanggalPanjang, jamSekolah } from "@/lib/waktu";
@@ -22,8 +21,6 @@ export interface DataKonteksTiket {
   siapBertemu: boolean;
   selesai: boolean;
   guruUid: string;
-  guruOptions: { uid: string; nama: string }[];
-  ditugaskanUid: string | null;
   janji: JanjiTemu | null;
 }
 
@@ -35,10 +32,8 @@ export interface DataKonteksTiket {
  */
 export default function KonteksTiket({
   data,
-  onAssign,
 }: {
   data: DataKonteksTiket;
-  onAssign: (guruUid: string | null) => Promise<{ success: boolean; error?: string }>;
 }) {
   return (
     <div className="space-y-6">
@@ -74,13 +69,10 @@ export default function KonteksTiket({
             {data.siapBertemu ? "Siswa bersedia bertemu langsung" : "Belum menyatakan bersedia"}
           </dd>
         </dl>
-        <div className="mt-3">
-          <PenugasanTiket
-            guruOptions={data.guruOptions}
-            currentUid={data.ditugaskanUid}
-            onAssign={onAssign}
-          />
-        </div>
+        <p className="mt-3 text-xs leading-relaxed text-slate-500">
+          Ditugaskan kepadamu oleh Super Admin. Pemindahan ke Guru BK lain hanya bisa dilakukan
+          Super Admin.
+        </p>
       </section>
 
       <JanjiGuru kode={data.kode} janjiAwal={data.janji} tiketSelesai={data.selesai} />

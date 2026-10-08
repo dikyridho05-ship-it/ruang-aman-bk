@@ -2,10 +2,14 @@
 
 import { FieldValue } from "firebase-admin/firestore";
 import { adminDb } from "@/lib/firebase/admin";
-import { getAuthenticatedGuru } from "@/lib/session/guru-session";
+import { aksesTiketGuru } from "@/lib/akses/tiket-guru";
 
 /**
  * Catatan internal Guru BK per tiket — `curhatan/{kode}/catatanGuru`.
+ *
+ * Hanya Guru BK yang ditugaskan ke curhatan ini yang bisa membaca & menulis
+ * (aksesTiketGuru). Kalau Super Admin memindahkan curhatan ke guru lain,
+ * catatan ikut terbaca guru baru — memang itu gunanya: serah terima kasus.
  *
  * Batas kerahasiaan dijaga oleh BENTUK kode, bukan oleh aturan tampilan:
  * - Tidak ada satu pun fungsi siswa (actions/chat.ts, actions/janji.ts,
@@ -22,7 +26,6 @@ export interface CatatanGuru {
 }
 
 const MAKS_ISI = 1000;
-const SESI_HABIS = "Sesi login habis, silakan login ulang.";
 
 function ref(kode: string) {
   return adminDb.collection("curhatan").doc(kode).collection("catatanGuru");
@@ -31,8 +34,8 @@ function ref(kode: string) {
 export async function daftarCatatanAction(
   kode: string
 ): Promise<{ success: true; catatan: CatatanGuru[] } | { success: false; error: string }> {
-  const guru = await getAuthenticatedGuru();
-  if (!guru) return { success: false, error: SESI_HABIS };
+  const akses = await aksesTiketGuru(kode);
+  if (!akses.ok) return { success: false, error: akses.error };
 
   const snap = await ref(kode).orderBy("dibuat", "desc").limit(100).get();
   return {
@@ -54,15 +57,13 @@ export async function tambahCatatanAction(
   kode: string,
   isi: string
 ): Promise<{ success: boolean; error?: string }> {
-  const guru = await getAuthenticatedGuru();
-  if (!guru) return { success: false, error: SESI_HABIS };
+  const akses = await aksesTiketGuru(kode);
+  if (!akses.ok) return { success: false, error: akses.error };
+  const { guru } = akses;
 
   const bersih = isi.trim();
   if (bersih.length === 0) return { success: false, error: "Catatan masih kosong." };
   if (bersih.length > MAKS_ISI) return { success: false, error: `Catatan maksimal ${MAKS_ISI} karakter.` };
-
-  const tiket = await adminDb.collection("curhatan").doc(kode).get();
-  if (!tiket.exists) return { success: false, error: "Curhatan ini sudah tidak ada." };
 
   await ref(kode).add({
     isi: bersih,
@@ -78,8 +79,9 @@ export async function hapusCatatanAction(
   kode: string,
   id: string
 ): Promise<{ success: boolean; error?: string }> {
-  const guru = await getAuthenticatedGuru();
-  if (!guru) return { success: false, error: SESI_HABIS };
+  const akses = await aksesTiketGuru(kode);
+  if (!akses.ok) return { success: false, error: akses.error };
+  const { guru } = akses;
 
   const doc = await ref(kode).doc(id).get();
   if (!doc.exists) return { success: true };

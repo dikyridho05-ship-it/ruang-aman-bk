@@ -260,6 +260,11 @@ export interface TicketRow {
   createdAtMs: number;
   prioritas: boolean;
   guruDitugaskan: GuruTugas | null;
-  /** Ada pesan siswa yang belum dibuka Guru BK mana pun. */
+  /** Ada pesan siswa yang belum dibuka Guru BK yang menangani. */
   belumDibaca: boolean;
+  /**
+   * Curhatan ini bukan milik guru yang sedang login (belum ditugaskan, atau
+   * ditugaskan ke guru lain). `judul` sudah dikosongkan di server.
+   */
+  terkunci: boolean;
 }

@@ -28,23 +28,33 @@ export default function RingkasanHariIni({
   janjiHariIni,
   janjiMenunggu,
 }: Props) {
-  const prioritas = tickets.filter((t) => t.prioritas && (t.status === "baru" || t.status === "dibaca" || t.belumDibaca));
-  const perluDibalas = tickets.filter(
+  const milik = tickets.filter((t) => !t.terkunci);
+  const prioritas = milik.filter((t) => t.prioritas && (t.status === "baru" || t.status === "dibaca" || t.belumDibaca));
+  const perluDibalas = milik.filter(
     (t) => t.status !== "selesai" && (t.status === "baru" || t.status === "dibaca" || t.belumDibaca),
   );
+  const menungguPenugasan = tickets.filter((t) => t.terkunci && !t.guruDitugaskan && t.status !== "selesai").length;
 
   return (
     <div className="min-h-0 flex-1 overflow-y-auto rounded-xl bg-white p-6 ring-1 ring-slate-200 xl:p-8">
       <p className="text-sm text-slate-500">{tanggal}</p>
       <h2 className="mt-1 text-2xl font-extrabold tracking-tight text-tinta">Halo, {guruNama}</h2>
       <p className="mt-1 text-[15px] text-slate-600">
-        {perluDibalas.length === 0
-          ? "Semua curhatan yang dimuat sudah dibalas."
-          : `${perluDibalas.length} curhatan menunggu balasanmu.`}
+        {milik.length === 0
+          ? "Belum ada curhatan yang ditugaskan kepadamu."
+          : perluDibalas.length === 0
+            ? "Semua curhatanmu sudah dibalas."
+            : `${perluDibalas.length} curhatan menunggu balasanmu.`}
       </p>
+      {menungguPenugasan > 0 && (
+        <p className="mt-3 flex items-center gap-2 text-sm text-amber-800">
+          <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-amber-500" />
+          {menungguPenugasan} curhatan baru masih menunggu penugasan dari Super Admin.
+        </p>
+      )}
 
       <div className="mt-8 grid gap-x-10 gap-y-8 xl:grid-cols-2">
-        <Bagian judul="Prioritas belum dibalas" kosong="Tidak ada curhatan berisiko yang menunggu.">
+        <Bagian judul="Prioritas belum dibalas" kosong="Tidak ada curhatan berisiko yang menunggumu.">
           {prioritas.slice(0, 6).map((t) => (
             <Baris key={t.kode} href={`/guru/${t.kode}`} garis="bg-red-500">
               <span className="block truncate text-sm font-semibold text-tinta">{t.judul}</span>
@@ -97,7 +107,10 @@ export function RingkasanPadat({
   janjiHariIni,
   janjiMenunggu,
 }: Omit<Props, "guruNama" | "tanggal">) {
-  const prioritas = tickets.filter((t) => t.prioritas && (t.status === "baru" || t.status === "dibaca" || t.belumDibaca));
+  const prioritas = tickets.filter(
+    (t) => !t.terkunci && t.prioritas && (t.status === "baru" || t.status === "dibaca" || t.belumDibaca),
+  );
+  const menungguPenugasan = tickets.filter((t) => t.terkunci && !t.guruDitugaskan && t.status !== "selesai").length;
   const baris: { teks: string; warna: string }[] = [];
   if (prioritas.length > 0)
     baris.push({ teks: `${prioritas.length} curhatan prioritas belum dibalas`, warna: "bg-red-500" });
@@ -108,6 +121,8 @@ export function RingkasanPadat({
       teks: `Janji temu hari ini: ${janjiHariIni.map((j) => labelJamJanji(j.waktuMulaiMs)).join(", ")}`,
       warna: "bg-brand-600",
     });
+  if (menungguPenugasan > 0)
+    baris.push({ teks: `${menungguPenugasan} curhatan baru menunggu penugasan Super Admin`, warna: "bg-amber-300" });
   if (piket.length > 0) baris.push({ teks: `Piket: ${piket.map((g) => g.nama).join(", ")}`, warna: "bg-slate-300" });
   if (baris.length === 0) return null;
 
