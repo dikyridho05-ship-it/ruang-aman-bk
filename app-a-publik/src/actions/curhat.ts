@@ -1,5 +1,6 @@
 "use server";
 
+import { PESAN_BUTUH_KODE, punyaAksesSekolah } from "@/lib/akses/akses-sekolah";
 import { FieldValue } from "firebase-admin/firestore";
 import { adminDb } from "@/lib/firebase/admin";
 import { generateKodeKonseling } from "@/lib/firestore/kode-konseling";
@@ -34,6 +35,7 @@ export interface CreateCurhatResult {
 export async function createCurhatTicket(
   formData: FormData
 ): Promise<CreateCurhatResult> {
+  if (!(await punyaAksesSekolah())) return { success: false, error: PESAN_BUTUH_KODE };
   // Honeypot: field ini disembunyikan lewat CSS di form asli (lihat
   // CurhatFlow.tsx) sehingga siswa sungguhan tidak pernah mengisinya — bot
   // formulir otomatis sering mengisi SEMUA field yang terlihat di DOM,

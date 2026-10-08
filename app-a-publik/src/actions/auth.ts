@@ -1,5 +1,6 @@
 "use server";
 
+import { PESAN_BUTUH_KODE, punyaAksesSekolah } from "@/lib/akses/akses-sekolah";
 import { redirect } from "next/navigation";
 import { createGuruSession, clearGuruSession } from "@/lib/session/guru-session";
 
@@ -11,6 +12,7 @@ import { createGuruSession, clearGuruSession } from "@/lib/session/guru-session"
 export async function loginGuruAction(
   idToken: string
 ): Promise<{ success: true } | { success: false; error: string }> {
+  if (!(await punyaAksesSekolah())) return { success: false, error: PESAN_BUTUH_KODE };
   return createGuruSession(idToken);
 }
 

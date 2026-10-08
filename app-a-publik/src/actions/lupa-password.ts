@@ -1,5 +1,6 @@
 "use server";
 
+import { PESAN_BUTUH_KODE, punyaAksesSekolah } from "@/lib/akses/akses-sekolah";
 import { adminDb } from "@/lib/firebase/admin";
 import { hashPassword } from "@/lib/crypto/password";
 import { Timestamp } from "firebase-admin/firestore";
@@ -28,6 +29,7 @@ export async function resetPasswordSiswaAction(
   namaSamaranInput: string,
   passwordBaru: string
 ): Promise<{ success: true; kode: string } | { success: false; error: string }> {
+  if (!(await punyaAksesSekolah())) return { success: false, error: PESAN_BUTUH_KODE };
   const kode = kodeInput?.trim().toUpperCase();
   const namaSamaran = namaSamaranInput?.trim();
 

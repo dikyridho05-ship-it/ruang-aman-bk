@@ -4,6 +4,8 @@ import { getSekolahSettings, getLatarBeranda } from "@/lib/firestore/settings";
 import PengaturanForm from "@/components/PengaturanForm";
 import LatarBerandaForm from "@/components/LatarBerandaForm";
 import RetensiForm from "@/components/RetensiForm";
+import KodeAksesForm from "@/components/KodeAksesForm";
+import { getKodeAksesAdmin } from "@/actions/akses";
 
 export const dynamic = "force-dynamic";
 
@@ -11,10 +13,20 @@ export default async function PengaturanPage() {
   const admin = await getAuthenticatedAdmin();
   if (!admin) redirect("/login");
 
-  const [settings, latar] = await Promise.all([getSekolahSettings(), getLatarBeranda()]);
+  const [settings, latar, kodeAkses] = await Promise.all([
+    getSekolahSettings(),
+    getLatarBeranda(),
+    getKodeAksesAdmin(),
+  ]);
 
   return (
     <main className="max-w-3xl">
+
+      {kodeAkses && (
+        <div className="mb-6">
+          <KodeAksesForm initial={kodeAkses} />
+        </div>
+      )}
 
       <PengaturanForm
         initialNamaSekolah={settings.namaSekolah}

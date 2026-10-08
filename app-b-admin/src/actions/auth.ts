@@ -10,6 +10,7 @@ import {
   type HasilSesiAdmin,
 } from "@/lib/session/admin-session";
 import { catatAudit } from "@/lib/audit/log";
+import { PESAN_BUTUH_KODE, punyaAksesSekolah } from "@/lib/akses/akses-sekolah";
 import { PERAN_PEMOHON, type PeranPemohon } from "@/types/admin";
 
 /**
@@ -19,6 +20,7 @@ import { PERAN_PEMOHON, type PeranPemohon } from "@/types/admin";
  * boleh masuk tetap dokumen `admins/{uid}` dengan `aktif: true`.
  */
 export async function loginAdminAction(idToken: string): Promise<HasilSesiAdmin> {
+  if (!(await punyaAksesSekolah())) return { success: false, error: PESAN_BUTUH_KODE };
   return createAdminSession(idToken);
 }
 
@@ -58,6 +60,7 @@ export async function ajukanAksesAdminAction(
   idToken: string,
   input: { nama: string; peran: string }
 ): Promise<HasilAjukan> {
+  if (!(await punyaAksesSekolah())) return { success: false, error: PESAN_BUTUH_KODE };
   let decoded;
   try {
     decoded = await adminAuth.verifyIdToken(idToken, true);

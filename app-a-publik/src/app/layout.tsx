@@ -1,6 +1,10 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { WARNA_BRAND } from "@/lib/constants/warna";
+import { punyaAksesSekolah } from "@/lib/akses/akses-sekolah";
+import { getSekolahSettings } from "@/lib/firestore/settings";
+import GerbangKodeAkses from "@/components/GerbangKodeAkses";
+import EmergencyButton from "@/components/EmergencyButton";
 export const metadata: Metadata = {
   title: "Ruang Aman — Konseling Anonim Siswa",
   description:
@@ -21,13 +25,30 @@ export const viewport: Viewport = {
   initialScale: 1,
 };
 
-export default function RootLayout({
+/**
+ * Kode Akses Sekolah: perangkat yang belum memasukkan kode yang berlaku
+ * melihat layar kode, bukan halaman apa pun — termasuk login Guru BK.
+ * Tombol darurat tetap tampil. Aksi server penting (kirim curhat, cek
+ * balasan, lupa kode/password, login Guru BK) memeriksa ulang sendiri,
+ * jadi gerbang ini tidak bisa dilewati dengan memanggil aksinya langsung.
+ */
+export default async function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
+  const boleh = await punyaAksesSekolah();
+  const sekolah = boleh ? null : await getSekolahSettings();
+
   return (
     <html lang="id">
       <body className="flex min-h-dvh flex-col">
-        {children}
+        {sekolah ? (
+          <>
+            <GerbangKodeAkses namaSekolah={sekolah.namaSekolah} logoBase64={sekolah.logoBase64} />
+            <EmergencyButton />
+          </>
+        ) : (
+          children
+        )}
       </body>
     </html>
   );

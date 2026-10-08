@@ -1,5 +1,6 @@
 "use server";
 
+import { PESAN_BUTUH_KODE, punyaAksesSekolah } from "@/lib/akses/akses-sekolah";
 import { adminDb } from "@/lib/firebase/admin";
 import { verifyPassword } from "@/lib/crypto/password";
 import {
@@ -36,6 +37,7 @@ export async function pulihkanKodeAction(
   namaSamaran: string,
   password: string
 ): Promise<{ success: true; kode: string } | { success: false; error: string }> {
+  if (!(await punyaAksesSekolah())) return { success: false, error: PESAN_BUTUH_KODE };
   const nama = namaSamaran?.trim();
   if (!nama || !password) {
     return { success: false, error: "Nama samaran dan password wajib diisi." };

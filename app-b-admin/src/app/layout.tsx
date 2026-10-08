@@ -5,6 +5,9 @@ import { getAuthenticatedAdmin } from "@/lib/session/admin-session";
 import { getSekolahSettings } from "@/lib/firestore/settings";
 import { hitungPermintaanMenunggu } from "@/actions/akun-admin";
 import AdminShell from "@/components/AdminShell";
+import AuthBingkai from "@/components/auth/AuthBingkai";
+import GerbangKodeAkses from "@/components/auth/GerbangKodeAkses";
+import { punyaAksesSekolah } from "@/lib/akses/akses-sekolah";
 
 export const metadata: Metadata = {
   title: "Ruang Aman BK — Super Admin",
@@ -29,6 +32,23 @@ export default async function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   const admin = await getAuthenticatedAdmin();
+
+  // Kode Akses Sekolah: Super Admin yang sudah masuk tidak ditanya lagi
+  // (dia yang mengatur kodenya). Yang belum masuk harus memasukkan kode
+  // dulu sebelum melihat halaman Masuk/Daftar.
+  if (!admin && !(await punyaAksesSekolah())) {
+    const s = await getSekolahSettings();
+    return (
+      <html lang="id">
+        <body>
+          <AuthBingkai namaSekolah={s.namaSekolah} logoBase64={s.logoBase64}>
+            <GerbangKodeAkses />
+          </AuthBingkai>
+        </body>
+      </html>
+    );
+  }
+
   const [sekolah, permintaanMenunggu] = admin
     ? await Promise.all([getSekolahSettings(), hitungPermintaanMenunggu()])
     : [null, 0];

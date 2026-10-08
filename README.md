@@ -885,10 +885,30 @@ tampilan Beranda dicek lewat screenshot Playwright di dua ukuran layar (HP
   diteruskan ke Guru BK, beserta arahan ke tombol darurat.
 
 ### Tampilan
-- Font **Plus Jakarta Sans** (paket npm, bukan Google Fonts). App B pindah dari ungu ke navy tinta.
-- Beranda siswa, formulir cerita 3 langkah (isian tidak hilang saat server menolak), panel Guru BK
-  (saringan "Perlu dibalas", ringkasan hari ini, kolom detail), dasbor & navigasi App B, ikon SVG
-  menggantikan emoji.
+- App B: font **Plus Jakarta Sans** (paket npm), warna navy tinta, dasbor & navigasi baru.
+- App A: tampilan **dikembalikan ke versi sebelum update** (beranda, formulir curhat, cek balasan,
+  panel Guru BK tiga kolom). Fitur baru tetap ada dengan gaya lama: tombol **Janji temu** dan
+  **Catatan internal** di kartu tiket, kartu **Janji Temu** di panel samping, baris 🔒 untuk
+  curhatan yang bukan milik guru tersebut.
+
+### Kode Akses Sekolah (8 Okt 2026)
+- **Satu kode per sekolah**, dipakai bersama oleh siswa, Guru BK, dan Super Admin. Perangkat yang
+  belum memasukkan kode hanya melihat layar kode — di App A untuk semua halaman (termasuk login
+  Guru BK), di App B sebelum halaman Masuk/Daftar. Tombol 🆘 tetap terbuka tanpa kode.
+- Diatur di **App B → Pengaturan → Kode Akses Sekolah**: buat/ganti kode (ada tombol "Buat acak"),
+  salin, nyalakan/matikan. Tersimpan di `settings/akses` (`kode`, `aktif`). Mengganti kode memaksa
+  semua perangkat memasukkan kode baru; perangkat Super Admin yang menyimpan langsung diberi akses.
+- **Anonim tetap terjaga:** perangkat hanya menyimpan cookie `ra_akses` berisi masa berlaku +
+  tanda tangan (HMAC dari private key Service Account yang sudah ada — tidak perlu env baru).
+  Tidak ada nama, NIS, atau kodenya sendiri. Berlaku 365 hari atau sampai kode diganti.
+- Aksi server penting memeriksa ulang (kirim curhat, cek balasan, lupa kode/password, login Guru BK,
+  login & ajukan akses Super Admin), jadi gerbang tidak bisa dilewati dengan memanggil aksi langsung.
+  Salah 5 kali → tunggu 5 menit.
+- Selama kode belum dibuat (atau Firestore gagal dibaca), gerbang **terbuka** — layanan konseling
+  tidak boleh mati karena pengaturan. Uji: `npx tsx scripts/uji-kode-akses.ts`.
+- **Lupa kode?** Opsional: isi env `KODE_AKSES_PEMULIHAN` (6–20 huruf/angka) di project Vercel
+  **App B**. Kode itu hanya diterima di gerbang App B; setelah masuk, lihat kode yang berlaku di
+  Pengaturan. Tanpa env ini, ubah dokumen `settings/akses` lewat Firebase Console.
 
 ## Status Tahapan
 

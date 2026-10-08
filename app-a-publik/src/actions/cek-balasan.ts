@@ -1,5 +1,6 @@
 "use server";
 
+import { PESAN_BUTUH_KODE, punyaAksesSekolah } from "@/lib/akses/akses-sekolah";
 import { verifyAndCreateSiswaSession } from "@/lib/session/siswa-session";
 import {
   catatPercobaanGagalTarget,
@@ -15,6 +16,7 @@ export async function verifyCurhatAccessAction(
   kode: string,
   password: string
 ): Promise<{ success: true } | { success: false; error: string }> {
+  if (!(await punyaAksesSekolah())) return { success: false, error: PESAN_BUTUH_KODE };
   if (!kode?.trim() || !password) {
     return { success: false, error: "Kode dan password wajib diisi." };
   }
