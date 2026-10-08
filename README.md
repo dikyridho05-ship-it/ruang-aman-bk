@@ -864,6 +864,26 @@ tampilan Beranda dicek lewat screenshot Playwright di dua ukuran layar (HP
    mengusulkan waktu lain, lalu mencatat hasilnya. Anti-bentrok lewat transaksi. Kalender App B
    menampilkan jam & nama Guru BK saja, tanpa kode tiket. Aturan diuji: `npx tsx scripts/uji-janji.ts`.
 
+### Akses curhatan per Guru BK (8 Okt 2026)
+- Curhatan **hanya bisa dibuka Guru BK yang ditugaskan Super Admin**. Curhatan yang belum
+  ditugaskan, atau ditugaskan ke guru lain, tampil terkunci di panel Guru BK: kode, kategori,
+  waktu masuk, dan siapa penangannya — **tanpa judul**. Judul dikosongkan di server
+  (`lib/firestore/ticket-row.ts`), jadi tidak pernah sampai ke browser guru yang tidak berhak.
+- Semua aksi Guru BK yang menerima kode curhatan (baca/balas pesan, mengetik, tutup, catatan
+  internal, janji temu) lewat satu pemeriksa: `lib/akses/tiket-guru.ts`. Halaman `/guru/{kode}`
+  menampilkan layar terkunci sebelum membaca isi apa pun. Uji: `npx tsx scripts/uji-akses.ts`.
+- Guru BK **tidak bisa lagi** menugaskan/memindahkan curhatan. Penugasan hanya di App B →
+  **Curhatan**: pilih guru per baris, atau centang beberapa lalu "Tugaskan ke…". Lepas penugasan
+  = terkunci lagi untuk semua guru. Setiap penugasan tercatat di Jejak aktivitas.
+- Dasbor App B menampilkan jumlah curhatan yang belum ditugaskan (merah kalau ada yang prioritas).
+- Menghapus akun Guru BK mengembalikan curhatannya ke "belum ditugaskan".
+- Notifikasi curhatan baru ke Guru BK sekarang tanpa judul. Notifikasi "curhatan ditugaskan
+  kepadamu" dikirim dari App B — **butuh 3 env yang sama dengan App A di project Vercel App B**:
+  `NEXT_PUBLIC_VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT`. Tanpa itu penugasan tetap
+  jalan, hanya tanpa notifikasi.
+- Siswa yang curhatannya belum ditugaskan melihat pemberitahuan bahwa ceritanya sedang
+  diteruskan ke Guru BK, beserta arahan ke tombol darurat.
+
 ### Tampilan
 - Font **Plus Jakarta Sans** (paket npm, bukan Google Fonts). App B pindah dari ungu ke navy tinta.
 - Beranda siswa, formulir cerita 3 langkah (isian tidak hilang saat server menolak), panel Guru BK

@@ -35,6 +35,17 @@ export default function DasborView({ data }: { data: DataDasbor }) {
   const retensi = status.retensiTerakhir;
 
   const perhatian: { teks: string; href: string; tindakan: string; mendesak?: boolean }[] = [];
+  if (statistik.belumDitugaskan > 0) {
+    perhatian.push({
+      teks:
+        statistik.belumDitugaskanPrioritas > 0
+          ? `${statistik.belumDitugaskan} curhatan belum ditugaskan, ${statistik.belumDitugaskanPrioritas} di antaranya prioritas (kekerasan atau kesehatan mental). Guru BK belum bisa membukanya.`
+          : `${statistik.belumDitugaskan} curhatan belum ditugaskan ke Guru BK, jadi belum bisa dibuka siapa pun.`,
+      href: "/curhatan",
+      tindakan: "Tugaskan",
+      mendesak: statistik.belumDitugaskanPrioritas > 0,
+    });
+  }
   if (retensi && !retensi.sukses) {
     perhatian.push({
       teks: `Pembersihan data otomatis terakhir gagal${retensi.pesanError ? `: ${retensi.pesanError}` : "."}`,

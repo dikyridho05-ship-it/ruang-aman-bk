@@ -76,11 +76,13 @@ export async function getStatistikCurhatan(): Promise<StatistikCurhatan> {
   let totalKeseluruhan = 0;
   let total30HariTerakhir = 0;
   let prioritasAktif = 0;
+  let belumDitugaskan = 0;
+  let belumDitugaskanPrioritas = 0;
 
   try {
     const snap = await adminDb
       .collection("curhatan")
-      .select("kategori", "mood", "status", "createdAt")
+      .select("kategori", "mood", "status", "createdAt", "guruDitugaskan")
       .get();
 
     for (const doc of snap.docs) {
@@ -102,11 +104,17 @@ export async function getStatistikCurhatan(): Promise<StatistikCurhatan> {
 
       // Tiket dihitung prioritas kalau SALAH SATU kategorinya berisiko tinggi —
       // dan tetap dihitung sekali saja walau dua-duanya dipilih.
-      if (
+      const berisiko =
         status !== "selesai" &&
-        kategori.some((k) => (KATEGORI_PRIORITAS as readonly string[]).includes(k))
-      ) {
-        prioritasAktif += 1;
+        kategori.some((k) => (KATEGORI_PRIORITAS as readonly string[]).includes(k));
+      if (berisiko) prioritasAktif += 1;
+
+      // Curhatan yang belum ditugaskan terkunci untuk SEMUA Guru BK — angka
+      // ini yang paling perlu dilihat Super Admin setiap membuka dasbor.
+      const ditugaskan = typeof data.guruDitugaskan?.uid === "string" && data.guruDitugaskan.uid;
+      if (!ditugaskan && status !== "selesai") {
+        belumDitugaskan += 1;
+        if (berisiko) belumDitugaskanPrioritas += 1;
       }
 
       if (createdAt) {
@@ -129,6 +137,8 @@ export async function getStatistikCurhatan(): Promise<StatistikCurhatan> {
     totalKeseluruhan,
     total30HariTerakhir,
     prioritasAktif,
+    belumDitugaskan,
+    belumDitugaskanPrioritas,
     perKategori,
     perMood,
     perStatus,

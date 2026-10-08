@@ -107,6 +107,9 @@ export interface StatistikCurhatan {
   totalKeseluruhan: number;
   total30HariTerakhir: number;
   prioritasAktif: number;
+  /** Curhatan terbuka yang belum ditugaskan ke Guru BK (terkunci untuk semua guru). */
+  belumDitugaskan: number;
+  belumDitugaskanPrioritas: number;
   perKategori: Record<KategoriCurhat, number>;
   perMood: Record<Mood, number>;
   perStatus: Record<TicketStatus, number>;

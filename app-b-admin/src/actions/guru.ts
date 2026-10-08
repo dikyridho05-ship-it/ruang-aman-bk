@@ -177,6 +177,16 @@ export async function deleteGuruAction(uid: string, nama: string): Promise<Mutat
   if (!admin) return { success: false, error: "Sesi login habis, silakan login ulang." };
 
   await adminDb.collection("guru").doc(uid).delete();
+
+  // Curhatan yang ditangani guru ini kembali ke "belum ditugaskan" — kalau
+  // dibiarkan, curhatan itu terkunci untuk semua Guru BK selamanya.
+  const ditangani = await adminDb.collection("curhatan").where("guruDitugaskan.uid", "==", uid).get();
+  if (!ditangani.empty) {
+    const batch = adminDb.batch();
+    for (const d of ditangani.docs) batch.update(d.ref, { guruDitugaskan: null });
+    await batch.commit();
+  }
+
   await adminAuth.deleteUser(uid).catch((err) => {
     // Dokumen Firestore-nya sudah terhapus (efek langsung: akun ini tidak
     // lolos lagi cek getAuthenticatedGuru di App A) walau hapus akun Auth-nya
@@ -184,7 +194,11 @@ export async function deleteGuruAction(uid: string, nama: string): Promise<Mutat
     console.error("[deleteGuruAction] hapus akun Auth gagal:", err);
   });
 
-  await catatAudit(admin.nama, "Hapus Akun Guru BK", nama);
+  await catatAudit(
+    admin.nama,
+    "Hapus Akun Guru BK",
+    ditangani.empty ? nama : `${nama} — ${ditangani.size} curhatan kembali menunggu penugasan`
+  );
 
   return { success: true };
 }
