@@ -15,10 +15,10 @@ export default function PasswordField({
 
   return (
     <div>
-      <label htmlFor={name} className="block text-sm font-semibold text-slate-700">
+      <label htmlFor={name} className="block text-sm font-medium text-slate-700">
         {label}
       </label>
-      <div className="mt-1.5 flex items-center rounded-xl border border-slate-300 bg-white pr-2 focus-within:border-brand-500 focus-within:ring-2 focus-within:ring-brand-200">
+      <div className="mt-1 flex items-center rounded-xl border border-slate-300 bg-white pr-2 focus-within:ring-2 focus-within:ring-brand-500">
         <input
           id={name}
           name={name}
@@ -27,7 +27,7 @@ export default function PasswordField({
           minLength={8}
           maxLength={72}
           autoComplete="new-password"
-          className="w-full rounded-xl px-3.5 py-3 text-[15px] outline-none"
+          className="w-full rounded-xl px-3 py-2 text-sm outline-none"
           placeholder="Minimal 8 karakter"
         />
         <button

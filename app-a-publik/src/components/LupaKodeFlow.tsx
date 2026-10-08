@@ -43,7 +43,7 @@ export default function LupaKodeFlow() {
           <p className="text-3xl" aria-hidden>
             🔑
           </p>
-          <h1 className="mt-2 text-[24px] font-extrabold leading-tight tracking-tight text-tinta">Kode Konseling kamu ketemu</h1>
+          <h1 className="mt-2 text-xl font-bold text-slate-900">Kode Konseling kamu ketemu</h1>
           <p className="mt-1 text-sm text-slate-600">
             Sudah diingat otomatis di HP ini, jadi tidak perlu hafal lagi.
           </p>
@@ -74,10 +74,10 @@ export default function LupaKodeFlow() {
     <div className="flex min-h-dvh flex-col items-center justify-center px-4 pt-8 pb-20">
       <form
         onSubmit={handleSubmit}
-        className="w-full max-w-md space-y-4 rounded-2xl bg-white p-6 ring-1 ring-slate-200 sm:p-8"
+        className="w-full max-w-md space-y-4 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm"
       >
         <div>
-          <h1 className="text-[24px] font-extrabold leading-tight tracking-tight text-tinta">Lupa Kode Konseling</h1>
+          <h1 className="text-xl font-bold text-slate-900">Lupa Kode Konseling</h1>
           <p className="mt-1 text-sm text-slate-500">
             Isi nama samaran dan password yang kamu buat sendiri waktu curhat. Kalau cocok,
             kodenya akan ditampilkan lagi di sini.
@@ -88,7 +88,7 @@ export default function LupaKodeFlow() {
           <div
             role="alert"
             aria-live="assertive"
-            className="rounded-lg border-l-4 border-red-500 bg-red-50 px-3.5 py-3 text-sm text-red-800"
+            className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700"
           >
             {error}
           </div>
@@ -103,7 +103,7 @@ export default function LupaKodeFlow() {
             required
             value={namaSamaran}
             onChange={(e) => setNamaSamaran(e.target.value)}
-            className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3.5 py-3 text-[15px] outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-200"
+            className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-brand-500"
           />
         </div>
 
@@ -117,14 +117,14 @@ export default function LupaKodeFlow() {
             required
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3.5 py-3 text-[15px] outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-200"
+            className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-brand-500"
           />
         </div>
 
         <button
           type="submit"
           disabled={loading}
-          className="w-full rounded-xl bg-brand-600 py-3.5 text-[15px] font-bold text-white hover:bg-brand-700 disabled:opacity-60"
+          className="w-full rounded-xl bg-brand-600 py-2.5 font-semibold text-white disabled:opacity-60"
         >
           {loading ? "Mencari..." : "Cari Kode Saya"}
         </button>
@@ -151,7 +151,7 @@ export default function LupaKodeFlow() {
             href="/"
             className="inline-flex items-center gap-1.5 text-xs font-medium text-slate-500 hover:text-brand-700"
           >
-            Kembali ke beranda
+            ← Kembali ke Halaman Utama
           </Link>
         </div>
       </form>

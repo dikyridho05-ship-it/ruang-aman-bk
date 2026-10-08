@@ -15,9 +15,9 @@ function SubmitButton() {
     <button
       type="submit"
       disabled={pending}
-      className="rounded text-sm font-medium text-brand-100 hover:text-white
-        disabled:cursor-not-allowed disabled:opacity-50
-        focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300"
+      className="text-sm font-medium text-red-600 underline
+        disabled:opacity-50 disabled:cursor-not-allowed
+        focus:outline-none focus:ring-2 focus:ring-red-400 focus:rounded-sm"
     >
       {pending ? (
         <span className="flex items-center gap-1">
@@ -40,7 +40,7 @@ function SubmitButton() {
               d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
             />
           </svg>
-          Keluar…
+          Keluar...
         </span>
       ) : (
         "Keluar"

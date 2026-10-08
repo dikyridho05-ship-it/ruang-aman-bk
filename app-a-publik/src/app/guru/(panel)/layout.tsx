@@ -4,11 +4,10 @@ import { adminDb } from "@/lib/firebase/admin";
 import { getPiketHariIni } from "@/lib/firestore/piket";
 import { keTicketRow } from "@/lib/firestore/ticket-row";
 import { janjiMenungguGuru, janjiMilikGuru, janjiPadaHari } from "@/lib/janji/server";
-import { tanggalPanjang } from "@/lib/waktu";
-import GuruShell from "@/components/guru/GuruShell";
 import PushSubscribeButton from "@/components/PushSubscribeButton";
+import GuruShell from "@/components/guru/GuruShell";
 import DaftarCurhatan from "@/components/guru/DaftarCurhatan";
-import RingkasanHariIni, { RingkasanPadat } from "@/components/guru/RingkasanHariIni";
+import PanelSamping from "@/components/guru/PanelSamping";
 import type { TicketRow } from "@/types/ticket";
 
 export const dynamic = "force-dynamic";
@@ -17,7 +16,7 @@ export const dynamic = "force-dynamic";
  * Layout panel Guru BK — dipakai bersama oleh /guru (belum ada tiket
  * terpilih) dan /guru/{kode} (satu tiket terbuka).
  *
- * Daftar curhatan & ringkasan hari ini diambil DI SINI, bukan di
+ * Daftar curhatan & panel samping diambil DI SINI, bukan di
  * masing-masing halaman: layout tidak dirender ulang saat berpindah antar
  * halaman anaknya, jadi guru bisa meloncat dari satu curhatan ke curhatan
  * berikutnya tanpa daftar di kiri berkedip. Perubahan status tetap
@@ -68,23 +67,26 @@ export default async function GuruPanelLayout({
           initialHasMore={hasMoreAwal}
           panelRingkas={
             <>
-              <RingkasanPadat
-                piket={piketHariIni}
-                tickets={rawTickets}
-                janjiHariIni={janjiHariIni}
-                janjiMenunggu={janjiMenunggu}
-              />
-              <div className="shrink-0 px-1 lg:hidden">
+              <div className="shrink-0 rounded-2xl border border-slate-200 bg-white p-3 shadow-sm">
                 <PushSubscribeButton />
+              </div>
+              {/* Di bawah xl panel kanan tidak muat; isinya yang paling
+                  penting tetap ikut, dalam bentuk beberapa baris padat. */}
+              <div className="shrink-0 xl:hidden">
+                <PanelSamping
+                  piket={piketHariIni}
+                  tickets={rawTickets}
+                  janjiHariIni={janjiHariIni}
+                  janjiMenunggu={janjiMenunggu}
+                  ringkas
+                />
               </div>
             </>
           }
         />
       }
-      ringkasan={
-        <RingkasanHariIni
-          guruNama={guru.nama}
-          tanggal={tanggalPanjang(sekarang)}
+      panelSamping={
+        <PanelSamping
           piket={piketHariIni}
           tickets={rawTickets}
           janjiHariIni={janjiHariIni}

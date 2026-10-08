@@ -15,12 +15,12 @@ import {
 import ChatThread from "@/components/ChatThread";
 import SiswaPushSubscribeButton from "@/components/SiswaPushSubscribeButton";
 import JanjiSiswa from "@/components/janji/JanjiSiswa";
-import BingkaiFormSiswa from "@/components/BingkaiFormSiswa";
 import type { SerializedMessage } from "@/types/ticket";
 import type { JanjiTemu } from "@/types/janji";
 
 interface CekBalasanFlowProps {
-  /** Sesi siswa sudah dicek di server (lihat app/cek-balasan/page.tsx). */
+  /** Sesi siswa sudah dicek di server (lihat app/cek-balasan/page.tsx) — kalau
+   * true, langsung tampilkan percakapan tanpa form login. */
   initialVerified?: boolean;
   initialMessages?: SerializedMessage[];
   kodeAwal?: string | null;
@@ -65,12 +65,22 @@ export default function CekBalasanFlow({
   }
 
   if (verified) {
-    // Satu layar penuh tepi-ke-tepi seperti aplikasi chat native (dibatasi
-    // lebarnya hanya di layar besar). `pb-20` menyisakan ruang untuk tombol
-    // darurat mengambang supaya tidak menutupi tombol kirim.
+    // Sengaja FULL-BLEED satu layar penuh (h-dvh, TANPA max-width/padding
+    // sisi yang bikin gutter putih di kiri-kanan) — user eksplisit
+    // membandingkan dengan screenshot Telegram asli & menolak versi
+    // "kartu" sebelumnya (ada bingkai + margin di sekeliling). Di layar
+    // lebar (desktop) baru dibatasi lg:max-w-2xl lg:mx-auto biar tidak
+    // absurd melebar, tapi di HP (target utama app ini) benar-benar
+    // tepi-ke-tepi kayak aplikasi chat native. Judul "Balasan Guru BK"
+    // dihilangkan karena sudah terwakili header ChatThread sendiri. `pb-20`
+    // di bawah menyisakan ruang supaya tombol darurat mengambang (fixed,
+    // lihat EmergencyButton) tidak menutupi tombol kirim chat.
     return (
-      <div className="flex h-dvh flex-col bg-white pb-20 lg:mx-auto lg:max-w-2xl lg:border-x lg:border-slate-200">
-        <div className="min-h-0 flex-1">
+      <div className="flex h-dvh flex-col pb-20 lg:mx-auto lg:max-w-2xl">
+        <div className="shrink-0 px-3 pt-3 sm:px-4">
+          <SiswaPushSubscribeButton />
+        </div>
+        <div className="mt-2 min-h-0 flex-1">
           <ChatThread
             initialMessages={initialMessages}
             myRole="siswa"
@@ -80,14 +90,11 @@ export default function CekBalasanFlow({
             slotAtas={
               <>
                 {menungguPenugasan && (
-                  <p className="shrink-0 border-b border-amber-100 bg-amber-50 px-4 py-2.5 text-[13px] leading-snug text-amber-900">
-                    Ceritamu sudah diterima dan sedang diteruskan ke Guru BK yang akan menanganimu. Kalau
-                    kamu dalam bahaya sekarang, tekan tombol Bantuan darurat.
+                  <p className="shrink-0 border-b border-amber-200 bg-amber-50 px-4 py-2.5 text-xs leading-snug text-amber-800">
+                    ⏳ Ceritamu sudah diterima dan sedang diteruskan ke Guru BK yang akan menanganimu.
+                    Kalau kamu dalam bahaya sekarang, tekan tombol 🆘.
                   </p>
                 )}
-                <div className="shrink-0 border-b border-slate-100 bg-white px-4 py-2">
-                  <SiswaPushSubscribeButton />
-                </div>
                 <JanjiSiswa kode={kodeAktif} janjiAwal={janjiAwal} />
               </>
             }
@@ -98,84 +105,103 @@ export default function CekBalasanFlow({
   }
 
   return (
-    <BingkaiFormSiswa>
-      <TiketTersimpan onPilih={(k) => setKode(k)} />
+    // flex + min-h-dvh + justify-center di sini (bukan cuma mx-auto seperti
+    // sebelumnya) supaya kartu form ini berada di TENGAH layar secara
+    // vertikal juga, tidak nempel ke atas dengan sisa ruang kosong besar di
+    // bawah — terutama kelihatan di HP tinggi. Dibungkus terpisah dari
+    // cabang "verified" full-bleed di atas (yang sengaja TIDAK ikut
+    // di-center, itu memang harus satu layar penuh).
+    <div className="flex min-h-dvh flex-col items-center justify-center px-4 py-8">
+      <div className="w-full max-w-md space-y-4">
+        <TiketTersimpan onPilih={(k) => setKode(k)} />
 
-      <form onSubmit={handleVerify} className="mt-5 space-y-5">
+        <form
+          onSubmit={handleVerify}
+          className="space-y-4 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm"
+        >
         <div>
-          <h1 className="text-[26px] font-extrabold leading-tight tracking-tight text-tinta">
-            Buka balasan Guru BK
-          </h1>
-          <p className="mt-1.5 text-[15px] leading-relaxed text-slate-600">
-            Masukkan Kode Konseling dan password yang kamu buat waktu bercerita.
+          <h1 className="text-xl font-bold text-slate-900">Cek Balasan</h1>
+          <p className="text-sm text-slate-500">
+            Masukkan Kode Konseling &amp; password yang kamu buat waktu curhat.
           </p>
         </div>
 
         {error && (
-          <p role="alert" className="rounded-lg border-l-4 border-red-500 bg-red-50 px-3.5 py-3 text-sm text-red-800">
+          <div
+            role="alert"
+            aria-live="assertive"
+            className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700"
+          >
             {error}
-          </p>
+          </div>
         )}
 
         <div>
-          <label htmlFor="kode" className="block text-sm font-semibold text-slate-700">
+          <label htmlFor="kode" className="block text-sm font-medium text-slate-700">
             Kode Konseling
           </label>
           <input
             id="kode"
             required
-            autoComplete="off"
-            autoCapitalize="characters"
-            spellCheck={false}
             value={kode}
             onChange={(e) => setKode(e.target.value)}
             placeholder="BK-2026-7K3M9Q"
-            className="mt-1.5 w-full rounded-xl border border-slate-300 bg-white px-3.5 py-3 font-mono text-[15px] uppercase tracking-wide outline-none placeholder:normal-case placeholder:tracking-normal placeholder:text-slate-400 focus:border-brand-500 focus:ring-2 focus:ring-brand-200"
+            className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm font-mono outline-none focus:ring-2 focus:ring-brand-500"
           />
         </div>
 
         <div>
-          <div className="flex items-baseline justify-between">
-            <label htmlFor="password" className="block text-sm font-semibold text-slate-700">
-              Password
-            </label>
-            <button
-              type="button"
-              onClick={() => {
-                if (kode.trim()) simpanKodeHandoff(kode.trim().toUpperCase());
-                router.push("/lupa-password");
-              }}
-              className="rounded text-xs font-semibold text-brand-700 hover:underline"
-            >
-              Lupa password?
-            </button>
-          </div>
+          <label htmlFor="password" className="block text-sm font-medium text-slate-700">
+            Password
+          </label>
           <input
             id="password"
             type="password"
             required
-            autoComplete="current-password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="mt-1.5 w-full rounded-xl border border-slate-300 bg-white px-3.5 py-3 text-[15px] outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-200"
+            className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-brand-500"
           />
         </div>
 
         <button
           type="submit"
           disabled={loading}
-          className="w-full rounded-xl bg-brand-600 py-3.5 text-[15px] font-bold text-white transition-colors hover:bg-brand-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 disabled:opacity-60"
+          className="w-full rounded-xl bg-brand-600 py-2.5 font-semibold text-white disabled:opacity-60"
         >
-          {loading ? "Memeriksa…" : "Buka percakapan"}
+          {loading ? "Memeriksa..." : "Buka Percakapan"}
         </button>
 
-        <p className="text-center text-sm text-slate-600">
-          Kodenya hilang?{" "}
-          <Link href="/lupa-kode" className="font-semibold text-brand-700 hover:underline">
-            Cari dengan nama samaran
-          </Link>
-        </p>
-      </form>
-    </BingkaiFormSiswa>
+          <div className="flex items-center justify-center gap-3 text-sm font-medium text-brand-700">
+            <Link
+              href="/lupa-kode"
+              className="hover:underline"
+            >
+              Lupa Kode Konseling?
+            </Link>
+            <span className="text-slate-300" aria-hidden>&middot;</span>
+            <button
+              type="button"
+              onClick={() => {
+                if (kode.trim()) simpanKodeHandoff(kode.trim().toUpperCase());
+                router.push("/lupa-password");
+              }}
+              className="hover:underline"
+            >
+              Lupa Password?
+            </button>
+          </div>
+
+          <div className="pt-2 text-center">
+            <Link
+              href="/"
+              className="inline-flex items-center gap-1.5 text-xs font-medium text-slate-500 hover:text-brand-700"
+            >
+              ← Kembali ke Halaman Utama
+            </Link>
+          </div>
+        </form>
+      </div>
+    </div>
   );
 }

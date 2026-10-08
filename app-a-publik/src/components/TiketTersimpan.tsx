@@ -20,10 +20,10 @@ export default function TiketTersimpan({ onPilih }: { onPilih: (kode: string) =>
   if (!siap || tiket.length === 0) return null;
 
   return (
-    <div className="rounded-xl bg-white p-4 ring-1 ring-slate-200">
-      <p className="text-sm font-bold text-tinta">Kode yang diingat HP ini</p>
+    <div className="rounded-2xl border border-brand-200 bg-brand-50 p-4">
+      <p className="text-sm font-semibold text-brand-800">Tiket di perangkat ini</p>
       <p className="mt-0.5 text-xs text-slate-600">
-        Ketuk untuk mengisi. Password tidak pernah ikut disimpan.
+        Browser ini mengingat kodenya — passwordmu tidak pernah ikut disimpan.
       </p>
 
       <ul className="mt-3 space-y-2">
@@ -32,7 +32,7 @@ export default function TiketTersimpan({ onPilih }: { onPilih: (kode: string) =>
             <button
               type="button"
               onClick={() => onPilih(t.kode)}
-              className="flex-1 rounded-lg bg-kertas px-3 py-2.5 text-left font-mono text-sm font-semibold text-tinta transition-colors hover:bg-brand-50"
+              className="flex-1 rounded-xl border border-brand-200 bg-white px-3 py-2 text-left font-mono text-sm font-semibold text-brand-800 transition hover:border-brand-500"
             >
               {t.kode}
             </button>

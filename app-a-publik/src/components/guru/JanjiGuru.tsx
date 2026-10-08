@@ -84,7 +84,7 @@ export default function JanjiGuru({
 
   return (
     <section aria-labelledby="judul-janji">
-      <h3 id="judul-janji" className="text-sm font-bold text-tinta">
+      <h3 id="judul-janji" className="text-sm font-bold text-slate-900">
         Janji temu
       </h3>
 
@@ -102,7 +102,7 @@ export default function JanjiGuru({
             <button
               type="button"
               onClick={() => setPemilih(true)}
-              className="w-full rounded-lg border border-dashed border-brand-300 px-3 py-2.5 text-left text-[13px] font-semibold text-brand-700 hover:bg-brand-50"
+              className="w-full rounded-xl border border-dashed border-brand-300 px-3 py-2.5 text-left text-[13px] font-semibold text-brand-700 hover:bg-brand-50"
             >
               Tawarkan waktu bertemu ke siswa
             </button>
@@ -110,10 +110,10 @@ export default function JanjiGuru({
         </div>
       ) : (
         <div
-          className={`mt-2 rounded-lg px-3 py-2.5 ${
+          className={`mt-2 rounded-xl px-3 py-2.5 ${
             janji.status === "menunggu" && janji.menungguPihak === "guru"
               ? "bg-brand-50 ring-1 ring-brand-200"
-              : "bg-kertas"
+              : "bg-slate-50"
           }`}
         >
           <p className="text-[11px] font-semibold text-slate-500">
@@ -123,7 +123,7 @@ export default function JanjiGuru({
                 : "Menunggu jawaban siswa"
               : LABEL_STATUS[janji.status]}
           </p>
-          <p className="mt-0.5 text-sm font-bold tabular-nums text-tinta">{labelWaktuJanji(janji.waktuMulaiMs)}</p>
+          <p className="mt-0.5 text-sm font-bold tabular-nums text-slate-900">{labelWaktuJanji(janji.waktuMulaiMs)}</p>
           <p className="text-xs text-slate-600">
             {janji.tempat}
             {janji.guru ? `, ${janji.guru.nama}` : ""}
@@ -136,7 +136,7 @@ export default function JanjiGuru({
                 type="button"
                 disabled={sibuk}
                 onClick={() => jalankan(() => konfirmasiJanjiGuruAction(kode))}
-                className="rounded-md bg-brand-600 px-3 py-1.5 text-xs font-semibold text-white disabled:opacity-50"
+                className="rounded-xl bg-brand-600 px-3 py-1.5 text-xs font-semibold text-white disabled:opacity-50"
               >
                 Konfirmasi
               </button>
@@ -147,7 +147,7 @@ export default function JanjiGuru({
                   type="button"
                   disabled={sibuk}
                   onClick={() => jalankan(() => catatHasilJanjiGuruAction(kode, true))}
-                  className="rounded-md bg-tinta px-3 py-1.5 text-xs font-semibold text-white disabled:opacity-50"
+                  className="rounded-xl bg-brand-600 px-3 py-1.5 text-xs font-semibold text-white disabled:opacity-50"
                 >
                   Sudah bertemu
                 </button>
@@ -155,7 +155,7 @@ export default function JanjiGuru({
                   type="button"
                   disabled={sibuk}
                   onClick={() => jalankan(() => catatHasilJanjiGuruAction(kode, false))}
-                  className="rounded-md px-2.5 py-1.5 text-xs font-medium text-slate-600 hover:bg-white"
+                  className="rounded-xl px-2.5 py-1.5 text-xs font-medium text-slate-600 hover:bg-white"
                 >
                   Tidak datang
                 </button>
@@ -166,7 +166,7 @@ export default function JanjiGuru({
                 type="button"
                 disabled={sibuk}
                 onClick={() => setPemilih(true)}
-                className="rounded-md px-2.5 py-1.5 text-xs font-semibold text-brand-700 hover:bg-white"
+                className="rounded-xl px-2.5 py-1.5 text-xs font-semibold text-brand-700 hover:bg-white"
               >
                 Usulkan waktu lain
               </button>
@@ -175,7 +175,7 @@ export default function JanjiGuru({
               type="button"
               disabled={sibuk}
               onClick={() => setMintaAlasan((v) => !v)}
-              className="rounded-md px-2.5 py-1.5 text-xs font-medium text-slate-500 hover:bg-white"
+              className="rounded-xl px-2.5 py-1.5 text-xs font-medium text-slate-500 hover:bg-white"
             >
               Batalkan
             </button>
@@ -192,13 +192,13 @@ export default function JanjiGuru({
                 onChange={(e) => setAlasan(e.target.value)}
                 maxLength={200}
                 placeholder="Misalnya: ada rapat mendadak"
-                className="mt-1 w-full rounded-md border border-slate-300 px-2.5 py-1.5 text-xs outline-none focus:border-brand-500"
+                className="mt-1 w-full rounded-xl border border-slate-300 px-2.5 py-1.5 text-xs outline-none focus:border-brand-500"
               />
               <button
                 type="button"
                 disabled={sibuk}
                 onClick={() => jalankan(() => batalkanJanjiGuruAction(kode, alasan))}
-                className="mt-1.5 rounded-md px-2.5 py-1.5 text-xs font-semibold text-red-700 hover:bg-red-50"
+                className="mt-1.5 rounded-xl px-2.5 py-1.5 text-xs font-semibold text-red-700 hover:bg-red-50"
               >
                 Ya, batalkan janji
               </button>

@@ -107,29 +107,27 @@ export default function PushToggleButton({
     }
   }
 
-  if (status === "checking" || status === "not-configured") return null;
+  if (status === "checking") return null;
 
-  if (status === "unsupported") {
+  if (status === "unsupported" || status === "not-configured") {
     return (
-      <p className="text-xs leading-snug text-slate-500">
-        Browser ini belum bisa menerima notifikasi. Di iPhone, tambahkan Ruang Aman ke Layar Utama
-        dulu lewat tombol Bagikan.
+      <p className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-500">
+        Notifikasi push belum aktif di proyek ini.
       </p>
     );
   }
 
   return (
-    <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+    <div className="flex flex-wrap items-center gap-2">
       {status === "on" ? (
         <>
-          <span className="inline-flex items-center gap-1.5 text-xs font-medium text-emerald-700">
-            <IkonLonceng className="h-4 w-4" />
-            {activeLabel}
+          <span className="rounded-full bg-emerald-100 px-3 py-1.5 text-xs font-semibold text-emerald-700">
+            🔔 {activeLabel}
           </span>
           <button
             type="button"
             onClick={handleDisable}
-            className="rounded text-xs font-medium text-slate-500 underline-offset-2 hover:underline"
+            className="text-xs font-medium text-slate-500 underline"
           >
             Matikan
           </button>
@@ -139,22 +137,12 @@ export default function PushToggleButton({
           type="button"
           onClick={handleEnable}
           disabled={status === "busy"}
-          className="inline-flex items-center gap-1.5 rounded-full border border-brand-200 bg-white px-3 py-1.5 text-xs font-semibold text-brand-700 hover:bg-brand-50 disabled:opacity-60"
+          className="rounded-full bg-brand-600 px-3 py-1.5 text-xs font-semibold text-white disabled:opacity-60"
         >
-          <IkonLonceng className="h-4 w-4" />
-          {status === "busy" ? "Memproses…" : enableLabel}
+          {status === "busy" ? "Memproses..." : `🔔 ${enableLabel}`}
         </button>
       )}
       {error && <span className="text-xs text-red-600">{error}</span>}
     </div>
-  );
-}
-
-function IkonLonceng({ className }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className={className} aria-hidden>
-      <path d="M6 9.5a6 6 0 1 1 12 0c0 4.5 1.5 6 2 6.5H4c.5-.5 2-2 2-6.5Z" />
-      <path d="M10 19.5a2 2 0 0 0 4 0" />
-    </svg>
   );
 }

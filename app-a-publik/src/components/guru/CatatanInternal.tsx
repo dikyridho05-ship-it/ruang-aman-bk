@@ -53,14 +53,11 @@ export default function CatatanInternal({ kode, guruUid }: { kode: string; guruU
   return (
     <section aria-labelledby="judul-catatan">
       <div className="flex items-baseline justify-between gap-2">
-        <h3 id="judul-catatan" className="text-sm font-bold text-tinta">
+        <h3 id="judul-catatan" className="text-sm font-bold text-slate-900">
           Catatan internal
         </h3>
         <span className="flex items-center gap-1 text-[11px] text-slate-500">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" className="h-3.5 w-3.5" aria-hidden>
-            <rect x="5" y="10.5" width="14" height="9.5" rx="1.5" />
-            <path d="M8.5 10.5V8a3.5 3.5 0 0 1 7 0v2.5" />
-          </svg>
+          <span aria-hidden>🔒</span>
           Siswa tidak bisa melihat
         </span>
       </div>
@@ -76,14 +73,14 @@ export default function CatatanInternal({ kode, guruUid }: { kode: string; guruU
           maxLength={1000}
           rows={3}
           placeholder="Ringkasan kasus, tindak lanjut, atau hal yang perlu diketahui Guru BK lain…"
-          className="w-full resize-y rounded-lg border border-amber-200 bg-amber-50/60 px-3 py-2 text-[13px] leading-relaxed text-slate-800 outline-none placeholder:text-slate-400 focus:border-amber-400 focus:ring-2 focus:ring-amber-100"
+          className="w-full resize-y rounded-xl border border-amber-200 bg-amber-50/60 px-3 py-2 text-[13px] leading-relaxed text-slate-800 outline-none placeholder:text-slate-400 focus:border-amber-400 focus:ring-2 focus:ring-amber-100"
         />
         <div className="mt-1.5 flex items-center justify-end gap-2">
           {galat && <p className="mr-auto text-xs text-red-700">{galat}</p>}
           <button
             type="submit"
             disabled={menyimpan || draf.trim().length === 0}
-            className="rounded-lg bg-tinta px-3 py-1.5 text-xs font-semibold text-white disabled:opacity-40"
+            className="rounded-xl bg-brand-600 px-3 py-1.5 text-xs font-semibold text-white disabled:opacity-40"
           >
             {menyimpan ? "Menyimpan…" : "Simpan catatan"}
           </button>

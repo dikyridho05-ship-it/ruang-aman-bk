@@ -8,11 +8,6 @@ const config: Config = {
   ],
   theme: {
     extend: {
-      fontFamily: {
-        // Plus Jakarta Sans — dirancang di Indonesia (Tokotype). Dimuat dari
-        // paket npm @fontsource (lihat app/layout.tsx), bukan Google Fonts.
-        sans: ['"Plus Jakarta Sans Variable"', "system-ui", "sans-serif"],
-      },
       colors: {
         brand: WARNA_BRAND,
         // Navy tinta — warna teks judul & elemen tegas, satu keluarga dengan

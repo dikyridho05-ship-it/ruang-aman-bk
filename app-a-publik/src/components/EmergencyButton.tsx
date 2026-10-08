@@ -9,15 +9,7 @@ import { EMERGENCY_CONTACTS } from "@/lib/constants/emergency";
  *
  * Modal dilengkapi focus-trap, handler Escape, dan atribut ARIA yang sesuai.
  */
-export default function EmergencyButton({
-  posisi = "bawah",
-}: {
-  /**
-   * "atas" dipakai di halaman isian bertahap: di sana tombol Lanjut/Kirim
-   * berada di pojok kanan bawah, tempat tombol darurat biasanya melayang.
-   */
-  posisi?: "bawah" | "atas";
-} = {}) {
+export default function EmergencyButton() {
   const [open, setOpen] = useState(false);
   const panelRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
@@ -81,18 +73,14 @@ export default function EmergencyButton({
         ref={triggerRef}
         type="button"
         onClick={() => setOpen(true)}
-        aria-haspopup="dialog"
-        // Teks, bukan emoji 🆘: siswa yang panik harus langsung tahu tombol
-        // ini untuk apa, dan emoji tampil berbeda-beda di tiap HP.
-        className={`fixed ${posisi === "atas" ? "right-4 top-3 h-10" : "bottom-4 right-4 h-12"} z-40 flex items-center gap-2 rounded-full bg-red-700 pl-3.5 pr-4
-          text-sm font-bold text-white shadow-[0_6px_20px_-4px_rgba(185,28,28,0.55)]
-          transition hover:bg-red-800 active:scale-95
-          focus:outline-none focus-visible:ring-2 focus-visible:ring-red-400 focus-visible:ring-offset-2`}
+        aria-label="Butuh Bantuan Segera?"
+        title="Butuh Bantuan Segera?"
+        className="fixed bottom-4 right-4 z-40 flex h-14 w-14 items-center justify-center
+          rounded-full bg-red-700 text-2xl text-white shadow-lg
+          hover:bg-red-800 active:scale-95 transition
+          focus:outline-none focus:ring-2 focus:ring-red-400 focus:ring-offset-2"
       >
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5" aria-hidden>
-          <path d="M5 4.5h3.2l1.6 4-2.1 1.3a11 11 0 0 0 6.5 6.5l1.3-2.1 4 1.6V19a1.5 1.5 0 0 1-1.6 1.5A15.5 15.5 0 0 1 3.5 6.1 1.5 1.5 0 0 1 5 4.5Z" />
-        </svg>
-        Bantuan darurat
+        <span aria-hidden>🆘</span>
       </button>
 
       {open && (

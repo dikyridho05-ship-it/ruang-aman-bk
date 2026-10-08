@@ -8,7 +8,7 @@ body {
 }
 
 body {
-  @apply bg-kertas font-sans text-slate-900 antialiased;
+  @apply bg-slate-50 text-slate-900 antialiased;
 }
 
 /* Sebagian siswa menyetel perangkatnya untuk mengurangi animasi (mis. karena

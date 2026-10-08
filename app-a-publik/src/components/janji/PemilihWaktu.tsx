@@ -88,7 +88,7 @@ export default function PemilihWaktu({
         type="button"
         aria-label="Tutup"
         onClick={onTutup}
-        className="absolute inset-0 bg-tinta/40"
+        className="absolute inset-0 bg-slate-900/50"
       />
       <div
         ref={panelRef}
@@ -100,7 +100,7 @@ export default function PemilihWaktu({
       >
         <div className="mx-auto mt-2.5 h-1 w-10 rounded-full bg-slate-300 sm:hidden" aria-hidden />
         <div className="px-5 pb-3 pt-4">
-          <h2 id="judul-pemilih-waktu" className="text-lg font-bold text-tinta">
+          <h2 id="judul-pemilih-waktu" className="text-lg font-bold text-slate-900">
             {judul}
           </h2>
           <p className="mt-1 text-sm leading-relaxed text-slate-600">{keterangan}</p>
@@ -112,7 +112,7 @@ export default function PemilihWaktu({
           )}
 
           {pilihan && pilihan.length === 0 && (
-            <p className="rounded-xl bg-kertas px-4 py-5 text-sm text-slate-600">
+            <p className="rounded-xl bg-slate-50 px-4 py-5 text-sm text-slate-600">
               Belum ada jam kosong dalam dua minggu ke depan. Tulis saja di chat kapan kamu bisa,
               Guru BK akan mengatur waktunya.
             </p>
@@ -140,7 +140,7 @@ export default function PemilihWaktu({
                       }}
                       className={`flex min-w-[68px] shrink-0 flex-col items-center rounded-xl border px-3 py-2 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 ${
                         aktif
-                          ? "border-tinta bg-tinta text-white"
+                          ? "border-brand-600 bg-brand-600 text-white"
                           : "border-slate-200 bg-white text-slate-700 hover:border-brand-300"
                       }`}
                     >
@@ -159,7 +159,7 @@ export default function PemilihWaktu({
                     return (
                       <label
                         key={ms}
-                        className={`cursor-pointer rounded-lg border py-2.5 text-center text-sm font-semibold tabular-nums transition-colors has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-brand-500 ${
+                        className={`cursor-pointer rounded-xl border py-2.5 text-center text-sm font-semibold tabular-nums transition-colors has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-brand-500 ${
                           dipilih
                             ? "border-brand-600 bg-brand-600 text-white"
                             : "border-slate-200 text-slate-700 hover:border-brand-300 hover:bg-brand-50"
@@ -189,14 +189,14 @@ export default function PemilihWaktu({
                   maxLength={200}
                   rows={2}
                   placeholder={placeholderCatatan}
-                  className="mt-1.5 w-full resize-none rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-200"
+                  className="mt-1.5 w-full resize-none rounded-xl border border-slate-300 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-brand-500"
                 />
               </label>
             </>
           )}
 
           {galat && (
-            <p role="alert" className="mt-3 rounded-lg border-l-4 border-red-500 bg-red-50 px-3 py-2.5 text-sm text-red-800">
+            <p role="alert" className="mt-3 rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700">
               {galat}
             </p>
           )}
@@ -205,7 +205,7 @@ export default function PemilihWaktu({
         <div className="flex items-center gap-3 border-t border-slate-100 px-5 py-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
           <p className="min-w-0 flex-1 text-sm text-slate-600" aria-live="polite">
             {slot !== null ? (
-              <span className="font-semibold text-tinta">{labelWaktuJanji(slot)}</span>
+              <span className="font-semibold text-slate-900">{labelWaktuJanji(slot)}</span>
             ) : (
               "Pilih hari dan jam"
             )}
@@ -213,7 +213,7 @@ export default function PemilihWaktu({
           <button
             type="button"
             onClick={onTutup}
-            className="rounded-lg px-3 py-2.5 text-sm font-medium text-slate-600 hover:bg-slate-100"
+            className="rounded-xl px-3 py-2.5 text-sm font-medium text-slate-600 hover:bg-slate-100"
           >
             Batal
           </button>
@@ -221,7 +221,7 @@ export default function PemilihWaktu({
             type="button"
             disabled={slot === null || mengirim}
             onClick={kirim}
-            className="rounded-lg bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-700 disabled:opacity-40"
+            className="rounded-xl bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-700 disabled:opacity-40"
           >
             {mengirim ? "Mengirim…" : labelKirim}
           </button>

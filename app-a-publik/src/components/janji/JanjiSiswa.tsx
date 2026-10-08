@@ -76,7 +76,7 @@ export default function JanjiSiswa({
         <p className="min-w-0 flex-1 text-[13px] leading-snug text-slate-600">
           {dibatalkanGuru ? (
             <>
-              <span className="font-semibold text-tinta">Guru BK membatalkan janji temu.</span>
+              <span className="font-semibold text-slate-900">Guru BK membatalkan janji temu.</span>
               {janji?.catatan ? ` “${janji.catatan}”` : ""}
             </>
           ) : (
@@ -98,7 +98,7 @@ export default function JanjiSiswa({
         <div className="flex items-start gap-3">
           <IkonJam aktif />
           <div className="min-w-0 flex-1">
-            <p className="text-[13px] font-semibold text-tinta">
+            <p className="text-[13px] font-semibold text-slate-900">
               {janji.guru?.nama ?? "Guru BK"} mengusulkan bertemu {labelWaktuJanji(janji.waktuMulaiMs)}
             </p>
             {janji.catatan && <p className="mt-0.5 text-[13px] text-slate-600">“{janji.catatan}”</p>}
@@ -131,7 +131,7 @@ export default function JanjiSiswa({
         <div className="flex items-start gap-3">
           <IkonJam aktif={terkonfirmasi} />
           <div className="min-w-0 flex-1">
-            <p className="text-[13px] font-semibold text-tinta">
+            <p className="text-[13px] font-semibold text-slate-900">
               {terkonfirmasi ? "Janji temu pasti: " : "Menunggu konfirmasi Guru BK: "}
               {labelWaktuJanji(janji.waktuMulaiMs)}
             </p>
@@ -142,7 +142,7 @@ export default function JanjiSiswa({
                   {janji.guru ? ` bersama ${janji.guru.nama}` : ""}.
                   {kode ? (
                     <>
-                      {" "}Sebutkan kode <span className="font-mono font-semibold text-tinta">{kode}</span> saat datang.
+                      {" "}Sebutkan kode <span className="font-mono font-semibold text-slate-900">{kode}</span> saat datang.
                     </>
                   ) : null}
                 </>
@@ -222,14 +222,8 @@ export default function JanjiSiswa({
 
 function IkonJam({ aktif = false }: { aktif?: boolean }) {
   return (
-    <span
-      className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center ${aktif ? "text-brand-600" : "text-slate-400"}`}
-      aria-hidden
-    >
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" className="h-5 w-5">
-        <circle cx="12" cy="12" r="8.5" />
-        <path d="M12 7.5V12l3 2" />
-      </svg>
+    <span className={`mt-px w-5 shrink-0 text-center text-base leading-5 ${aktif ? "" : "opacity-60"}`} aria-hidden>
+      📅
     </span>
   );
 }

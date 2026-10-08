@@ -628,7 +628,7 @@ export default function ChatThread({
             }}
           >
             <option value="" disabled>
-              Isi dari template balasan…
+              ⚡ Pakai template balasan cepat...
             </option>
             {templates.map((t) => (
               <option key={t.id} value={t.id}>
@@ -657,7 +657,7 @@ export default function ChatThread({
                 className="absolute -right-1.5 -top-1.5 flex h-5 w-5 items-center justify-center rounded-full text-xs text-white shadow"
                 style={{ backgroundColor: "#94a3b8" }}
               >
-                <IkonTutup className="h-3 w-3" />
+                ✕
               </button>
             </div>
             <p className="text-xs" style={{ color: WARNA_TEKS_REDUP }}>

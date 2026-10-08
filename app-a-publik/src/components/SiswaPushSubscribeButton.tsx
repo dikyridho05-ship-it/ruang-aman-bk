@@ -7,8 +7,8 @@ import { saveSiswaPushSubscriptionAction, removeSiswaPushSubscriptionAction } fr
 export default function SiswaPushSubscribeButton() {
   return (
     <PushToggleButton
-      enableLabel="Kabari saya kalau dibalas"
-      activeLabel="Kamu akan dikabari saat dibalas"
+      enableLabel="Aktifkan Notifikasi Balasan"
+      activeLabel="Notifikasi balasan aktif di perangkat ini"
       subscribeAction={saveSiswaPushSubscriptionAction}
       unsubscribeAction={removeSiswaPushSubscriptionAction}
     />

@@ -66,7 +66,7 @@ export default function LupaPasswordFlow() {
           <p className="text-3xl" aria-hidden>
             🎉
           </p>
-          <h1 className="mt-2 text-[24px] font-extrabold leading-tight tracking-tight text-tinta">
+          <h1 className="mt-2 text-xl font-bold text-slate-900">
             Password Berhasil Diperbarui!
           </h1>
           <p className="mt-1 text-sm text-slate-600">
@@ -96,10 +96,10 @@ export default function LupaPasswordFlow() {
     <div className="flex min-h-dvh flex-col items-center justify-center px-4 pt-8 pb-20">
       <form
         onSubmit={handleSubmit}
-        className="w-full max-w-md space-y-4 rounded-2xl bg-white p-6 ring-1 ring-slate-200 sm:p-8"
+        className="w-full max-w-md space-y-4 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm"
       >
         <div>
-          <h1 className="text-[24px] font-extrabold leading-tight tracking-tight text-tinta">Lupa Password Konseling</h1>
+          <h1 className="text-xl font-bold text-slate-900">Lupa Password Konseling</h1>
           <p className="mt-1 text-sm text-slate-500">
             Masukkan Kode Konseling dan Nama Samaran yang kamu gunakan saat curhat untuk membuat password baru.
           </p>
@@ -109,7 +109,7 @@ export default function LupaPasswordFlow() {
           <div
             role="alert"
             aria-live="assertive"
-            className="rounded-lg border-l-4 border-red-500 bg-red-50 px-3.5 py-3 text-sm text-red-800"
+            className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700"
           >
             {error}
           </div>
@@ -139,7 +139,7 @@ export default function LupaPasswordFlow() {
             value={namaSamaran}
             onChange={(e) => setNamaSamaran(e.target.value)}
             placeholder="Contoh: Bintang Malam"
-            className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3.5 py-3 text-[15px] outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-200"
+            className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-brand-500"
           />
         </div>
 
@@ -186,7 +186,7 @@ export default function LupaPasswordFlow() {
             value={konfirmasiPassword}
             onChange={(e) => setKonfirmasiPassword(e.target.value)}
             placeholder="Ketik ulang password baru"
-            className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3.5 py-3 text-[15px] outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-200"
+            className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-brand-500"
           />
         </div>
 
@@ -216,7 +216,7 @@ export default function LupaPasswordFlow() {
             href="/"
             className="inline-flex items-center gap-1.5 text-xs font-medium text-slate-500 hover:text-brand-700"
           >
-            Kembali ke beranda
+            ← Kembali ke Halaman Utama
           </Link>
         </div>
       </form>

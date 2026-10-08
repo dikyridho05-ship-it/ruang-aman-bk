@@ -3,20 +3,11 @@ import Link from "next/link";
 import { getSekolahSettings, getLatarBeranda } from "@/lib/firestore/settings";
 import { OPASITAS_LATAR_BERANDA } from "@/lib/constants/latar-beranda";
 import EmergencyButton from "@/components/EmergencyButton";
-import JamLayananBadge from "@/components/JamLayananBadge";
 
 // Selalu ambil data terbaru dari Firestore — nama/logo/foto latar bisa diubah
 // App B kapan saja.
 export const dynamic = "force-dynamic";
 
-/**
- * Beranda — halaman pertama setelah siswa memindai QR.
- *
- * Yang paling khas dari layanan ini bukan tombolnya, tapi cara siswa
- * dikenali: lewat Kode Konseling, bukan nama. Karena itu elemen utama
- * halaman adalah contoh kartu kode itu sendiri — siswa melihat dulu
- * "seperti inilah kamu akan dikenali", baru diajak mulai.
- */
 export default async function BerandaPage() {
   const [{ namaSekolah, logoBase64 }, { fotoBase64 }] = await Promise.all([
     getSekolahSettings(),
@@ -24,110 +15,82 @@ export default async function BerandaPage() {
   ]);
 
   return (
-    <div className="relative flex min-h-dvh flex-col">
+    // pb-20 (bukan py-12 simetris) supaya di HP layar pendek/lama (mis.
+    // 320x568) link "Login Guru BK" di paling bawah tidak ketutupan tombol
+    // "Butuh Bantuan Segera?" yang fixed — pola sama seperti CurhatFlow.tsx,
+    // LupaKodeFlow.tsx & CekBalasanFlow.tsx.
+    <main className="relative flex min-h-screen flex-col items-center justify-center px-4 pt-12 pb-20">
       <LatarFoto adaFoto={!!fotoBase64} />
 
-      <header className="flex items-center gap-3 px-5 pt-5 sm:px-10 sm:pt-8">
+      <div className="w-full max-w-md text-center">
         <Logo logoBase64={logoBase64} namaSekolah={namaSekolah} />
-        <p className="min-w-0 truncate text-sm font-semibold text-tinta">{namaSekolah}</p>
-      </header>
 
-      {/* pb-28 memberi jarak aman dari tombol darurat yang melayang di pojok. */}
-      <main className="mx-auto grid w-full max-w-5xl flex-1 items-center gap-10 px-5 pb-28 pt-10 sm:px-10 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)] lg:gap-16 lg:pb-16">
-        <div>
-          <h1 className="text-[40px] font-extrabold leading-[1.05] tracking-[-0.02em] text-tinta sm:text-[56px]">
-            Cerita dulu.
-            <br />
-            Nama tidak perlu.
-          </h1>
-          <p className="mt-5 max-w-md text-[17px] leading-relaxed text-tinta-soft">
-            Ruang Aman adalah layanan Guru BK {namaSekolah} untuk bercerita tanpa menyebut nama,
-            kelas, atau NIS. Kamu dikenali lewat kode, dan kamu yang memutuskan kapan mau bertemu
-            langsung.
-          </p>
+        {/* Nama sekolah ikut di dalam <h1> (bukan <p> terpisah sebelum judul)
+            supaya pembaca layar tidak membaca teks lepas tanpa konteks
+            heading sebelum judul utama. Tampilannya tetap seperti sebelumnya
+            berkat kelas di masing-masing <span>. */}
+        <h1 className="mt-3 text-3xl font-bold text-slate-900">
+          <span className="block text-sm font-medium text-slate-500">{namaSekolah}</span>
+          <span className="mt-1 block">Ruang Aman</span>
+        </h1>
 
-          <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-            <Link
-              href="/curhat"
-              className="rounded-xl bg-brand-600 px-7 py-4 text-center text-base font-bold text-white transition-colors hover:bg-brand-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2"
-            >
-              Mulai cerita
-            </Link>
-            <Link
-              href="/cek-balasan"
-              className="rounded-xl bg-white px-7 py-4 text-center text-base font-bold text-tinta ring-1 ring-slate-300 transition-colors hover:ring-brand-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
-            >
-              Buka balasan
-            </Link>
-          </div>
+        <p className="mt-2 text-sm text-slate-500">
+          Curhat aman &amp; rahasia bersama Guru BK.
+        </p>
 
-          <div className="mt-6 max-w-md">
-            <JamLayananBadge />
-          </div>
-        </div>
-
-        <KartuKodeContoh />
-      </main>
-
-      <footer className="px-5 pb-6 sm:px-10">
-        <Link href="/guru/login" className="rounded text-xs font-medium text-slate-500 hover:text-tinta hover:underline">
-          Masuk sebagai Guru BK
+        <Link
+          href="/curhat"
+          className="mt-8 block w-full rounded-xl bg-brand-600 py-3 font-semibold text-white shadow-sm hover:bg-brand-700"
+        >
+          Mulai Curhat
         </Link>
-      </footer>
+
+        <Link
+          href="/cek-balasan"
+          className="mt-3 block w-full rounded-xl border border-brand-200 bg-white py-3 font-semibold text-brand-700 shadow-sm hover:bg-brand-50"
+        >
+          Cek Balasan
+        </Link>
+
+        <Link
+          href="/guru/login"
+          className="mt-8 inline-block text-xs font-medium text-slate-400 underline hover:text-slate-600"
+        >
+          Login Guru BK
+        </Link>
+      </div>
 
       <EmergencyButton />
-    </div>
+    </main>
   );
 }
 
 /**
- * Contoh kartu Kode Konseling — bentuk yang sama dengan gambar kartu yang
- * bisa disimpan siswa setelah mengirim cerita (lihat unduhKartuKode).
- * Karakter kodenya disamarkan: ini contoh, bukan kode siapa pun.
+ * Lapisan foto latar sebagai pita samar di belakang konten.
+ *
+ * `fixed` (bukan absolute) supaya di HP layar pendek fotonya tetap memenuhi
+ * layar tanpa ikut melar saat halaman di-scroll. `pointer-events-none` +
+ * `aria-hidden` supaya benar-benar dekorasi: tidak dibacakan pembaca layar,
+ * tidak pernah menghalangi tombol. next/image dilewati di sini karena
+ * sumbernya data URL base64 dari Firestore — tidak ada yang bisa
+ * dioptimasi, malah menambah lapisan.
+ *
+ * Di HP: h-auto + object-contain, jadi kotak <img> mengikuti tinggi asli
+ * fotonya dan tampil sebagai pita samar di tengah layar (lihat
+ * `items-center` di pembungkusnya). Kalau dipaksa object-cover di layar HP
+ * yang tinggi memanjang, foto gedung yang mendatar (±16:9) ikut diperbesar
+ * ~2,5x dan yang tersisa cuma potongan tengah huruf papan nama — gedungnya
+ * sendiri tidak kelihatan. Kotak <img> yang pas dengan fotonya ini juga
+ * syarat agar gradasi .latar-beranda-foto di globals.css benar-benar
+ * melembutkan tepi FOTO, bukan tepi layar. Mulai layar sedang rasionya
+ * sudah mirip, jadi object-cover yang paling rapi.
  */
-function KartuKodeContoh() {
-  return (
-    <figure className="mx-auto w-full max-w-sm lg:mx-0 lg:justify-self-end">
-      <div className="relative rounded-2xl bg-tinta px-6 pb-6 pt-5 text-white shadow-[0_24px_60px_-20px_rgba(12,35,64,0.55)]">
-        <p className="text-sm text-brand-200">Kode Konseling</p>
-        <p className="mt-2 font-mono text-[28px] font-bold tracking-[0.06em] sm:text-[32px]" aria-label="Contoh kode, disamarkan">
-          BK-2026-<span className="text-brand-300">••••••</span>
-        </p>
-        {/* Sobekan karcis: dua lubang setengah lingkaran + garis putus-putus. */}
-        <div className="relative my-5" aria-hidden>
-          <span className="absolute -left-9 -top-3 h-6 w-6 rounded-full bg-kertas" />
-          <span className="absolute -right-9 -top-3 h-6 w-6 rounded-full bg-kertas" />
-          <div className="border-t border-dashed border-white/25" />
-        </div>
-        <dl className="grid grid-cols-2 gap-4 text-sm">
-          <div>
-            <dt className="text-brand-200">Nama</dt>
-            <dd className="mt-0.5 font-semibold">Tidak ditanya</dd>
-          </div>
-          <div>
-            <dt className="text-brand-200">Kelas</dt>
-            <dd className="mt-0.5 font-semibold">Tidak ditanya</dd>
-          </div>
-          <div className="col-span-2">
-            <dt className="text-brand-200">Dibaca oleh</dt>
-            <dd className="mt-0.5 font-semibold">Guru BK sekolahmu saja</dd>
-          </div>
-        </dl>
-      </div>
-      <figcaption className="mt-3 px-1 text-sm leading-relaxed text-slate-600">
-        Setelah bercerita, kamu mendapat kode seperti ini. Pakai kode itu dan password buatanmu untuk
-        membuka balasan Guru BK.
-      </figcaption>
-    </figure>
-  );
-}
-
 /**
- * Foto latar dari Pengaturan App B, ditampilkan samar di belakang konten.
- * Diambil dari endpoint gambar terpisah (`/api/latar-beranda`), bukan data
- * URL yang disisipkan di HTML — lihat catatan cache di route-nya.
- * Di HP: object-contain (foto gedung yang mendatar tetap utuh); mulai layar
- * sedang: object-cover. Gradasi tepinya ada di globals.css.
+ * Sengaja diambil dari endpoint gambar terpisah (`/api/latar-beranda`),
+ * BUKAN data URL base64 disisipkan langsung di HTML halaman ini — lihat
+ * catatan cache di app/api/latar-beranda/route.ts. Halaman ini cuma perlu
+ * tahu SATU bit info (ada fotonya atau tidak) untuk memutuskan menampilkan
+ * elemen ini sama sekali, bukan seluruh isi fotonya.
  */
 function LatarFoto({ adaFoto }: { adaFoto: boolean }) {
   if (!adaFoto) return null;
@@ -145,22 +108,22 @@ function LatarFoto({ adaFoto }: { adaFoto: boolean }) {
   );
 }
 
-/** Logo sekolah, atau inisial nama sekolah kalau admin belum mengunggah logo. */
-function Logo({ logoBase64, namaSekolah }: { logoBase64: string | null; namaSekolah: string }) {
+/** Logo sekolah, dengan fallback emoji kalau admin belum mengunggah logo. */
+function Logo({
+  logoBase64,
+  namaSekolah,
+}: {
+  logoBase64: string | null;
+  namaSekolah: string;
+}) {
   if (!logoBase64) {
-    const inisial = namaSekolah
-      .split(/\s+/)
-      .filter((k) => /^[A-Za-z0-9]/.test(k))
-      .slice(0, 2)
-      .map((k) => k[0].toUpperCase())
-      .join("");
     return (
-      <span
+      <div
+        className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-brand-100 text-3xl"
         aria-hidden
-        className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-tinta text-xs font-bold text-white"
       >
-        {inisial || "RA"}
-      </span>
+        🏫
+      </div>
     );
   }
 
@@ -168,10 +131,10 @@ function Logo({ logoBase64, namaSekolah }: { logoBase64: string | null; namaSeko
     <Image
       src={logoBase64}
       alt={`Logo ${namaSekolah}`}
-      width={40}
-      height={40}
+      width={80}
+      height={80}
       unoptimized
-      className="h-10 w-10 shrink-0 rounded-full bg-white object-contain"
+      className="mx-auto rounded-full object-contain"
     />
   );
 }
