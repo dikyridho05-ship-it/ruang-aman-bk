@@ -891,6 +891,13 @@ tampilan Beranda dicek lewat screenshot Playwright di dua ukuran layar (HP
   **Catatan internal** di kartu tiket, kartu **Janji Temu** di panel samping, baris 🔒 untuk
   curhatan yang bukan milik guru tersebut.
 
+### Nama samaran di ruang chat (9 Okt 2026)
+- Siswa melihat "Kamu: <nama samaran>" di bilah atas chat; Guru BK yang ditugaskan melihat nama
+  samaran di kartu tiket (dan sebagai nama lawan bicara).
+- Karena Kode Konseling + nama samaran adalah syarat **Lupa Password**, jalur itu diberi pengaman:
+  ditolak dari browser yang sedang login Guru BK, setiap penggantian dicatat di App B → Jejak
+  aktivitas ("Ganti Password Siswa"), dan HP siswa yang mengaktifkan notifikasi dikabari.
+
 ### Kode Akses Sekolah (8 Okt 2026)
 - **Satu kode per sekolah**, dipakai bersama oleh siswa, Guru BK, dan Super Admin. Perangkat yang
   belum memasukkan kode hanya melihat layar kode — di App A untuk semua halaman (termasuk login

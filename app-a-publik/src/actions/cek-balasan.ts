@@ -15,7 +15,7 @@ const JEDA_DETIK = 300; // 5 menit
 export async function verifyCurhatAccessAction(
   kode: string,
   password: string
-): Promise<{ success: true } | { success: false; error: string }> {
+): Promise<{ success: true; namaSamaran: string | null } | { success: false; error: string }> {
   if (!(await punyaAksesSekolah())) return { success: false, error: PESAN_BUTUH_KODE };
   if (!kode?.trim() || !password) {
     return { success: false, error: "Kode dan password wajib diisi." };

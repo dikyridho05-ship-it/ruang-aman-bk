@@ -34,7 +34,7 @@ const PESAN_GAGAL = "Kode Konseling atau password salah.";
 export async function verifyAndCreateSiswaSession(
   kodeInput: string,
   password: string
-): Promise<{ success: true } | { success: false; error: string }> {
+): Promise<{ success: true; namaSamaran: string | null } | { success: false; error: string }> {
   const kode = kodeInput.trim().toUpperCase();
   const ticketRef = adminDb.collection("curhatan").doc(kode);
   const snap = await ticketRef.get();
@@ -66,7 +66,10 @@ export async function verifyAndCreateSiswaSession(
     path: "/",
   });
 
-  return { success: true };
+  return {
+    success: true,
+    namaSamaran: typeof data.namaSamaran === "string" ? data.namaSamaran : null,
+  };
 }
 
 /** Dipanggil dari actions/chat.ts — mengembalikan Kode Konseling kalau sesi masih valid. */

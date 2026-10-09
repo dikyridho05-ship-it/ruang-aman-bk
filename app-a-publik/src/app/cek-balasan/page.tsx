@@ -41,6 +41,7 @@ export default async function CekBalasanPage() {
         kodeAwal={kode}
         janjiAwal={janjiAwal}
         menungguPenugasan={menungguPenugasan}
+        namaSamaranAwal={typeof sesi?.data.namaSamaran === "string" ? sesi.data.namaSamaran : null}
       />
       <EmergencyButton />
     </main>

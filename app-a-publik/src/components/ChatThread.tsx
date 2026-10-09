@@ -108,6 +108,10 @@ interface ChatThreadProps {
    * yang seharusnya jadi milik percakapan.
    */
   tampilkanHeader?: boolean;
+  /** Nama samaran milik siswa yang sedang membuka chat — ditampilkan di bilah atas. */
+  namaSaya?: string;
+  /** Nama samaran siswa, dipakai sebagai nama lawan bicara di sisi Guru BK. */
+  namaLawan?: string;
 }
 
 // Jam & pembatas tanggal memakai pemformat berzona tetap dari lib/waktu.ts:
@@ -281,6 +285,8 @@ export default function ChatThread({
   tampilkanHeader = true,
   onKetik,
   slotAtas,
+  namaSaya,
+  namaLawan,
 }: ChatThreadProps) {
   const [messages, setMessages] = useState(initialMessages);
   const [bacaLawanMs, setBacaLawanMs] = useState<number | null>(null);
@@ -429,7 +435,7 @@ export default function ChatThread({
     e.target.value = ""; // balik ke placeholder — ini aksi "isi draft", bukan pilihan menetap
   }
 
-  const lawanBicara = myRole === "siswa" ? "Guru BK" : "Siswa (Anonim)";
+  const lawanBicara = myRole === "siswa" ? "Guru BK" : namaLawan || "Siswa (Anonim)";
 
   return (
     // Sengaja TIDAK rounded-2xl/border/shadow lagi — sebelumnya ini
@@ -453,7 +459,7 @@ export default function ChatThread({
           >
             <IkonAvatar className="h-5 w-5" />
           </div>
-          <div className="min-w-0">
+          <div className="min-w-0 flex-1">
             <p className="truncate text-sm font-semibold text-slate-900">{lawanBicara}</p>
             <p
               className="truncate text-[11px]"
@@ -463,6 +469,14 @@ export default function ChatThread({
               {lawanMengetik ? "sedang mengetik…" : "Ruang Aman"}
             </p>
           </div>
+          {namaSaya && (
+            <p
+              className="max-w-[45%] shrink-0 truncate rounded-full bg-slate-100 px-3 py-1 text-xs text-slate-600"
+              title="Nama samaranmu — begini Guru BK mengenalimu"
+            >
+              Kamu: <span className="font-semibold text-slate-900">{namaSaya}</span>
+            </p>
+          )}
         </div>
       )}
 

@@ -70,6 +70,8 @@ export default async function GuruTicketDetailPage({
     janjiUntukTiket(kode),
   ]);
   const initialMessages = initialMessagesResult.success ? initialMessagesResult.messages : [];
+  const namaSamaran =
+    typeof ticket.namaSamaran === "string" && ticket.namaSamaran.trim() ? ticket.namaSamaran.trim() : null;
 
   // Closure "use server" inline — menangkap `kode` dari params. Ini SATU-SATUNYA
   // cara di Next.js supaya fungsi ber-parameter tambahan bisa dioper sebagai
@@ -128,16 +130,23 @@ export default async function GuruTicketDetailPage({
 
           <div className="min-w-0 flex-1">
             <h2 className="line-clamp-2 text-base font-bold text-slate-900 sm:truncate">{ticket.judul}</h2>
+            {namaSamaran && (
+              <p className="truncate text-sm text-slate-700">
+                <span aria-hidden>👤 </span>
+                <span className="text-slate-500">Nama samaran:</span>{" "}
+                <span className="font-semibold">{namaSamaran}</span>
+              </p>
+            )}
             <p className="truncate text-xs text-slate-500">
               {ticket.kode} &middot; {labelKategori(kategori)} &middot; Mood:{" "}
               {MOOD_LABEL[ticket.mood]}
             </p>
-            {/* Nama Samaran SENGAJA tidak ditampilkan di sini: bersama Kode
-                Konseling (sudah terlihat di baris atas), itu persis dua
-                faktor yang diminta resetPasswordSiswaAction (lihat
-                actions/lupa-password.ts). Kalau keduanya tampil di satu
-                layar, guru mana pun yang membuka tiket otomatis memegang
-                kunci untuk mengambil alih akses siswa. */}
+            {/* Nama samaran ditampilkan atas permintaan sekolah supaya Guru BK
+                bisa menyapa siswa. Karena nama samaran + Kode Konseling adalah
+                syarat "Lupa Password", jalur itu diberi pengaman: ditolak dari
+                browser yang sedang login Guru BK, dan setiap penggantian
+                password dicatat di Jejak aktivitas App B serta dikabarkan ke
+                HP siswa (lihat actions/lupa-password.ts). */}
             {ticket.siapBertemuGuruBk && (
               <p className="mt-0.5 truncate text-xs font-medium text-emerald-600">
                 ✓ Siswa bersedia bertemu langsung dengan Guru BK
@@ -169,6 +178,7 @@ export default async function GuruTicketDetailPage({
           onSend={boundSend}
           onPoll={boundPoll}
           onKetik={boundKetik}
+          namaLawan={namaSamaran ?? undefined}
           templates={templates}
           tampilkanHeader={false}
         />

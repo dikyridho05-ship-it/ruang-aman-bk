@@ -27,6 +27,8 @@ interface CekBalasanFlowProps {
   janjiAwal?: JanjiTemu | null;
   /** Belum ada Guru BK yang ditugaskan Super Admin untuk curhatan ini. */
   menungguPenugasan?: boolean;
+  /** Nama samaran siswa sendiri, ditampilkan di bilah atas chat. */
+  namaSamaranAwal?: string | null;
 }
 
 export default function CekBalasanFlow({
@@ -35,10 +37,12 @@ export default function CekBalasanFlow({
   kodeAwal = null,
   janjiAwal = null,
   menungguPenugasan = false,
+  namaSamaranAwal = null,
 }: CekBalasanFlowProps) {
   const router = useRouter();
   const [verified, setVerified] = useState(initialVerified);
   const [kodeAktif, setKodeAktif] = useState<string | null>(kodeAwal);
+  const [namaSamaran, setNamaSamaran] = useState<string | null>(namaSamaranAwal);
   const [kode, setKode] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -61,6 +65,7 @@ export default function CekBalasanFlow({
     const bersih = kode.trim().toUpperCase();
     ingatTiket(bersih);
     setKodeAktif(bersih);
+    setNamaSamaran(result.namaSamaran);
     setVerified(true);
   }
 
@@ -87,6 +92,7 @@ export default function CekBalasanFlow({
             onSend={sendSiswaMessageAction}
             onPoll={getMessagesForSiswaAction}
             onKetik={tandaiSiswaMengetikAction}
+            namaSaya={namaSamaran ?? undefined}
             slotAtas={
               <>
                 {menungguPenugasan && (

@@ -3,8 +3,10 @@
 import { PESAN_BUTUH_KODE, punyaAksesSekolah } from "@/lib/akses/akses-sekolah";
 import { adminDb } from "@/lib/firebase/admin";
 import { hashPassword } from "@/lib/crypto/password";
-import { Timestamp } from "firebase-admin/firestore";
+import { FieldValue, Timestamp } from "firebase-admin/firestore";
 import { verifyAndCreateSiswaSession } from "@/lib/session/siswa-session";
+import { getAuthenticatedGuru } from "@/lib/session/guru-session";
+import { notifySiswa } from "@/lib/push/send-push";
 import {
   catatPercobaanGagalTarget,
   periksaBatasPercobaanTarget,
@@ -35,6 +37,17 @@ export async function resetPasswordSiswaAction(
 
   if (!kode || !namaSamaran) {
     return { success: false, error: "Kode Konseling dan Nama Samaran wajib diisi." };
+  }
+
+  // Guru BK bisa melihat nama samaran siswa di ruang chat. Supaya itu tidak
+  // jadi jalan pintas mengambil alih akun siswa, Lupa Password ditolak dari
+  // browser yang sedang login sebagai Guru BK.
+  if (await getAuthenticatedGuru()) {
+    return {
+      success: false,
+      error:
+        "Browser ini sedang login sebagai Guru BK. Keluar dari panel Guru BK dulu sebelum memakai Lupa Password.",
+    };
   }
 
   if (!passwordBaru || passwordBaru.length < 8) {
@@ -86,6 +99,25 @@ export async function resetPasswordSiswaAction(
   });
 
   await resetPercobaanTarget(NAMA_BATAS, kode);
+
+  // Jejak: Super Admin melihatnya di App B → Jejak aktivitas, dan HP siswa
+  // yang mengaktifkan notifikasi dikabari. Kalau bukan siswa sendiri yang
+  // mengganti, dia tahu dan bisa memulihkannya lagi.
+  try {
+    await adminDb.collection("auditLog").add({
+      aktor: "Siswa (Lupa Password)",
+      aksi: "Ganti Password Siswa",
+      detail: `Password curhatan ${kode} diganti lewat halaman Lupa Password.`,
+      waktu: FieldValue.serverTimestamp(),
+    });
+  } catch (err) {
+    console.error("[resetPasswordSiswaAction] gagal menulis jejak aktivitas:", err);
+  }
+  await notifySiswa(kode, {
+    title: "Password Ruang Aman-mu diganti",
+    body: "Kalau bukan kamu yang menggantinya, buka Lupa Password untuk menggantinya lagi lalu beri tahu Super Admin sekolah.",
+    url: "/lupa-password",
+  }).catch(() => {});
 
   // Sekaligus buatkan sesi login siswa BARU (satu-satunya yang sah sekarang)
   // agar bisa langsung buka percakapan.
