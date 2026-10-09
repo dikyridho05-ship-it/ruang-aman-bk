@@ -15,6 +15,8 @@ export interface CurhatanRow {
   createdAtMs: number | null;
   /** Guru BK yang menangani; null = belum ditugaskan (terkunci untuk semua Guru BK). */
   guruDitugaskan: { uid: string; nama: string } | null;
+  /** Isi chat sudah pernah dibuka Super Admin (sekali per curhatan). */
+  dibukaAdmin: { nama: string; waktuMs: number | null } | null;
 }
 
 type ListResult = { success: true; curhatan: CurhatanRow[] } | { success: false; error: string };
@@ -36,7 +38,7 @@ export async function listCurhatanAction(): Promise<ListResult> {
   try {
     const snap = await adminDb
       .collection("curhatan")
-      .select("kategori", "mood", "status", "createdAt", "guruDitugaskan")
+      .select("kategori", "mood", "status", "createdAt", "guruDitugaskan", "dibukaAdmin")
       .orderBy("createdAt", "desc")
       .limit(BATAS_TAMPIL)
       .get();
@@ -53,6 +55,12 @@ export async function listCurhatanAction(): Promise<ListResult> {
           typeof data.guruDitugaskan?.uid === "string" && data.guruDitugaskan.uid
             ? { uid: data.guruDitugaskan.uid as string, nama: (data.guruDitugaskan.nama as string) || "Guru BK" }
             : null,
+        dibukaAdmin: data.dibukaAdmin
+          ? {
+              nama: (data.dibukaAdmin.nama as string) || "Super Admin",
+              waktuMs: data.dibukaAdmin.waktu?.toMillis ? (data.dibukaAdmin.waktu.toMillis() as number) : null,
+            }
+          : null,
       };
     });
 

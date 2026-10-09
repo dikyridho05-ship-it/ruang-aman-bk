@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import {
@@ -268,6 +269,22 @@ export default function CurhatanList({
                     {c.status ? STATUS_LABEL[c.status] : "Status tidak diketahui"}
                     {c.createdAtMs ? `, masuk ${tanggalWaktu(c.createdAtMs)}` : ""}
                   </p>
+                  {c.dibukaAdmin ? (
+                    <Link
+                      href={`/curhatan/${c.kode}`}
+                      className="mt-1 inline-block text-xs text-slate-500 underline-offset-2 hover:underline"
+                    >
+                      Isi chat sudah dibuka {c.dibukaAdmin.nama}
+                      {c.dibukaAdmin.waktuMs ? `, ${tanggalWaktu(c.dibukaAdmin.waktuMs)}` : ""}
+                    </Link>
+                  ) : (
+                    <Link
+                      href={`/curhatan/${c.kode}`}
+                      className="mt-1 inline-block text-xs font-semibold text-admin-700 underline-offset-2 hover:underline"
+                    >
+                      Lihat isi chat (sekali)
+                    </Link>
+                  )}
                 </div>
 
                 <div className="w-full sm:w-56">

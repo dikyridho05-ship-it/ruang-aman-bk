@@ -898,6 +898,16 @@ tampilan Beranda dicek lewat screenshot Playwright di dua ukuran layar (HP
   ditolak dari browser yang sedang login Guru BK, setiap penggantian dicatat di App B → Jejak
   aktivitas ("Ganti Password Siswa"), dan HP siswa yang mengaktifkan notifikasi dikabari.
 
+### Super Admin membuka isi chat — sekali per curhatan (9 Okt 2026)
+- App B → **Curhatan** → "Lihat isi chat (sekali)" di tiap baris. Super Admin wajib menulis alasan
+  (10–300 karakter) dan mencentang konfirmasi. Penanda `curhatan/{kode}.dibukaAdmin`
+  (`uid`, `nama`, `alasan`, `waktu`) ditulis dalam transaksi **sebelum** pesan dibaca, jadi
+  satu curhatan hanya bisa dibuka satu kali oleh Super Admin mana pun.
+- Isi chat dikirim sebagai hasil Server Action (`actions/buka-chat.ts`) dan hanya hidup di state
+  halaman. Menutup, memuat ulang, atau meninggalkan halaman = isinya hilang; membuka lagi ditolak
+  dan halaman menampilkan siapa, kapan, dan alasannya.
+- Tercatat di Jejak aktivitas sebagai "Buka Isi Chat Curhatan". Siswa dan Guru BK tidak diberi tahu.
+
 ### Kode Akses Sekolah (8 Okt 2026)
 - **Satu kode per sekolah**, dipakai bersama oleh siswa, Guru BK, dan Super Admin. Perangkat yang
   belum memasukkan kode hanya melihat layar kode — di App A untuk semua halaman (termasuk login

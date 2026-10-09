@@ -1,8 +1,9 @@
 /**
  * Bingkai halaman masuk & daftar App B. Panel kiri (layar lebar) memuat
- * identitas sekolah dan satu janji yang memang ditepati kode ini: isi
- * curhatan siswa tidak pernah dibaca App B (semua query di sini memakai
- * `.select()` tanpa field isi). Kalimat itu penting untuk kepala sekolah
+ * identitas sekolah dan batas kewenangan App B: isi curhatan hanya bisa
+ * dibuka Super Admin satu kali per curhatan, dengan alasan yang tercatat
+ * (lihat actions/buka-chat.ts). Query lain tetap memakai `.select()` tanpa
+ * field isi. Kalimat itu penting untuk kepala sekolah
  * atau operator yang baru pertama membuka dasbor — mereka perlu tahu batas
  * kewenangannya sejak halaman pertama.
  */
@@ -35,8 +36,8 @@ export default function AuthBingkai({
           </p>
           <p className="mt-5 text-[15px] leading-relaxed text-admin-200">
             Di sini kamu mengatur akun Guru BK, jadwal piket, dan identitas sekolah, serta melihat
-            statistik layanan. Isi curhatan siswa tidak pernah tampil di dasbor ini — hanya Guru BK
-            yang bisa membacanya.
+            statistik layanan. Isi curhatan siswa hanya dibaca Guru BK yang ditugaskan; Super Admin
+            bisa membukanya satu kali per curhatan, dengan alasan yang tercatat.
           </p>
         </div>
 

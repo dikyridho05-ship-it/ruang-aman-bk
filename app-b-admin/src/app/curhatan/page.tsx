@@ -16,7 +16,9 @@ export default async function CurhatanPage() {
     <main className="max-w-4xl">
       <p className="mb-6 max-w-2xl text-[15px] leading-relaxed text-slate-600">
         Curhatan baru terkunci sampai kamu menugaskannya ke satu Guru BK. Setelah itu hanya guru
-        tersebut yang bisa membaca dan membalasnya. Judul dan isi curhatan tidak ditampilkan di sini.
+        tersebut yang bisa membaca dan membalasnya. Judul dan isi curhatan tidak ditampilkan di sini;
+        kalau perlu, isi chat satu curhatan bisa dibuka satu kali saja lewat “Lihat isi chat”, dengan
+        alasan yang tercatat di Jejak aktivitas.
       </p>
 
       {!result.success && (
